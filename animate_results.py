@@ -1,8 +1,9 @@
 """
-The goal of this program shows as animation of the solution of the optimal control problem.
+The goal of this program is to show an animation of the solution of the optimal control problem.
 """
 
 import numpy as np
+import pickle
 import IPython
 import time
 from bioptim import (
@@ -27,19 +28,22 @@ from bioptim import (
 import bioviz
 
 
-biorbd_model_path = 'models/SoMe.bioMod'
+biorbd_model_path = "models/SoMe.bioMod"
 n_shooting = (40, 100, 100, 100, 40)
 num_twists = 1
 name = "SoMe"
-file_name = f"Solutions/{name}-{num_twists}-{str(n_shooting).replace(', ', '_')}-{timestamp}.pkl"
+file_name = "SoMe-1-(40_100_100_100_40)-2023-04-04-0824.pkl"
 
-with open(file_name, "rb") as f:
+with open("Solutions/" + file_name, "rb") as f:
     data = pickle.load(f)
-    qs = data['qs']
-    qdots = data['qdots']
-    time_vector = data['time_vector']
-    q_reintegrated = data['q_reintegrated']
-    sol = data['sol']
+    sol = data[0]
+    qs = data[1]
+    qdots = data[2]
+    qddots = data[3]
+    time_parameters = data[4]
+    q_reintegrated = data[5]
+    qdot_reintegrated = data[6]
+    time_vector = data[7]
 
 b = bioviz.Viz(biorbd_model_path)
 b.load_movement(qs)
