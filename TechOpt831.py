@@ -14,6 +14,8 @@ import biorbd_casadi as biorbd
 from casadi import MX, Function
 import IPython
 import time
+import sys
+sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
 from bioptim import (
     OptimalControlProgram,
     DynamicsList,
@@ -175,7 +177,7 @@ def prepare_ocp(
          key="q",
          node=Node.ALL_SHOOTING,
          index=shoulder_dofs,
-         target=np.zeros((len(shoulder_dofs), n_shooting[0])),
+         target=np.zeros((len(shoulder_dofs), n_shooting[2])),
          weight=10000,
          phase=2,
     )
@@ -673,7 +675,7 @@ def prepare_ocp(
     # x0[YrotBD, 1] = 1.35
     # x0[XrotC, 0] = -.5
 
-    x1[Xrot] = np.array([-np.pi / 2, 3 / 4 * np.pi])
+    x1[Xrot] = np.array([-np.pi / 2, -3 / 4 * np.pi])
     x1[Zrot] = np.array([2 * np.pi * num_twists, 2 * np.pi * num_twists + np.pi])
     # x1[ZrotBG] = -.75
     # x1[ZrotBD] = .75
@@ -681,7 +683,7 @@ def prepare_ocp(
     # x1[YrotBD] = 1.35
     x1[XrotC] = np.array([0, -2.5])
 
-    x2[Xrot] = np.array([3 / 4 * np.pi, 3 * np.pi])
+    x2[Xrot] = np.array([-3 / 4 * np.pi, -3 * np.pi])
     x2[Zrot] = np.array([2 * np.pi * num_twists + np.pi, 2 * np.pi * num_twists + np.pi])
     # x2[ZrotBG, 0] = -.75
     # x2[ZrotBD, 0] = .75
@@ -689,11 +691,11 @@ def prepare_ocp(
     # x2[YrotBD, 0] = 1.35
     x2[XrotC, 0] = -2.5
 
-    x3[Xrot] = np.array([3 * np.pi, 2 * np.pi + 5 / 4 * np.pi])
+    x3[Xrot] = np.array([-3 * np.pi, -2 * np.pi - 5 / 4 * np.pi])
     x3[Zrot] = np.array([2 * np.pi * num_twists + np.pi, 2 * np.pi * num_twists + 2 * np.pi])
     x3[XrotC] = np.array([-2.5, 0])
 
-    x4[Xrot] = np.array([2 * np.pi + 5 / 4 * np.pi, 4 * np.pi - 0.5])
+    x4[Xrot] = np.array([-2 * np.pi - 5 / 4 * np.pi, -4 * np.pi + 0.5])
     x4[Zrot] = np.array([2 * np.pi * num_twists + 2 * np.pi, 2 * np.pi * num_twists + 2 * np.pi])
     x4[XrotC] = np.array([0, -0.5])
 
@@ -773,9 +775,6 @@ def main():
         qddots = np.hstack((qddots, sol.controls[i]["qddot_joints"]))
     time_parameters = sol.parameters["time"]
 
-    #sol.animate(n_frames=-1, show_floor=False)
-    sol.graphs(show_bounds=True)
-
 
     integrated_sol = sol.integrate(shooting_type=Shooting.SINGLE, integrator=SolutionIntegrator.SCIPY_DOP853)
 
@@ -791,6 +790,7 @@ def main():
     with open(f"Solutions/{name}-{num_twists}-{str(n_shooting).replace(', ', '_')}-{timestamp}.pkl", "wb") as f:
         pickle.dump((sol, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector), f)
 
+    sol.animate(n_frames=-1, show_floor=False)
 
 if __name__ == "__main__":
     main()
