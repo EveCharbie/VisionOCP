@@ -107,6 +107,8 @@ def prepare_ocp(
 
     # Add objective functions
     objective_functions = ObjectiveList()
+
+    # Min controls
     objective_functions.add(
         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=0
     )
@@ -123,11 +125,28 @@ def prepare_ocp(
         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=4
     )
 
+    # Min control derivative
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=100000, phase=0
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=0, derivative=True,
     )
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=100000, phase=1
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=1, derivative=True,
+    )
+    objective_functions.add(
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=2, derivative=True,
+    )
+    objective_functions.add(
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=3, derivative=True,
+    )
+    objective_functions.add(
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=4, derivative=True,
+    )
+
+    objective_functions.add(
+        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=100, phase=0
+    )
+    objective_functions.add(
+        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=100, phase=1
     )
     objective_functions.add(
         ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=-0.01, phase=2
@@ -146,7 +165,7 @@ def prepare_ocp(
         node=Node.END,
         first_marker="MidMainG",
         second_marker="CibleMainG",
-        weight=1000,
+        weight=10,
         phase=1,
     )
     objective_functions.add(
@@ -154,7 +173,7 @@ def prepare_ocp(
          node=Node.END,
          first_marker="MidMainD",
          second_marker="CibleMainD",
-         weight=1000,
+         weight=10,
          phase=1,
      )
 
@@ -169,7 +188,7 @@ def prepare_ocp(
          node=Node.ALL_SHOOTING,
          index=elbow_dofs,
          target=np.zeros((len(elbow_dofs), n_shooting[0])),
-         weight=10000,
+         weight=1000000,
          phase=0,
     )
     objective_functions.add(
@@ -178,7 +197,7 @@ def prepare_ocp(
          node=Node.ALL_SHOOTING,
          index=shoulder_dofs,
          target=np.zeros((len(shoulder_dofs), n_shooting[2])),
-         weight=10000,
+         weight=1000000,
          phase=2,
     )
     objective_functions.add(
@@ -187,7 +206,7 @@ def prepare_ocp(
         node=Node.ALL_SHOOTING,
         index=arm_dofs,
         target=np.zeros((len(arm_dofs), n_shooting[3])),
-        weight=10000,
+        weight=1000000,
         phase=3,
     )
     objective_functions.add(
@@ -196,11 +215,17 @@ def prepare_ocp(
         node=Node.ALL_SHOOTING,
         index=elbow_dofs,
         target=np.zeros((len(elbow_dofs), n_shooting[4])),
-        weight=10000,
+        weight=1000000,
         phase=4,
     )
     objective_functions.add(
         ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[XrotC], target=[0], weight=10000, phase=3
+    )
+    objective_functions.add(
+        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[XrotC], weight=10000, derivative=True, phase=3,
+    )
+    objective_functions.add(
+        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="qdot", node=Node.START, index=[Xrot], weight=10, phase=0, quadratic=False
     )
 
     # Dynamics
@@ -211,7 +236,7 @@ def prepare_ocp(
     dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN)
     dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN)
 
-    qddot_joints_min, qddot_joints_max, qddot_joints_init = -500, 500, 0
+    qddot_joints_min, qddot_joints_max, qddot_joints_init = -1000, 1000, 0
     u_bounds = BoundsList()
     u_bounds.add([qddot_joints_min] * nb_qddot_joints, [qddot_joints_max] * nb_qddot_joints)
     u_bounds.add([qddot_joints_min] * nb_qddot_joints, [qddot_joints_max] * nb_qddot_joints)
@@ -237,14 +262,14 @@ def prepare_ocp(
     # Pour la lisibilite
     START, MIDDLE, END = 0, 1, 2
 
-    # ------------------------------- Phase 0 ------------------------------- #
+    # ------------------------------- Phase 0 : twist ------------------------------- #
     zmax = 9.81 / 8 * final_time**2 + 1
 
     # Pelvis translations
-    x_bounds[0].min[X, :] = -0.2
-    x_bounds[0].max[X, :] = 0.2
-    x_bounds[0].min[Y, :] = -1.0
-    x_bounds[0].max[Y, :] = 1.0
+    x_bounds[0].min[X, :] = -0.25
+    x_bounds[0].max[X, :] = 0.25
+    x_bounds[0].min[Y, :] = -0.5
+    x_bounds[0].max[Y, :] = 0.5
     x_bounds[0][: Z + 1, START] = 0
     x_bounds[0].min[Z, MIDDLE:] = 0
     x_bounds[0].max[Z, MIDDLE:] = zmax
@@ -361,12 +386,12 @@ def prepare_ocp(
     x_bounds[0].max[vYrotC, :] = 100
     x_bounds[0][vYrotC, START] = 0
 
-    # ------------------------------- Phase 1 ------------------------------- #
+    # ------------------------------- Phase 1 : piking ------------------------------- #
     # Pelvis translations
-    x_bounds[1].min[X, :] = -0.2
-    x_bounds[1].max[X, :] = 0.2
-    x_bounds[1].min[Y, :] = -1.0
-    x_bounds[1].max[Y, :] = 1.0
+    x_bounds[1].min[X, :] = -0.25
+    x_bounds[1].max[X, :] = 0.25
+    x_bounds[1].min[Y, :] = -0.5
+    x_bounds[1].max[Y, :] = 0.5
     x_bounds[1].min[Z, :] = 0
     x_bounds[1].max[Z, :] = zmax
 
@@ -431,13 +456,13 @@ def prepare_ocp(
     x_bounds[1].min[vYrotC, :] = -100
     x_bounds[1].max[vYrotC, :] = 100
 
-    # ------------------------------- Phase 2 ------------------------------- #
+    # ------------------------------- Phase 2 : somersault in pike ------------------------------- #
 
     # Pelvis translations
-    x_bounds[2].min[X, :] = -0.2
-    x_bounds[2].max[X, :] = 0.2
-    x_bounds[2].min[Y, :] = -1.0
-    x_bounds[2].max[Y, :] = 1.0
+    x_bounds[2].min[X, :] = -0.25
+    x_bounds[2].max[X, :] = 0.25
+    x_bounds[2].min[Y, :] = -0.5
+    x_bounds[2].max[Y, :] = 0.5
     x_bounds[2].min[Z, :] = 0
     x_bounds[2].max[Z, :] = zmax  # beaucoup plus que necessaire, juste pour que la parabole fonctionne
 
@@ -448,8 +473,8 @@ def prepare_ocp(
     x_bounds[2].min[Yrot, :] = -np.pi / 8
     x_bounds[2].max[Yrot, :] = np.pi / 8
     # Twist
-    x_bounds[2].min[Zrot, :] = 2 * np.pi * num_twists + np.pi - np.pi / 4
-    x_bounds[2].max[Zrot, :] = 2 * np.pi * num_twists + np.pi + np.pi / 4
+    x_bounds[2].min[Zrot, :] = 2 * np.pi * num_twists + np.pi - np.pi / 8
+    x_bounds[2].max[Zrot, :] = 2 * np.pi * num_twists + np.pi + np.pi / 8
 
     # Hips flexion
     x_bounds[2].min[XrotC, :] = -2.5 - 0.2
@@ -495,13 +520,13 @@ def prepare_ocp(
     x_bounds[2].min[vYrotC, :] = -100
     x_bounds[2].max[vYrotC, :] = 100
 
-    # ------------------------------- Phase 3 ------------------------------- #
+    # ------------------------------- Phase 3 : kick out + 1/2 twist ------------------------------- #
 
     # Pelvis translations
-    x_bounds[3].min[X, :] = -0.2
-    x_bounds[3].max[X, :] = 0.2
-    x_bounds[3].min[Y, :] = -1.0
-    x_bounds[3].max[Y, :] = 1.0
+    x_bounds[3].min[X, :] = -0.25
+    x_bounds[3].max[X, :] = 0.25
+    x_bounds[3].min[Y, :] = -0.5
+    x_bounds[3].max[Y, :] = 0.5
     x_bounds[3].min[Z, :] = 0
     x_bounds[3].max[Z, :] = zmax
 
@@ -510,8 +535,8 @@ def prepare_ocp(
     x_bounds[3].max[Xrot, START] = -2 * np.pi
     x_bounds[3].min[Xrot, MIDDLE] = -7/2 * np.pi
     x_bounds[3].max[Xrot, MIDDLE] = -2 * np.pi
-    x_bounds[3].min[Xrot, END] = -7/2 * np.pi + 0.2 - 0.1
-    x_bounds[3].max[Xrot, END] = -7/2 * np.pi + 0.2 + 0.1
+    x_bounds[3].min[Xrot, END] = -7/2 * np.pi + 0.2 - 0.2
+    x_bounds[3].max[Xrot, END] = -7/2 * np.pi + 0.2 + 0.2
     # Tilt
     x_bounds[3].min[Yrot, :] = -np.pi / 4
     x_bounds[3].max[Yrot, :] = np.pi / 4
@@ -528,7 +553,7 @@ def prepare_ocp(
     # Hips flexion
     x_bounds[3].min[XrotC, START] = -2.5 - 0.2
     x_bounds[3].max[XrotC, START] = -2.5 + 0.2
-    x_bounds[3].min[XrotC, MIDDLE] = -2.5 + 0.2
+    x_bounds[3].min[XrotC, MIDDLE] = -2.5 - 0.2
     x_bounds[3].max[XrotC, MIDDLE] = 0.2
     x_bounds[3].min[XrotC, END] = -0.2
     x_bounds[3].max[XrotC, END] = 0.2
@@ -570,13 +595,13 @@ def prepare_ocp(
     x_bounds[3].min[vYrotC, :] = -100
     x_bounds[3].max[vYrotC, :] = 100
 
-    # ------------------------------- Phase 4 ------------------------------- #
+    # ------------------------------- Phase 4 : landing ------------------------------- #
 
     # Pelvis translations
-    x_bounds[4].min[X, :] = -0.2
-    x_bounds[4].max[X, :] = 0.2
-    x_bounds[4].min[Y, :] = -0.1
-    x_bounds[4].max[Y, :] = 0.1
+    x_bounds[4].min[X, :] = -0.25
+    x_bounds[4].max[X, :] = 0.25
+    x_bounds[4].min[Y, :] = -0.5
+    x_bounds[4].max[Y, :] = 0.5
     x_bounds[4].min[Z, :] = 0
     x_bounds[4].max[Z, :] = zmax
     x_bounds[4].min[Z, END] = 0
@@ -584,7 +609,7 @@ def prepare_ocp(
 
     # Somersault
     x_bounds[4].min[Xrot, :] = -0.5 - 4 * np.pi - 0.1
-    x_bounds[4].max[Xrot, :] = -7/2 * np.pi - 0.1
+    x_bounds[4].max[Xrot, :] = -7/2 * np.pi + 0.2 + 0.2
     x_bounds[4].min[Xrot, END] = 0.5 - 4 * np.pi - 0.1
     x_bounds[4].max[Xrot, END] = 0.5 - 4 * np.pi + 0.1
     # Tilt
@@ -674,6 +699,7 @@ def prepare_ocp(
     # x0[YrotBG, 1] = -1.35
     # x0[YrotBD, 1] = 1.35
     # x0[XrotC, 0] = -.5
+    x0[vXrot] = - 4 * np.pi
 
     x1[Xrot] = np.array([-np.pi / 2, -3 / 4 * np.pi])
     x1[Zrot] = np.array([2 * np.pi * num_twists, 2 * np.pi * num_twists + np.pi])
@@ -790,7 +816,7 @@ def main():
     with open(f"Solutions/{name}-{num_twists}-{str(n_shooting).replace(', ', '_')}-{timestamp}.pkl", "wb") as f:
         pickle.dump((sol, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector), f)
 
-    sol.animate(n_frames=-1, show_floor=False)
+    # sol.animate(n_frames=-1, show_floor=False)
 
 if __name__ == "__main__":
     main()
