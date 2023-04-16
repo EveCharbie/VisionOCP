@@ -222,11 +222,13 @@ def prepare_ocp(
         ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[XrotC], target=[0], weight=10000, phase=3
     )
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[XrotC], weight=10000, derivative=True, phase=3,
+        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="qdot", node=list(range(int(n_shooting[3]/4), n_shooting[3])), index=[XrotC], target=[0], weight=100, phase=3,
     )
     objective_functions.add(
         ObjectiveFcn.Mayer.MINIMIZE_STATE, key="qdot", node=Node.START, index=[Xrot], weight=10, phase=0, quadratic=False
     )
+
+    # ajouter une phase avec hanches ouvertes et environ 1/4 du salto
 
     # Dynamics
     dynamics = DynamicsList()
