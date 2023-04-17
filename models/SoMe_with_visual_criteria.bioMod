@@ -78,7 +78,7 @@ endsegment
 
 segment Eyes
 	parent Head
-	rt 0.0 0.0 0.0 xyz 0.0 -0.055 0.085
+	rt 0.0 0.0 0.0 xyz 0.0 -0.07 0.15 // to be checked with anthropo
 	com 0.01 0.0 0.0
 	mass 0.0000001 
 	inertia

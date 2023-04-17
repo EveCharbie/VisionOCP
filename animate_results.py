@@ -31,10 +31,14 @@ from bioptim import (
 from TechOpt831 import prepare_ocp
 
 biorbd_model_path = "models/SoMe.bioMod"
+
+# b = bioviz.Viz(biorbd_model_path)
+# b.exec()
+
 n_shooting = (40, 100, 100, 100, 40)
 num_twists = 1
 name = "SoMe"
-file_name = "SoMe-1-(40_100_100_100_40)-2023-04-10-1409.pkl"
+file_name = "SoMe-1-(40_100_100_100_40)-2023-04-17-0102.pkl"
 
 with open("Solutions/" + file_name, "rb") as f:
     data = pickle.load(f)
@@ -49,8 +53,8 @@ with open("Solutions/" + file_name, "rb") as f:
 
 sol.ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7)
 
-sol.graphs(show_bounds=True)
-
 b = bioviz.Viz(biorbd_model_path)
 b.load_movement(qs)
 b.exec()
+
+sol.graphs(show_bounds=True)
