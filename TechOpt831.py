@@ -41,7 +41,7 @@ from bioptim import (
 
 
 def prepare_ocp(
-    biorbd_model_path: str, n_shooting: tuple, num_twists: int, n_threads: int, ode_solver: OdeSolver = OdeSolver.RK4()
+    biorbd_model_path: str, n_shooting: tuple, num_twists: int, n_threads: int, ode_solver: OdeSolver = OdeSolver.RK4(), WITH_VISUAL_CRITERIA: bool = False
 ) -> OptimalControlProgram:
     """
     Prepare the ocp
@@ -72,38 +72,80 @@ def prepare_ocp(
     nb_qddot_joints = nb_q - biorbd_model[0].nb_root
 
     # for lisibility
-    X = 0
-    Y = 1
-    Z = 2
-    Xrot = 3
-    Yrot = 4
-    Zrot = 5
-    ZrotBD = 6
-    YrotBD = 7
-    ZrotABD = 8
-    XrotABD = 9
-    ZrotBG = 10
-    YrotBG = 11
-    ZrotABG = 12
-    XrotABG = 13
-    XrotC = 14
-    YrotC = 15
-    vX = 0 + nb_q
-    vY = 1 + nb_q
-    vZ = 2 + nb_q
-    vXrot = 3 + nb_q
-    vYrot = 4 + nb_q
-    vZrot = 5 + nb_q
-    vZrotBD = 6 + nb_q
-    vYrotBD = 7 + nb_q
-    vZrotABD = 8 + nb_q
-    vYrotABD = 9 + nb_q
-    vZrotBG = 10 + nb_q
-    vYrotBG = 11 + nb_q
-    vZrotABG = 12 + nb_q
-    vYrotABG = 13 + nb_q
-    vXrotC = 14 + nb_q
-    vYrotC = 15 + nb_q
+    if not WITH_VISUAL_CRITERIA:
+        X = 0
+        Y = 1
+        Z = 2
+        Xrot = 3
+        Yrot = 4
+        Zrot = 5
+        ZrotRightUpperArm = 6
+        YrotRightUpperArm = 7
+        ZrotRightLowerArm = 8
+        XrotRightLowerArm = 9
+        ZrotLeftUpperArm = 10
+        YrotLeftUpperArm = 11
+        ZrotLeftLowerArm = 12
+        XrotLeftLowerArm = 13
+        XrotLegs = 14
+        YrotLegs = 15
+        vX = 0 + nb_q
+        vY = 1 + nb_q
+        vZ = 2 + nb_q
+        vXrot = 3 + nb_q
+        vYrot = 4 + nb_q
+        vZrot = 5 + nb_q
+        vZrotRightUpperArm = 6 + nb_q
+        vYrotRightUpperArm = 7 + nb_q
+        vZrotRightLowerArm = 8 + nb_q
+        vYrotABD = 9 + nb_q
+        vZrotLeftUpperArm = 10 + nb_q
+        vYrotLeftUpperArm = 11 + nb_q
+        vZrotLeftLowerArm = 12 + nb_q
+        vYrotABG = 13 + nb_q
+        vXrotLegs = 14 + nb_q
+        vYrotLegs = 15 + nb_q
+    else:
+        X = 0
+        Y = 1
+        Z = 2
+        Xrot = 3
+        Yrot = 4
+        Zrot = 5
+        ZrotHead = 6
+        XrotHead = 7
+        ZrotEyes = 8
+        XrotEyes = 9
+        ZrotRightUpperArm = 10
+        YrotRightUpperArm = 11
+        ZrotRightLowerArm = 12
+        XrotRightLowerArm = 13
+        ZrotLeftUpperArm = 14
+        YrotLeftUpperArm = 15
+        ZrotLeftLowerArm = 16
+        XrotLeftLowerArm = 17
+        XrotLegs = 18
+        YrotLegs = 19
+        vX = 0 + nb_q
+        vY = 1 + nb_q
+        vZ = 2 + nb_q
+        vXrot = 3 + nb_q
+        vYrot = 4 + nb_q
+        vZrot = 5 + nb_q
+        vZrotHead = 6 + nb_q
+        vXrotHead = 7 + nb_q
+        vZrotEyes = 8 + nb_q
+        vXrotEyes = 9 + nb_q
+        vZrotRightUpperArm = 10 + nb_q
+        vYrotRightUpperArm = 11 + nb_q
+        vZrotRightLowerArm = 12 + nb_q
+        vYrotABD = 13 + nb_q
+        vZrotLeftUpperArm = 14 + nb_q
+        vYrotLeftUpperArm = 15 + nb_q
+        vZrotLeftLowerArm = 16 + nb_q
+        vYrotABG = 17 + nb_q
+        vXrotLegs = 18 + nb_q
+        vYrotLegs = 19 + nb_q
 
     # Add objective functions
     objective_functions = ObjectiveList()
@@ -178,9 +220,9 @@ def prepare_ocp(
      )
 
     # aligning with the FIG regulations
-    arm_dofs = [ZrotBD, YrotBD, ZrotABD, XrotABD, ZrotBG, YrotBG, ZrotABG, XrotABG]
-    shoulder_dofs = [ZrotBD, YrotBD, ZrotBG, YrotBG]
-    elbow_dofs = [ZrotABD, XrotABD, ZrotABG, XrotABG]
+    arm_dofs = [ZrotRightUpperArm, YrotRightUpperArm, ZrotRightLowerArm, XrotRightLowerArm, ZrotLeftUpperArm, YrotLeftUpperArm, ZrotLeftLowerArm, XrotLeftLowerArm]
+    shoulder_dofs = [ZrotRightUpperArm, YrotRightUpperArm, ZrotLeftUpperArm, YrotLeftUpperArm]
+    elbow_dofs = [ZrotRightLowerArm, XrotRightLowerArm, ZrotLeftLowerArm, XrotLeftLowerArm]
 
     objective_functions.add(
          ObjectiveFcn.Lagrange.MINIMIZE_STATE,
@@ -219,16 +261,31 @@ def prepare_ocp(
         phase=4,
     )
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[XrotC], target=[0], weight=10000, phase=3
+        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[XrotLegs], target=[0], weight=10000, phase=3
     )
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="qdot", node=list(range(int(n_shooting[3]/4), n_shooting[3])), index=[XrotC], target=[0], weight=100, phase=3,
+        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="qdot", node=list(range(int(n_shooting[3]/4), n_shooting[3])), index=[XrotLegs], target=[0], weight=100000, phase=3,
     )
     objective_functions.add(
         ObjectiveFcn.Mayer.MINIMIZE_STATE, key="qdot", node=Node.START, index=[Xrot], weight=10, phase=0, quadratic=False
     )
+    objective_functions.add(ObjectiveFcn.Mayer.PROPORTIONAL_STATE, key="q", node=list(range(0, int(n_shooting[3]/4))), first_dof=XrotLegs, second_dof=Zrot,
+                            coef=2.5/(0.5*np.pi), first_dof_intercept=-2.5, second_dof_intercept=3*np.pi, weight=1000000, phase=3, quadratic=True)
+    objective_functions.add(
+        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[Yrot], target=[0], weight=10000, phase=2
+    )
 
-    # ajouter une phase avec hanches ouvertes et environ 1/4 du salto
+    if WITH_VISUAL_CRITERIA:
+        print('add objectives')
+        # Spotting
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_JCS_ROTATION, segment="Head", derivative=True, weight=100, phase=3)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_JCS_ROTATION, segment="Head", derivative=True, weight=100, phase=4)
+        # Self-motion detection
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[], derivative=True, weight=100, phase=3)
+        # Trampoline bed in the peripheral field of view always (more weight at the end and during twist) -> maximizing the area of the intersecting area between gaze cone and trampoline bed
+        # Movement detection during twisting + landing? -> minimizing eye angles velocity
+        # Min energy -> always minimize eye and neck angles a little bit (two planes independantly)
+        # Fixate on the trampoline before landing -> minimize angle between gaze and eye-forward_trampo_marker
 
     # Dynamics
     dynamics = DynamicsList()
@@ -292,23 +349,23 @@ def prepare_ocp(
     x_bounds[0].max[Zrot, END] = 2 * np.pi * num_twists + 0.5
 
     # Right arm
-    x_bounds[0][YrotBD, START] = 2.9
-    x_bounds[0][ZrotBD, START] = 0
+    x_bounds[0][YrotRightUpperArm, START] = 2.9
+    x_bounds[0][ZrotRightUpperArm, START] = 0
     # Left arm
-    x_bounds[0][YrotBG, START] = -2.9
-    x_bounds[0][ZrotBG, START] = 0
+    x_bounds[0][YrotLeftUpperArm, START] = -2.9
+    x_bounds[0][ZrotLeftUpperArm, START] = 0
 
     # Right elbow
-    x_bounds[0][ZrotABD : XrotABD + 1, START] = 0
+    x_bounds[0][ZrotRightLowerArm : XrotRightLowerArm + 1, START] = 0
     # Left elbow
-    x_bounds[0][ZrotABG : XrotABG + 1, START] = 0
+    x_bounds[0][ZrotLeftLowerArm : XrotLeftLowerArm + 1, START] = 0
 
     # Hip flexion
-    x_bounds[0][XrotC, START] = 0
-    x_bounds[0].min[XrotC, MIDDLE:] = -0.2
-    x_bounds[0].max[XrotC, MIDDLE:] = 0.2
+    x_bounds[0][XrotLegs, START] = 0
+    x_bounds[0].min[XrotLegs, MIDDLE:] = -0.2
+    x_bounds[0].max[XrotLegs, MIDDLE:] = 0.2
     # Hip sides
-    x_bounds[0][YrotC, START] = 0
+    x_bounds[0][YrotLegs, START] = 0
 
     vzinit = 9.81 / 2 * final_time
 
@@ -362,31 +419,31 @@ def prepare_ocp(
     )
 
     # Right arm
-    x_bounds[0].min[vZrotBD : vYrotBD + 1, :] = -100
-    x_bounds[0].max[vZrotBD : vYrotBD + 1, :] = 100
-    x_bounds[0][vZrotBD : vYrotBD + 1, START] = 0
+    x_bounds[0].min[vZrotRightUpperArm : vYrotRightUpperArm + 1, :] = -100
+    x_bounds[0].max[vZrotRightUpperArm : vYrotRightUpperArm + 1, :] = 100
+    x_bounds[0][vZrotRightUpperArm : vYrotRightUpperArm + 1, START] = 0
     # Left arm
-    x_bounds[0].min[vZrotBG : vYrotBG + 1, :] = -100
-    x_bounds[0].max[vZrotBG : vYrotBG + 1, :] = 100
-    x_bounds[0][vZrotBG : vYrotBG + 1, START] = 0
+    x_bounds[0].min[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = -100
+    x_bounds[0].max[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = 100
+    x_bounds[0][vZrotLeftUpperArm : vYrotLeftUpperArm + 1, START] = 0
 
     # Right elbow
-    x_bounds[0].min[vZrotABD : vYrotABD + 1, :] = -100
-    x_bounds[0].max[vZrotABD : vYrotABD + 1, :] = 100
-    x_bounds[0][vZrotABD : vYrotABD + 1, START] = 0
+    x_bounds[0].min[vZrotRightLowerArm : vYrotABD + 1, :] = -100
+    x_bounds[0].max[vZrotRightLowerArm : vYrotABD + 1, :] = 100
+    x_bounds[0][vZrotRightLowerArm : vYrotABD + 1, START] = 0
     # Left elbow
-    x_bounds[0].min[vZrotABD : vYrotABG + 1, :] = -100
-    x_bounds[0].max[vZrotABD : vYrotABG + 1, :] = 100
-    x_bounds[0][vZrotABG : vYrotABG + 1, START] = 0
+    x_bounds[0].min[vZrotRightLowerArm : vYrotABG + 1, :] = -100
+    x_bounds[0].max[vZrotRightLowerArm : vYrotABG + 1, :] = 100
+    x_bounds[0][vZrotLeftLowerArm : vYrotABG + 1, START] = 0
 
     # Hip flexion
-    x_bounds[0].min[vXrotC, :] = -100
-    x_bounds[0].max[vXrotC, :] = 100
-    x_bounds[0][vXrotC, START] = 0
+    x_bounds[0].min[vXrotLegs, :] = -100
+    x_bounds[0].max[vXrotLegs, :] = 100
+    x_bounds[0][vXrotLegs, START] = 0
     # Hip sides
-    x_bounds[0].min[vYrotC, :] = -100
-    x_bounds[0].max[vYrotC, :] = 100
-    x_bounds[0][vYrotC, START] = 0
+    x_bounds[0].min[vYrotLegs, :] = -100
+    x_bounds[0].max[vYrotLegs, :] = 100
+    x_bounds[0][vYrotLegs, START] = 0
 
     # ------------------------------- Phase 1 : piking ------------------------------- #
     # Pelvis translations
@@ -412,15 +469,15 @@ def prepare_ocp(
     x_bounds[1].max[Zrot, END] = 2 * np.pi * num_twists + np.pi + 0.5
 
     # Hips flexion
-    x_bounds[1].min[XrotC, START] = -0.2
-    x_bounds[1].max[XrotC, START] = 0.2
-    x_bounds[1].min[XrotC, MIDDLE] = -2.5 - 0.2
-    x_bounds[1].max[XrotC, MIDDLE] = 0.2
-    x_bounds[1].min[XrotC, END] = -2.5 - 0.2
-    x_bounds[1].max[XrotC, END] = -2.5 + 0.2
+    x_bounds[1].min[XrotLegs, START] = -0.2
+    x_bounds[1].max[XrotLegs, START] = 0.2
+    x_bounds[1].min[XrotLegs, MIDDLE] = -2.5 - 0.2
+    x_bounds[1].max[XrotLegs, MIDDLE] = 0.2
+    x_bounds[1].min[XrotLegs, END] = -2.5 - 0.2
+    x_bounds[1].max[XrotLegs, END] = -2.5 + 0.2
     # Hips sides
-    x_bounds[1].min[YrotC, END] = -0.1
-    x_bounds[1].max[YrotC, END] = 0.1
+    x_bounds[1].min[YrotLegs, END] = -0.1
+    x_bounds[1].max[YrotLegs, END] = 0.1
 
     # Translations velocities
     x_bounds[1].min[vX : vY + 1, :] = -10
@@ -438,25 +495,25 @@ def prepare_ocp(
     x_bounds[1].max[vZrot, :] = 100
 
     # Right arm
-    x_bounds[1].min[vZrotBD : vYrotBD + 1, :] = -100
-    x_bounds[1].max[vZrotBD : vYrotBD + 1, :] = 100
+    x_bounds[1].min[vZrotRightUpperArm : vYrotRightUpperArm + 1, :] = -100
+    x_bounds[1].max[vZrotRightUpperArm : vYrotRightUpperArm + 1, :] = 100
     # Left elbow
-    x_bounds[1].min[vZrotBG : vYrotBG + 1, :] = -100
-    x_bounds[1].max[vZrotBG : vYrotBG + 1, :] = 100
+    x_bounds[1].min[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = -100
+    x_bounds[1].max[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = 100
 
     # Right elbow
-    x_bounds[1].min[vZrotABD : vYrotABD + 1, :] = -100
-    x_bounds[1].max[vZrotABD : vYrotABD + 1, :] = 100
+    x_bounds[1].min[vZrotRightLowerArm : vYrotABD + 1, :] = -100
+    x_bounds[1].max[vZrotRightLowerArm : vYrotABD + 1, :] = 100
     # Left elbow
-    x_bounds[1].min[vZrotABD : vYrotABG + 1, :] = -100
-    x_bounds[1].max[vZrotABD : vYrotABG + 1, :] = 100
+    x_bounds[1].min[vZrotRightLowerArm : vYrotABG + 1, :] = -100
+    x_bounds[1].max[vZrotRightLowerArm : vYrotABG + 1, :] = 100
 
     # Hip flexion
-    x_bounds[1].min[vXrotC, :] = -100
-    x_bounds[1].max[vXrotC, :] = 100
+    x_bounds[1].min[vXrotLegs, :] = -100
+    x_bounds[1].max[vXrotLegs, :] = 100
     # Hip sides
-    x_bounds[1].min[vYrotC, :] = -100
-    x_bounds[1].max[vYrotC, :] = 100
+    x_bounds[1].min[vYrotLegs, :] = -100
+    x_bounds[1].max[vYrotLegs, :] = 100
 
     # ------------------------------- Phase 2 : somersault in pike ------------------------------- #
 
@@ -479,11 +536,11 @@ def prepare_ocp(
     x_bounds[2].max[Zrot, :] = 2 * np.pi * num_twists + np.pi + np.pi / 8
 
     # Hips flexion
-    x_bounds[2].min[XrotC, :] = -2.5 - 0.2
-    x_bounds[2].max[XrotC, :] = -2.5 + 0.2
+    x_bounds[2].min[XrotLegs, :] = -2.5 - 0.2
+    x_bounds[2].max[XrotLegs, :] = -2.5 + 0.2
     # Hips sides
-    x_bounds[2].min[YrotC, :] = -0.1
-    x_bounds[2].max[YrotC, :] = 0.1
+    x_bounds[2].min[YrotLegs, :] = -0.1
+    x_bounds[2].max[YrotLegs, :] = 0.1
 
     # Translations velocities
     x_bounds[2].min[vX : vY + 1, :] = -10
@@ -502,25 +559,25 @@ def prepare_ocp(
     x_bounds[2].max[vZrot, :] = 100
 
     # Right arm
-    x_bounds[2].min[vZrotBD : vYrotBD + 1, :] = -100
-    x_bounds[2].max[vZrotBD : vYrotBD + 1, :] = 100
+    x_bounds[2].min[vZrotRightUpperArm : vYrotRightUpperArm + 1, :] = -100
+    x_bounds[2].max[vZrotRightUpperArm : vYrotRightUpperArm + 1, :] = 100
     # Left arm
-    x_bounds[2].min[vZrotBG : vYrotBG + 1, :] = -100
-    x_bounds[2].max[vZrotBG : vYrotBG + 1, :] = 100
+    x_bounds[2].min[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = -100
+    x_bounds[2].max[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = 100
 
     # Right elbow
-    x_bounds[2].min[vZrotABD : vYrotABD + 1, :] = -100
-    x_bounds[2].max[vZrotABD : vYrotABD + 1, :] = 100
+    x_bounds[2].min[vZrotRightLowerArm : vYrotABD + 1, :] = -100
+    x_bounds[2].max[vZrotRightLowerArm : vYrotABD + 1, :] = 100
     # Left elbow
-    x_bounds[2].min[vZrotABD : vYrotABG + 1, :] = -100
-    x_bounds[2].max[vZrotABD : vYrotABG + 1, :] = 100
+    x_bounds[2].min[vZrotRightLowerArm : vYrotABG + 1, :] = -100
+    x_bounds[2].max[vZrotRightLowerArm : vYrotABG + 1, :] = 100
 
     # Hip flexion
-    x_bounds[2].min[vXrotC, :] = -100
-    x_bounds[2].max[vXrotC, :] = 100
+    x_bounds[2].min[vXrotLegs, :] = -100
+    x_bounds[2].max[vXrotLegs, :] = 100
     # Hip sides
-    x_bounds[2].min[vYrotC, :] = -100
-    x_bounds[2].max[vYrotC, :] = 100
+    x_bounds[2].min[vYrotLegs, :] = -100
+    x_bounds[2].max[vYrotLegs, :] = 100
 
     # ------------------------------- Phase 3 : kick out + 1/2 twist ------------------------------- #
 
@@ -553,12 +610,12 @@ def prepare_ocp(
     x_bounds[3].max[Zrot, END] = 2 * np.pi * num_twists + 2 * np.pi + np.pi / 8
 
     # Hips flexion
-    x_bounds[3].min[XrotC, START] = -2.5 - 0.2
-    x_bounds[3].max[XrotC, START] = -2.5 + 0.2
-    x_bounds[3].min[XrotC, MIDDLE] = -2.5 - 0.2
-    x_bounds[3].max[XrotC, MIDDLE] = 0.2
-    x_bounds[3].min[XrotC, END] = -0.2
-    x_bounds[3].max[XrotC, END] = 0.2
+    x_bounds[3].min[XrotLegs, START] = -2.5 - 0.2
+    x_bounds[3].max[XrotLegs, START] = -2.5 + 0.2
+    x_bounds[3].min[XrotLegs, MIDDLE] = -2.5 - 0.2
+    x_bounds[3].max[XrotLegs, MIDDLE] = 0.2
+    x_bounds[3].min[XrotLegs, END] = -0.2
+    x_bounds[3].max[XrotLegs, END] = 0.2
 
     # Translations velocities
     x_bounds[3].min[vX : vY + 1, :] = -10
@@ -577,25 +634,25 @@ def prepare_ocp(
     x_bounds[3].max[vZrot, :] = 100
 
     # Right arm
-    x_bounds[3].min[vZrotBD : vYrotBD + 1, :] = -100
-    x_bounds[3].max[vZrotBD : vYrotBD + 1, :] = 100
+    x_bounds[3].min[vZrotRightUpperArm : vYrotRightUpperArm + 1, :] = -100
+    x_bounds[3].max[vZrotRightUpperArm : vYrotRightUpperArm + 1, :] = 100
     # Left arm
-    x_bounds[3].min[vZrotBG : vYrotBG + 1, :] = -100
-    x_bounds[3].max[vZrotBG : vYrotBG + 1, :] = 100
+    x_bounds[3].min[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = -100
+    x_bounds[3].max[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = 100
 
     # Right elbow
-    x_bounds[3].min[vZrotABD : vYrotABD + 1, :] = -100
-    x_bounds[3].max[vZrotABD : vYrotABD + 1, :] = 100
+    x_bounds[3].min[vZrotRightLowerArm : vYrotABD + 1, :] = -100
+    x_bounds[3].max[vZrotRightLowerArm : vYrotABD + 1, :] = 100
     # Left elbow
-    x_bounds[3].min[vZrotABD : vYrotABG + 1, :] = -100
-    x_bounds[3].max[vZrotABD : vYrotABG + 1, :] = 100
+    x_bounds[3].min[vZrotRightLowerArm : vYrotABG + 1, :] = -100
+    x_bounds[3].max[vZrotRightLowerArm : vYrotABG + 1, :] = 100
 
     # Hip flexion
-    x_bounds[3].min[vXrotC, :] = -100
-    x_bounds[3].max[vXrotC, :] = 100
+    x_bounds[3].min[vXrotLegs, :] = -100
+    x_bounds[3].max[vXrotLegs, :] = 100
     # Hip sides
-    x_bounds[3].min[vYrotC, :] = -100
-    x_bounds[3].max[vYrotC, :] = 100
+    x_bounds[3].min[vYrotLegs, :] = -100
+    x_bounds[3].max[vYrotLegs, :] = 100
 
     # ------------------------------- Phase 4 : landing ------------------------------- #
 
@@ -622,30 +679,30 @@ def prepare_ocp(
     x_bounds[4].max[Zrot, :] = 2 * np.pi * num_twists + 2 * np.pi + np.pi / 8
 
     # Right arm
-    x_bounds[4].min[YrotBD, END] = 2.9 - 0.1
-    x_bounds[4].max[YrotBD, END] = 2.9 + 0.1
-    x_bounds[4].min[ZrotBD, END] = -0.1
-    x_bounds[4].max[ZrotBD, END] = 0.1
+    x_bounds[4].min[YrotRightUpperArm, END] = 2.9 - 0.1
+    x_bounds[4].max[YrotRightUpperArm, END] = 2.9 + 0.1
+    x_bounds[4].min[ZrotRightUpperArm, END] = -0.1
+    x_bounds[4].max[ZrotRightUpperArm, END] = 0.1
     # Left arm
-    x_bounds[4].min[YrotBG, END] = -2.9 - 0.1
-    x_bounds[4].max[YrotBG, END] = -2.9 + 0.1
-    x_bounds[4].min[ZrotBG, END] = -0.1
-    x_bounds[4].max[ZrotBG, END] = 0.1
+    x_bounds[4].min[YrotLeftUpperArm, END] = -2.9 - 0.1
+    x_bounds[4].max[YrotLeftUpperArm, END] = -2.9 + 0.1
+    x_bounds[4].min[ZrotLeftUpperArm, END] = -0.1
+    x_bounds[4].max[ZrotLeftUpperArm, END] = 0.1
 
     # Right elbow
-    x_bounds[4].min[ZrotABD : XrotABD + 1, END] = -0.1
-    x_bounds[4].max[ZrotABD : XrotABD + 1, END] = 0.1
+    x_bounds[4].min[ZrotRightLowerArm : XrotRightLowerArm + 1, END] = -0.1
+    x_bounds[4].max[ZrotRightLowerArm : XrotRightLowerArm + 1, END] = 0.1
     # Left elbow
-    x_bounds[4].min[ZrotABG : XrotABG + 1, END] = -0.1
-    x_bounds[4].max[ZrotABG : XrotABG + 1, END] = 0.1
+    x_bounds[4].min[ZrotLeftLowerArm : XrotLeftLowerArm + 1, END] = -0.1
+    x_bounds[4].max[ZrotLeftLowerArm : XrotLeftLowerArm + 1, END] = 0.1
 
     # Hips flexion
-    x_bounds[4].min[XrotC, :] = -0.4
-    x_bounds[4].min[XrotC, END] = -0.60
-    x_bounds[4].max[XrotC, END] = -0.40
+    x_bounds[4].min[XrotLegs, :] = -0.4
+    x_bounds[4].min[XrotLegs, END] = -0.60
+    x_bounds[4].max[XrotLegs, END] = -0.40
     # Hips sides
-    x_bounds[4].min[YrotC, END] = -0.1
-    x_bounds[4].max[YrotC, END] = 0.1
+    x_bounds[4].min[YrotLegs, END] = -0.1
+    x_bounds[4].max[YrotLegs, END] = 0.1
 
     # Translations velocities
     x_bounds[4].min[vX : vY + 1, :] = -10
@@ -664,25 +721,25 @@ def prepare_ocp(
     x_bounds[4].max[vZrot, :] = 100
 
     # Right arm
-    x_bounds[4].min[vZrotBD : vYrotBD + 1, :] = -100
-    x_bounds[4].max[vZrotBD : vYrotBD + 1, :] = 100
+    x_bounds[4].min[vZrotRightUpperArm : vYrotRightUpperArm + 1, :] = -100
+    x_bounds[4].max[vZrotRightUpperArm : vYrotRightUpperArm + 1, :] = 100
     # Left arm
-    x_bounds[4].min[vZrotBG : vYrotBG + 1, :] = -100
-    x_bounds[4].max[vZrotBG : vYrotBG + 1, :] = 100
+    x_bounds[4].min[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = -100
+    x_bounds[4].max[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = 100
 
     # Right elbow
-    x_bounds[4].min[vZrotABD : vYrotABD + 1, :] = -100
-    x_bounds[4].max[vZrotABD : vYrotABD + 1, :] = 100
+    x_bounds[4].min[vZrotRightLowerArm : vYrotABD + 1, :] = -100
+    x_bounds[4].max[vZrotRightLowerArm : vYrotABD + 1, :] = 100
     # Left elbow
-    x_bounds[4].min[vZrotABD : vYrotABG + 1, :] = -100
-    x_bounds[4].max[vZrotABD : vYrotABG + 1, :] = 100
+    x_bounds[4].min[vZrotRightLowerArm : vYrotABG + 1, :] = -100
+    x_bounds[4].max[vZrotRightLowerArm : vYrotABG + 1, :] = 100
 
     # Hip flexion
-    x_bounds[4].min[vXrotC, :] = -100
-    x_bounds[4].max[vXrotC, :] = 100
+    x_bounds[4].min[vXrotLegs, :] = -100
+    x_bounds[4].max[vXrotLegs, :] = 100
     # Hip sides
-    x_bounds[4].min[vYrotC, :] = -100
-    x_bounds[4].max[vYrotC, :] = 100
+    x_bounds[4].min[vYrotLegs, :] = -100
+    x_bounds[4].max[vYrotLegs, :] = 100
 
     # ------------------------------- Initial guesses ------------------------------- #
 
@@ -694,38 +751,38 @@ def prepare_ocp(
 
     x0[Xrot] = np.array([0, -np.pi / 2])
     x0[Zrot] = np.array([0, 2 * np.pi * num_twists])
-    x0[ZrotBG] = -0.75
-    x0[ZrotBD] = 0.75
-    x0[YrotBG, 0] = -2.9
-    x0[YrotBD, 0] = 2.9
-    # x0[YrotBG, 1] = -1.35
-    # x0[YrotBD, 1] = 1.35
-    # x0[XrotC, 0] = -.5
+    x0[ZrotLeftUpperArm] = -0.75
+    x0[ZrotRightUpperArm] = 0.75
+    x0[YrotLeftUpperArm, 0] = -2.9
+    x0[YrotRightUpperArm, 0] = 2.9
+    # x0[YrotLeftUpperArm, 1] = -1.35
+    # x0[YrotRightUpperArm, 1] = 1.35
+    # x0[XrotLegs, 0] = -.5
     x0[vXrot] = - 4 * np.pi
 
     x1[Xrot] = np.array([-np.pi / 2, -3 / 4 * np.pi])
     x1[Zrot] = np.array([2 * np.pi * num_twists, 2 * np.pi * num_twists + np.pi])
-    # x1[ZrotBG] = -.75
-    # x1[ZrotBD] = .75
-    # x1[YrotBG] = -1.35
-    # x1[YrotBD] = 1.35
-    x1[XrotC] = np.array([0, -2.5])
+    # x1[ZrotLeftUpperArm] = -.75
+    # x1[ZrotRightUpperArm] = .75
+    # x1[YrotLeftUpperArm] = -1.35
+    # x1[YrotRightUpperArm] = 1.35
+    x1[XrotLegs] = np.array([0, -2.5])
 
     x2[Xrot] = np.array([-3 / 4 * np.pi, -3 * np.pi])
     x2[Zrot] = np.array([2 * np.pi * num_twists + np.pi, 2 * np.pi * num_twists + np.pi])
-    # x2[ZrotBG, 0] = -.75
-    # x2[ZrotBD, 0] = .75
-    # x2[YrotBG, 0] = -1.35
-    # x2[YrotBD, 0] = 1.35
-    x2[XrotC, 0] = -2.5
+    # x2[ZrotLeftUpperArm, 0] = -.75
+    # x2[ZrotRightUpperArm, 0] = .75
+    # x2[YrotLeftUpperArm, 0] = -1.35
+    # x2[YrotRightUpperArm, 0] = 1.35
+    x2[XrotLegs, 0] = -2.5
 
     x3[Xrot] = np.array([-3 * np.pi, -2 * np.pi - 5 / 4 * np.pi])
     x3[Zrot] = np.array([2 * np.pi * num_twists + np.pi, 2 * np.pi * num_twists + 2 * np.pi])
-    x3[XrotC] = np.array([-2.5, 0])
+    x3[XrotLegs] = np.array([-2.5, 0])
 
     x4[Xrot] = np.array([-2 * np.pi - 5 / 4 * np.pi, -4 * np.pi + 0.5])
     x4[Zrot] = np.array([2 * np.pi * num_twists + 2 * np.pi, 2 * np.pi * num_twists + 2 * np.pi])
-    x4[XrotC] = np.array([0, -0.5])
+    x4[XrotLegs] = np.array([0, -0.5])
 
     x_init = InitialGuessList()
     x_init.add(x0, interpolation=InterpolationType.LINEAR)
@@ -753,6 +810,10 @@ def prepare_ocp(
         second_marker="CibleMainD",
         phase=2,
    )
+
+    if WITH_VISUAL_CRITERIA:
+        # constraints.add(....)
+        print('add constraints')
     # constraints.add(ConstraintFcn.TIME_CONSTRAINT, node=Node.END, min_bound=1e-4, max_bound=final_time, phase=0)
     # constraints.add(ConstraintFcn.TIME_CONSTRAINT, node=Node.END, min_bound=1e-4, max_bound=final_time, phase=1)
     # constraints.add(ConstraintFcn.TIME_CONSTRAINT, node=Node.END, min_bound=1e-4, max_bound=final_time, phase=2)
@@ -777,14 +838,16 @@ def prepare_ocp(
 
 def main():
     """
-    Prepares and solves an ocp for a 803<. Animates the results
+    Prepares and solves an ocp for a 831< with and without visual criteria.
     """
+
+    WITH_VISUAL_CRITERIA = False # True
 
     biorbd_model_path = "/home/charbie/Documents/Programmation/VisionOCP/models/SoMe.bioMod"
     n_shooting = (40, 100, 100, 100, 40)
     num_twists = 1
-    ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7)
-   # ocp.add_plot_penalty(CostType.ALL)
+    ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
+    # ocp.add_plot_penalty(CostType.ALL)
 
     solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
     solver.set_linear_solver("ma57")
