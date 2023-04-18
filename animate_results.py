@@ -32,13 +32,10 @@ from TechOpt831 import prepare_ocp
 
 biorbd_model_path = "models/SoMe.bioMod"
 
-# b = bioviz.Viz(biorbd_model_path)
-# b.exec()
-
 n_shooting = (40, 100, 100, 100, 40)
 num_twists = 1
 name = "SoMe"
-file_name = "SoMe-1-(40_100_100_100_40)-2023-04-17-0102.pkl"
+file_name = "SoMe-1-(40_100_100_100_40)-2023-04-17-2319.pkl"
 
 with open("Solutions/" + file_name, "rb") as f:
     data = pickle.load(f)
