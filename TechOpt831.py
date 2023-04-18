@@ -11,7 +11,7 @@ Phase 4 : preparation for landing
 import numpy as np
 import pickle
 import biorbd_casadi as biorbd
-from casadi import MX, Function
+import casadi as cas
 import IPython
 import time
 import sys
@@ -38,6 +38,52 @@ from bioptim import (
     Shooting,
     SolutionIntegrator,
 )
+
+def custom_trampoline_bed_in_peripheral_vision(all_pn: PenaltyNodeList, first_marker: str, second_marker: str, method: int) -> cas.MX:
+    """
+    This function aims to encourage the avatar to keep the trampoline bed in his peripheral vision.
+    It is done by discretizing the vision cone into vectors and determining if the vector projection of the gaze are inside the trampoline bed.
+    """
+
+    a = 1.07  # Trampoline with/2
+    b = 2.14  # Trampoline length/2
+    n = 6  # order of the polynomial for the trampoline bed rectangle equation
+
+    # Get the gaze vector
+    eyes_vect_start_marker_idx = all_pn.nlp.model.marker_index(f'eyes_vect_start')
+    eyes_vect_end_marker_idx = all_pn.nlp.model.marker_index(f'eyes_vect_end')
+    gaze_vector = all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx).to_mx()[eyes_vect_start_marker_idx] - all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx).to_mx()[eyes_vect_end_marker_idx]
+
+    obj = 0
+    for i_r in range(11):
+        for i_th in range(10):
+
+            # Get this vector from the vision cone
+            marker_idx = all_pn.nlp.model.marker_index(f'cone_approx_{i_r}_{i_th}')
+            vector_origin = all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx).to_mx()[eyes_vect_start_marker_idx]
+            vector_end = all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx).to_mx()[marker_idx]
+            vector = vector_end - vector_origin
+
+            # Get the intersection between the vector and the trampoline plane
+            point_in_the_plane = np.array([1, 2, -0.83])
+            vector_normal_to_the_plane = np.array([0, 0, 1])
+            t = (np.dot(point_in_the_plane, vector_normal_to_the_plane) - np.dot(vector_normal_to_the_plane, vector_origin)) / np.dot(
+                vector, vector_normal_to_the_plane
+            )
+            point_projection = vector_origin + vector * cas.fabs(t)
+
+            # Determine if the point is inside the trampoline bed
+            # Rectangle equation : (x/a)**n + (y/b)**n = 1
+            # The function is convoluted with tanh to make it:
+            # 1. Continuous
+            # 2. Not encourage to look to the middle of the trampoline bed
+            # 3. Largely penalized when outside the trampoline bed
+            # 4. Equaly penalized when looking upward
+            obj += cas.tanh(((point_projection[0]/a)**n + (point_projection[1]/b)**n) - 1) + 1
+
+    val = all_pn.nlp.mx_to_cx("peripheral_vision", obj, all_pn.nlp.states["q"])
+
+    return cas.if_else(gaze_vector > 0, 2*10*11, val)
 
 
 def prepare_ocp(
@@ -276,16 +322,53 @@ def prepare_ocp(
     )
 
     if WITH_VISUAL_CRITERIA:
-        print('add objectives')
+
         # Spotting
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_JCS_ROTATION, segment="Head", derivative=True, weight=100, phase=3)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_JCS_ROTATION, segment="Head", derivative=True, weight=100, phase=4)
+
         # Self-motion detection
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[], derivative=True, weight=100, phase=3)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], derivative=True, weight=100, phase=0)
+
+        # Quiet eye
+        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
+                                vector_0_marker_0="eyes_vect_start",
+                                vector_0_marker_1="eyes_vect_end",
+                                vector_1_marker_0="eyes_vect_start",
+                                vector_1_marker_1="fixation_center",
+                                weight=10, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
+                                vector_0_marker_0="eyes_vect_start",
+                                vector_0_marker_1="eyes_vect_end",
+                                vector_1_marker_0="eyes_vect_start",
+                                vector_1_marker_1="fixation_center",
+                                weight=10, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
+                                vector_0_marker_0="eyes_vect_start",
+                                vector_0_marker_1="eyes_vect_end",
+                                vector_1_marker_0="eyes_vect_start",
+                                vector_1_marker_1="fixation_center",
+                                weight=10, phase=2)
+        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
+                                vector_0_marker_0="eyes_vect_start",
+                                vector_0_marker_1="eyes_vect_end",
+                                vector_1_marker_0="eyes_vect_start",
+                                vector_1_marker_1="fixation_center",
+                                weight=10, phase=3)
+        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
+                                vector_0_marker_0="eyes_vect_start",
+                                vector_0_marker_1="eyes_vect_end",
+                                vector_1_marker_0="eyes_vect_start",
+                                vector_1_marker_1="fixation_front",
+                                weight=10000, phase=4)
+
         # Trampoline bed in the peripheral field of view always (more weight at the end and during twist) -> maximizing the area of the intersecting area between gaze cone and trampoline bed
         # Movement detection during twisting + landing? -> minimizing eye angles velocity
         # Min energy -> always minimize eye and neck angles a little bit (two planes independantly)
         # Fixate on the trampoline before landing -> minimize angle between gaze and eye-forward_trampo_marker
+        # min woble
+        # min transpersion
+
 
     # Dynamics
     dynamics = DynamicsList()
@@ -370,10 +453,10 @@ def prepare_ocp(
     vzinit = 9.81 / 2 * final_time
 
     # Shift the initial vertical speed at the CoM
-    CoM_Q_sym = MX.sym("CoM", nb_q)
+    CoM_Q_sym = cas.MX.sym("CoM", nb_q)
     CoM_Q_init = x_bounds[0].min[:nb_q, START]
-    CoM_Q_func = Function("CoM_Q_func", [CoM_Q_sym], [biorbd_model[0].center_of_mass(CoM_Q_sym)])
-    bassin_Q_func = Function(
+    CoM_Q_func = cas.Function("CoM_Q_func", [CoM_Q_sym], [biorbd_model[0].center_of_mass(CoM_Q_sym)])
+    bassin_Q_func = cas.Function(
         "bassin_Q_func", [CoM_Q_sym], [biorbd_model[0].homogeneous_matrices_in_global(CoM_Q_sym, 0).to_mx()]
     )
 
