@@ -39,7 +39,7 @@ from bioptim import (
     SolutionIntegrator,
 )
 
-def custom_trampoline_bed_in_peripheral_vision(all_pn: PenaltyNodeList, first_marker: str, second_marker: str, method: int) -> cas.MX:
+def custom_trampoline_bed_in_peripheral_vision(all_pn: PenaltyNodeList) -> cas.MX:
     """
     This function aims to encourage the avatar to keep the trampoline bed in his peripheral vision.
     It is done by discretizing the vision cone into vectors and determining if the vector projection of the gaze are inside the trampoline bed.
@@ -306,17 +306,21 @@ def prepare_ocp(
         weight=1000000,
         phase=4,
     )
+
+    # Quick kick out
     objective_functions.add(
         ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[XrotLegs], target=[0], weight=10000, phase=3
     )
     objective_functions.add(
         ObjectiveFcn.Mayer.MINIMIZE_STATE, key="qdot", node=list(range(int(n_shooting[3]/4), n_shooting[3])), index=[XrotLegs], target=[0], weight=100000, phase=3,
     )
-    objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="qdot", node=Node.START, index=[Xrot], weight=10, phase=0, quadratic=False
-    )
+    # objective_functions.add(
+    #     ObjectiveFcn.Mayer.MINIMIZE_STATE, key="qdot", node=Node.START, index=[Xrot], weight=10, phase=0, quadratic=False
+    # )
     objective_functions.add(ObjectiveFcn.Mayer.PROPORTIONAL_STATE, key="q", node=list(range(0, int(n_shooting[3]/4))), first_dof=XrotLegs, second_dof=Zrot,
                             coef=2.5/(0.5*np.pi), first_dof_intercept=-2.5, second_dof_intercept=3*np.pi, weight=1000000, phase=3, quadratic=True)
+
+    # Minimize wobbling
     objective_functions.add(
         ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[Yrot], target=[0], weight=10000, phase=2
     )
@@ -324,11 +328,16 @@ def prepare_ocp(
     if WITH_VISUAL_CRITERIA:
 
         # Spotting
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_JCS_ROTATION, segment="Head", derivative=True, weight=100, phase=3)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_JCS_ROTATION, segment="Head", derivative=True, weight=100, phase=4)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=100, phase=3)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=100, phase=4)
 
         # Self-motion detection
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], derivative=True, weight=100, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=100, phase=0)
+
+        # Keeping the trampoline bed in the peripheral vision
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=1, phase=0)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=1, phase=2)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, phase=3)
 
         # Quiet eye
         objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
@@ -362,12 +371,12 @@ def prepare_ocp(
                                 vector_1_marker_1="fixation_front",
                                 weight=10000, phase=4)
 
-        # Trampoline bed in the peripheral field of view always (more weight at the end and during twist) -> maximizing the area of the intersecting area between gaze cone and trampoline bed
-        # Movement detection during twisting + landing? -> minimizing eye angles velocity
-        # Min energy -> always minimize eye and neck angles a little bit (two planes independantly)
-        # Fixate on the trampoline before landing -> minimize angle between gaze and eye-forward_trampo_marker
-        # min woble
-        # min transpersion
+        # Avoid extreme eye angles
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], target=[0], weight=1, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], target=[0], weight=1, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], target=[0], weight=1, phase=2)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], target=[0], weight=1, phase=3)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], target=[0], weight=1, phase=4)
 
 
     # Dynamics
