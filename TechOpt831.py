@@ -344,30 +344,6 @@ def prepare_ocp(
                                 vector_0_marker_0="eyes_vect_start",
                                 vector_0_marker_1="eyes_vect_end",
                                 vector_1_marker_0="eyes_vect_start",
-                                vector_1_marker_1="fixation_center",
-                                weight=10, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
-                                vector_0_marker_0="eyes_vect_start",
-                                vector_0_marker_1="eyes_vect_end",
-                                vector_1_marker_0="eyes_vect_start",
-                                vector_1_marker_1="fixation_center",
-                                weight=10, phase=1)
-        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
-                                vector_0_marker_0="eyes_vect_start",
-                                vector_0_marker_1="eyes_vect_end",
-                                vector_1_marker_0="eyes_vect_start",
-                                vector_1_marker_1="fixation_center",
-                                weight=10, phase=2)
-        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
-                                vector_0_marker_0="eyes_vect_start",
-                                vector_0_marker_1="eyes_vect_end",
-                                vector_1_marker_0="eyes_vect_start",
-                                vector_1_marker_1="fixation_center",
-                                weight=10, phase=3)
-        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
-                                vector_0_marker_0="eyes_vect_start",
-                                vector_0_marker_1="eyes_vect_end",
-                                vector_1_marker_0="eyes_vect_start",
                                 vector_1_marker_1="fixation_front",
                                 weight=10000, phase=4)
 
@@ -410,7 +386,7 @@ def prepare_ocp(
     x_bounds.add(bounds=biorbd_model[3].bounds_from_ranges(["q", "qdot"]))
     x_bounds.add(bounds=biorbd_model[4].bounds_from_ranges(["q", "qdot"]))
 
-    # Pour la lisibilite
+    # For lisibility
     START, MIDDLE, END = 0, 1, 2
 
     # ------------------------------- Phase 0 : twist ------------------------------- #
