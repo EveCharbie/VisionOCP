@@ -144,11 +144,11 @@ def prepare_ocp(
         vZrotRightUpperArm = 6 + nb_q
         vYrotRightUpperArm = 7 + nb_q
         vZrotRightLowerArm = 8 + nb_q
-        vYrotABD = 9 + nb_q
+        vYrotRightLowerArm = 9 + nb_q
         vZrotLeftUpperArm = 10 + nb_q
         vYrotLeftUpperArm = 11 + nb_q
         vZrotLeftLowerArm = 12 + nb_q
-        vYrotABG = 13 + nb_q
+        vYrotLeftLowerArm = 13 + nb_q
         vXrotLegs = 14 + nb_q
         vYrotLegs = 15 + nb_q
     else:
@@ -185,11 +185,11 @@ def prepare_ocp(
         vZrotRightUpperArm = 10 + nb_q
         vYrotRightUpperArm = 11 + nb_q
         vZrotRightLowerArm = 12 + nb_q
-        vYrotABD = 13 + nb_q
+        vYrotRightLowerArm = 13 + nb_q
         vZrotLeftUpperArm = 14 + nb_q
         vYrotLeftUpperArm = 15 + nb_q
         vZrotLeftLowerArm = 16 + nb_q
-        vYrotABG = 17 + nb_q
+        vYrotLeftLowerArm = 17 + nb_q
         vXrotLegs = 18 + nb_q
         vYrotLegs = 19 + nb_q
 
@@ -520,13 +520,13 @@ def prepare_ocp(
     x_bounds[0][vZrotLeftUpperArm : vYrotLeftUpperArm + 1, START] = 0
 
     # Right elbow
-    x_bounds[0].min[vZrotRightLowerArm : vYrotABD + 1, :] = -100
-    x_bounds[0].max[vZrotRightLowerArm : vYrotABD + 1, :] = 100
-    x_bounds[0][vZrotRightLowerArm : vYrotABD + 1, START] = 0
+    x_bounds[0].min[vZrotRightLowerArm : vYrotRightLowerArm + 1, :] = -100
+    x_bounds[0].max[vZrotRightLowerArm : vYrotRightLowerArm + 1, :] = 100
+    x_bounds[0][vZrotRightLowerArm : vYrotRightLowerArm + 1, START] = 0
     # Left elbow
-    x_bounds[0].min[vZrotRightLowerArm : vYrotABG + 1, :] = -100
-    x_bounds[0].max[vZrotRightLowerArm : vYrotABG + 1, :] = 100
-    x_bounds[0][vZrotLeftLowerArm : vYrotABG + 1, START] = 0
+    x_bounds[0].min[vZrotRightLowerArm : vYrotLeftLowerArm + 1, :] = -100
+    x_bounds[0].max[vZrotRightLowerArm : vYrotLeftLowerArm + 1, :] = 100
+    x_bounds[0][vZrotLeftLowerArm : vYrotLeftLowerArm + 1, START] = 0
 
     # Hip flexion
     x_bounds[0].min[vXrotLegs, :] = -100
@@ -594,11 +594,11 @@ def prepare_ocp(
     x_bounds[1].max[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = 100
 
     # Right elbow
-    x_bounds[1].min[vZrotRightLowerArm : vYrotABD + 1, :] = -100
-    x_bounds[1].max[vZrotRightLowerArm : vYrotABD + 1, :] = 100
+    x_bounds[1].min[vZrotRightLowerArm : vYrotRightLowerArm + 1, :] = -100
+    x_bounds[1].max[vZrotRightLowerArm : vYrotRightLowerArm + 1, :] = 100
     # Left elbow
-    x_bounds[1].min[vZrotRightLowerArm : vYrotABG + 1, :] = -100
-    x_bounds[1].max[vZrotRightLowerArm : vYrotABG + 1, :] = 100
+    x_bounds[1].min[vZrotRightLowerArm : vYrotLeftLowerArm + 1, :] = -100
+    x_bounds[1].max[vZrotRightLowerArm : vYrotLeftLowerArm + 1, :] = 100
 
     # Hip flexion
     x_bounds[1].min[vXrotLegs, :] = -100
@@ -658,11 +658,11 @@ def prepare_ocp(
     x_bounds[2].max[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = 100
 
     # Right elbow
-    x_bounds[2].min[vZrotRightLowerArm : vYrotABD + 1, :] = -100
-    x_bounds[2].max[vZrotRightLowerArm : vYrotABD + 1, :] = 100
+    x_bounds[2].min[vZrotRightLowerArm : vYrotRightLowerArm + 1, :] = -100
+    x_bounds[2].max[vZrotRightLowerArm : vYrotRightLowerArm + 1, :] = 100
     # Left elbow
-    x_bounds[2].min[vZrotRightLowerArm : vYrotABG + 1, :] = -100
-    x_bounds[2].max[vZrotRightLowerArm : vYrotABG + 1, :] = 100
+    x_bounds[2].min[vZrotRightLowerArm : vYrotLeftLowerArm + 1, :] = -100
+    x_bounds[2].max[vZrotRightLowerArm : vYrotLeftLowerArm + 1, :] = 100
 
     # Hip flexion
     x_bounds[2].min[vXrotLegs, :] = -100
@@ -733,11 +733,11 @@ def prepare_ocp(
     x_bounds[3].max[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = 100
 
     # Right elbow
-    x_bounds[3].min[vZrotRightLowerArm : vYrotABD + 1, :] = -100
-    x_bounds[3].max[vZrotRightLowerArm : vYrotABD + 1, :] = 100
+    x_bounds[3].min[vZrotRightLowerArm : vYrotRightLowerArm + 1, :] = -100
+    x_bounds[3].max[vZrotRightLowerArm : vYrotRightLowerArm + 1, :] = 100
     # Left elbow
-    x_bounds[3].min[vZrotRightLowerArm : vYrotABG + 1, :] = -100
-    x_bounds[3].max[vZrotRightLowerArm : vYrotABG + 1, :] = 100
+    x_bounds[3].min[vZrotRightLowerArm : vYrotLeftLowerArm + 1, :] = -100
+    x_bounds[3].max[vZrotRightLowerArm : vYrotLeftLowerArm + 1, :] = 100
 
     # Hip flexion
     x_bounds[3].min[vXrotLegs, :] = -100
@@ -820,11 +820,11 @@ def prepare_ocp(
     x_bounds[4].max[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = 100
 
     # Right elbow
-    x_bounds[4].min[vZrotRightLowerArm : vYrotABD + 1, :] = -100
-    x_bounds[4].max[vZrotRightLowerArm : vYrotABD + 1, :] = 100
+    x_bounds[4].min[vZrotRightLowerArm : vYrotRightLowerArm + 1, :] = -100
+    x_bounds[4].max[vZrotRightLowerArm : vYrotRightLowerArm + 1, :] = 100
     # Left elbow
-    x_bounds[4].min[vZrotRightLowerArm : vYrotABG + 1, :] = -100
-    x_bounds[4].max[vZrotRightLowerArm : vYrotABG + 1, :] = 100
+    x_bounds[4].min[vZrotRightLowerArm : vYrotLeftLowerArm + 1, :] = -100
+    x_bounds[4].max[vZrotRightLowerArm : vYrotLeftLowerArm + 1, :] = 100
 
     # Hip flexion
     x_bounds[4].min[vXrotLegs, :] = -100
