@@ -50,6 +50,7 @@ with open("Solutions/" + file_name, "rb") as f:
 
 sol.ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7)
 
+biorbd_model_path = "models/SoMe_with_visual_criteria.bioMod"
 b = bioviz.Viz(biorbd_model_path)
 b.load_movement(qs)
 b.exec()
