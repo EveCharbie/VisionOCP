@@ -11,6 +11,8 @@ from scipy import signal
 
 import biorbd
 import bioviz
+import sys
+sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
 from bioptim import (
     BiorbdModel,
     OptimalControlProgram,
@@ -110,15 +112,15 @@ def recons_ik_trf(markers_xsens, model):
 def smooth_q_recons(q_recons):
     b, a = signal.ellip(4, 0.01, 120, 0.125)  # Filter to be applied: 4th order, 0.125 normalized cutoff frequency
     q_recons_smoothed = np.zeros(np.shape(q_recons))
-    for i in range(28):
+    for i in range(q_recons.shape[0]):
         q_recons_smoothed[i, :] = signal.filtfilt(b, a, q_recons[i, :], method="gust")
     return q_recons_smoothed
 
 
-FLAG_SHOW_BIOVIZ = False  # True
-RECONSTRUCTION_METHOD = "OCP"  # "OCP", "KALMAN" or "IK_TRF"
+FLAG_SHOW_BIOVIZ = True
+RECONSTRUCTION_METHOD = "KALMAN"  # "OCP", "KALMAN" or "IK_TRF"
 
-move_path = "/home/charbie/disk/Eye-tracking/Results/SoMe/831</"
+move_path = "/home/charbie/disk/Eye-tracking/Results/SoMe/42/"
 save_path = "/home/charbie/Documents/Programmation/VisionOCP/Kalman_recons/"
 
 # loop over the files in the folder
@@ -183,22 +185,40 @@ for filename in os.listdir(move_path):
 
     if RECONSTRUCTION_METHOD == "KALMAN":
         q_recons, _ = recons_kalman(num_frames, num_markers, markers_xsens, model)
+        for i in range(num_joints):
+            while q_recons[i, 0] > 2*np.pi:
+                q_recons[i, :] = q_recons[i, :] - 2*np.pi
+            while q_recons[i, 0] < -2*np.pi:
+                q_recons[i, :] = q_recons[i, :] + 2*np.pi
+        q_recons_smoothed = smooth_q_recons(q_recons)
 
     elif RECONSTRUCTION_METHOD == "IK_TRF":
         q_recons = recons_ik_trf(markers_xsens, model)
+        q_recons_smoothed = smooth_q_recons(q_recons)
 
     elif RECONSTRUCTION_METHOD == "OCP":
-        q_init, qdot_init = recons_kalman(num_frames, num_markers, markers_xsens, model)
-        q_init_smoothed = smooth_q_recons(q_init)
-        x_init_kalman = np.vstack((q_init_smoothed, qdot_init))
+        OPTIMIZE = False
+        if OPTIMIZE:
+            q_init, qdot_init = recons_kalman(num_frames, num_markers, markers_xsens, model)
+            q_init_smoothed = smooth_q_recons(q_init)
+            x_init_kalman = np.vstack((q_init_smoothed, qdot_init))
 
-        ocp = prepare_optimal_estimation(biorbd_model_path, markers_xsens, x_init_kalman)
-        solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
-        solver.set_linear_solver("ma57")
-        solver.set_maximum_iterations(10000)
-        solver.set_convergence_tolerance(1e-4)
-        sol = ocp.solve(solver)
-        q_recons = sol.states["q"]
+            ocp = prepare_optimal_estimation(biorbd_model_path, markers_xsens, x_init_kalman)
+            solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
+            solver.set_linear_solver("ma57")
+            solver.set_maximum_iterations(10000)
+            solver.set_convergence_tolerance(1e-4)
+            sol = ocp.solve(solver)
+            q_recons = sol.states["q"]
+            # save q_recons as plk
+            with open(save_path + filename[:-24] + RECONSTRUCTION_METHOD + '_recons.pkl', 'wb') as f:
+                pickle.dump(q_recons, f)
+            q_recons_smoothed = q_recons
+        else:
+            # load q_recons as plk
+            with open(save_path + filename[:-24] + RECONSTRUCTION_METHOD + '_recons.pkl', 'rb') as f:
+                q_recons = pickle.load(f)
+            q_recons_smoothed = q_recons
 
     if FLAG_SHOW_BIOVIZ:
         print(filename)
@@ -208,15 +228,18 @@ for filename in os.listdir(move_path):
         b.exec()
 
 
-
-    save_name = save_path + filename[:-24] + 'kalman_recons'
-    fig, axs = plt.subplots(7, 4, figsize=(20, 10))
+    save_name = save_path + filename[:-24] + RECONSTRUCTION_METHOD + '_recons'
+    fig, axs = plt.subplots(3, 9, figsize=(20, 10))
     axs = axs.ravel()
-    for i in range(28):
+    for i in range(q_recons_smoothed.shape[0]):
         axs[i].plot(q_recons_smoothed[i, :], 'b')
         axs[i].plot(q_recons[i, :], '--r')
         axs[i].set_title(f"{model.nameDof()[i].to_string()}")
     plt.tight_layout()
-    plt.suptitle("Kalman reconstruction (r = Q_recons, b = Q_recons_smoothed)")
+    plt.suptitle(RECONSTRUCTION_METHOD + " reconstruction (r = Q_recons, b = Q_recons_smoothed)")
     plt.savefig(save_name + ".png", dpi=300)
     # plt.show()
+
+    # save q_recons_smoothed as plk
+    with open(save_name + '.pkl', 'wb') as f:
+        pickle.dump(q_recons_smoothed, f)

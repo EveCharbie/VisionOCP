@@ -5,10 +5,7 @@ external_forces 0
 
 gravity 0 0 -9.81
 
-variables
-	$base_radius 1.2426406871192852
-endvariables
-	
+
 segment Trampo_bed
 	meshfile Model_mesh/trampo_bed.stl
 	meshrt 0 0 0 xyz 0 0 -0.83
@@ -557,7 +554,6 @@ marker cone_approx_10_9
 	parent Eyes
 	position 1.0053174337812634 -3 -0.7304058697873015
 endmarker
-Backend QtAgg is interactive backend. Turning interactive mode on.
 
 
 segment RightUpperArm
