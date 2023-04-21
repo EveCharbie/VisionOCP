@@ -28,14 +28,21 @@ from bioptim import (
     BiorbdModel,
 )
 
-from TechOpt831 import prepare_ocp
+WITH_VISUAL_CRITERIA = False
+ACROBATICS = "42"
 
-biorbd_model_path = "models/SoMe.bioMod"
+if ACROBATICS == "831":
+    biorbd_model_path = "models/SoMe.bioMod"
+    n_shooting = (40, 100, 100, 100, 40)
+    num_twists = 1
+    name = "SoMe"
+elif ACROBATICS == "42":
+    biorbd_model_path = "models/SoMe_42.bioMod"
+    n_shooting = (100, 40)
+    num_twists = 1
+    name = "SoMe"
 
-n_shooting = (40, 100, 100, 100, 40)
-num_twists = 1
-name = "SoMe"
-file_name = "SoMe-1-(40_100_100_100_40)-2023-04-17-2319.pkl"
+file_name = "SoMe_42-42-(100_40)-2023-04-21-1058.pkl"
 
 with open("Solutions/" + file_name, "rb") as f:
     data = pickle.load(f)
@@ -48,9 +55,16 @@ with open("Solutions/" + file_name, "rb") as f:
     qdot_reintegrated = data[6]
     time_vector = data[7]
 
-sol.ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7)
 
-biorbd_model_path = "models/SoMe_with_visual_criteria.bioMod"
+if ACROBATICS == "831":
+    from TechOpt831 import prepare_ocp
+    sol.ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
+elif ACROBATICS == "42":
+    from TechOpt42 import prepare_ocp
+
+    sol.ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7,
+                WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
+
 b = bioviz.Viz(biorbd_model_path)
 b.load_movement(qs)
 b.exec()
