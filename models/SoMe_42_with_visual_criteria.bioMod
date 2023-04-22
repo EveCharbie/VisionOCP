@@ -80,6 +80,9 @@ segment Head
 	parent Thorax
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 0.322
 	rotations zx
+	rangesQ
+		-3.14/2 3.14/2
+		-3.14/4 3.14/4
 	com 0.0 0.0 0.1169371541218166
 	mass 3.9436452215486697
 	inertia
@@ -94,6 +97,9 @@ segment Eyes
 	parent Head
 	rt 0.0 0.0 0.0 xyz 0.0 -0.055 0.085
 	rotations zx
+	rangesQ
+		-3.14/4 3.14/4
+		-3.14/4 3.14/4
 	com 0.01 0.0 0.0
 	mass 0.0000001 
 	inertia

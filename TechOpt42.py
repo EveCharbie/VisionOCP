@@ -49,22 +49,22 @@ def custom_trampoline_bed_in_peripheral_vision(all_pn: PenaltyNodeList) -> cas.M
     # Get the gaze vector
     eyes_vect_start_marker_idx = all_pn.nlp.model.marker_index(f'eyes_vect_start')
     eyes_vect_end_marker_idx = all_pn.nlp.model.marker_index(f'eyes_vect_end')
-    gaze_vector = all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx).to_mx()[eyes_vect_start_marker_idx] - all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx).to_mx()[eyes_vect_end_marker_idx]
+    gaze_vector = all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx)[eyes_vect_end_marker_idx] - all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx)[eyes_vect_start_marker_idx]
 
+    point_in_the_plane = np.array([1, 2, -0.83])
+    vector_normal_to_the_plane = np.array([0, 0, 1])
     obj = 0
     for i_r in range(11):
         for i_th in range(10):
 
             # Get this vector from the vision cone
             marker_idx = all_pn.nlp.model.marker_index(f'cone_approx_{i_r}_{i_th}')
-            vector_origin = all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx).to_mx()[eyes_vect_start_marker_idx]
-            vector_end = all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx).to_mx()[marker_idx]
+            vector_origin = all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx)[eyes_vect_start_marker_idx]
+            vector_end = all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx)[marker_idx]
             vector = vector_end - vector_origin
 
             # Get the intersection between the vector and the trampoline plane
-            point_in_the_plane = np.array([1, 2, -0.83])
-            vector_normal_to_the_plane = np.array([0, 0, 1])
-            t = (np.dot(point_in_the_plane, vector_normal_to_the_plane) - np.dot(vector_normal_to_the_plane, vector_origin)) / np.dot(
+            t = (cas.dot(point_in_the_plane, vector_normal_to_the_plane) - cas.dot(vector_normal_to_the_plane, vector_origin)) / cas.dot(
                 vector, vector_normal_to_the_plane
             )
             point_projection = vector_origin + vector * cas.fabs(t)
@@ -78,9 +78,12 @@ def custom_trampoline_bed_in_peripheral_vision(all_pn: PenaltyNodeList) -> cas.M
             # 4. Equaly penalized when looking upward
             obj += cas.tanh(((point_projection[0]/a)**n + (point_projection[1]/b)**n) - 1) + 1
 
-    val = all_pn.nlp.mx_to_cx("peripheral_vision", obj, all_pn.nlp.states["q"])
+    val = cas.if_else(gaze_vector[2] > -0.01, 2*10*11,
+                cas.if_else(cas.fabs(gaze_vector[0]/gaze_vector[2]) > np.tan(3*np.pi/8), 2*10*11,
+                            cas.if_else(cas.fabs(gaze_vector[1]/gaze_vector[2]) > np.tan(3*np.pi/8), 2*10*11, obj)))
+    out = all_pn.nlp.mx_to_cx("peripheral_vision", val, all_pn.nlp.states["q"])
 
-    return cas.if_else(gaze_vector > 0, 2*10*11, val)
+    return out
 
 
 def prepare_ocp(
@@ -195,7 +198,6 @@ def prepare_ocp(
          key="q",
          node=Node.ALL_SHOOTING,
          index=[YrotRightUpperArm, YrotLeftUpperArm],
-         target=np.zeros((2, n_shooting[0])),
          weight=100,
          phase=0,
     )
@@ -204,13 +206,13 @@ def prepare_ocp(
     if WITH_VISUAL_CRITERIA:
 
         # Spotting
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=100, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=10000, phase=1)
 
         # Self-motion detection
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=100, phase=0)
 
         # Keeping the trampoline bed in the peripheral vision
-        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=1, phase=0)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, phase=0)
 
         # Quiet eye
         objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
@@ -218,11 +220,17 @@ def prepare_ocp(
                                 vector_0_marker_1="eyes_vect_end",
                                 vector_1_marker_0="eyes_vect_start",
                                 vector_1_marker_1="fixation_front",
+                                weight=1, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
+                                vector_0_marker_0="eyes_vect_start",
+                                vector_0_marker_1="eyes_vect_end",
+                                vector_1_marker_0="eyes_vect_start",
+                                vector_1_marker_1="fixation_front",
                                 weight=10000, phase=1)
 
-        # Avoid extreme eye angles
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], target=[0], weight=1, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], target=[0], weight=1, phase=1)
+        # Avoid extreme eye and neck angles
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead, ZrotEyes, XrotEyes], weight=10, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead, ZrotEyes, XrotEyes], weight=10, phase=1)
 
 
     # Dynamics
@@ -280,6 +288,17 @@ def prepare_ocp(
     # Left arm
     x_bounds[0][YrotLeftUpperArm, START] = -2.9
     x_bounds[0][ZrotLeftUpperArm, START] = 0
+
+    # Head and eyes
+    if WITH_VISUAL_CRITERIA:
+        x_bounds[0].min[ZrotHead, START] = -0.1
+        x_bounds[0].max[ZrotHead, START] = 0.1
+        x_bounds[0].min[XrotHead, START] = -0.1
+        x_bounds[0].max[XrotHead, START] = 0.1
+        x_bounds[0].min[ZrotEyes, START] = -0.1
+        x_bounds[0].max[ZrotEyes, START] = 0.1
+        x_bounds[0].min[XrotEyes, START] = np.pi/4 - 0.1
+        x_bounds[0].max[XrotEyes, START] = np.pi/4 + 0.1
 
     vzinit = 9.81 / 2 * final_time
 
@@ -428,6 +447,10 @@ def prepare_ocp(
         # constraints.add(....)
         print('add constraints')
 
+    # save x_init values
+    with open('x_init.pkl', 'wb') as f:
+        pickle.dump(np.hstack((x_init[0].init, x_init[1].init)), f)
+
     return OptimalControlProgram(
         biorbd_model,
         dynamics,
@@ -449,9 +472,13 @@ def main():
     Prepares and solves an ocp for a 42/ with and without visual criteria.
     """
 
-    WITH_VISUAL_CRITERIA = False  # True
+    WITH_VISUAL_CRITERIA = True
 
-    biorbd_model_path = "/home/charbie/Documents/Programmation/VisionOCP/models/SoMe_42.bioMod"
+    if WITH_VISUAL_CRITERIA:
+        biorbd_model_path = "/home/charbie/Documents/Programmation/VisionOCP/models/SoMe_42_with_visual_criteria.bioMod"
+    else:
+        biorbd_model_path = "/home/charbie/Documents/Programmation/VisionOCP/models/SoMe_42.bioMod"
+
     n_shooting = (100, 40)
     num_twists = 1
     ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
@@ -486,7 +513,7 @@ def main():
         qdot_reintegrated = np.hstack((qdot_reintegrated, integrated_sol.states[i]["qdot"]))
 
     del sol.ocp
-    with open(f"Solutions/{name}-42-{str(n_shooting).replace(', ', '_')}-{timestamp}.pkl", "wb") as f:
+    with open(f"Solutions/{name}-{str(n_shooting).replace(', ', '_')}-{timestamp}.pkl", "wb") as f:
         pickle.dump((sol, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector), f)
 
     # sol.animate(n_frames=-1, show_floor=False)

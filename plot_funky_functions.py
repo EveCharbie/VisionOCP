@@ -12,5 +12,10 @@ z = np.tanh(((X/a)**n + (Y/b)**n -1)) + 1
 
 fig, ax = plt.subplots()
 cp = ax.contourf(X, Y, z)
-fig.colorbar(cp)
+ax.set_xlabel('X[m]')
+ax.set_ylabel('Y[m]')
+ax.set_title(r'$\tanh{((X/a)^n + (Y/b)^n -1)} + 1$')
+clb = fig.colorbar(cp)
+clb.ax.set_title('Cost')
+plt.savefig("plot_trampo_bed_in_peripheral_objective.png", dpi=300)
 plt.show()
