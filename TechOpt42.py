@@ -443,14 +443,6 @@ def prepare_ocp(
     x_init.add(x0, interpolation=InterpolationType.LINEAR)
     x_init.add(x1, interpolation=InterpolationType.LINEAR)
 
-    if WITH_VISUAL_CRITERIA:
-        # constraints.add(....)
-        print('add constraints')
-
-    # save x_init values
-    with open('x_init.pkl', 'wb') as f:
-        pickle.dump(np.hstack((x_init[0].init, x_init[1].init)), f)
-
     return OptimalControlProgram(
         biorbd_model,
         dynamics,
@@ -461,7 +453,6 @@ def prepare_ocp(
         x_bounds,
         u_bounds,
         objective_functions,
-        # constraints,
         ode_solver=ode_solver,
         n_threads=n_threads,
     )
