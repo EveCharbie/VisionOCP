@@ -110,59 +110,13 @@ def recons_ik_trf(markers_xsens, model):
     return q_recons
 
 def smooth_q_recons(q_recons):
-    b, a = signal.ellip(4, 0.01, 120, 0.125)  # Filter to be applied: 4th order, 0.125 normalized cutoff frequency
+    b, a = signal.butter(4, 0.15)  # Filter to be applied: 4th order, 0.125 normalized cutoff frequency
     q_recons_smoothed = np.zeros(np.shape(q_recons))
     for i in range(q_recons.shape[0]):
         q_recons_smoothed[i, :] = signal.filtfilt(b, a, q_recons[i, :], method="gust")
     return q_recons_smoothed
 
-
-FLAG_SHOW_BIOVIZ = True
-RECONSTRUCTION_METHOD = "KALMAN"  # "OCP", "KALMAN" or "IK_TRF"
-
-move_path = "/home/charbie/disk/Eye-tracking/Results/SoMe/42/"
-save_path = "/home/charbie/Documents/Programmation/VisionOCP/Kalman_recons/"
-
-# loop over the files in the folder
-for filename in os.listdir(move_path):
-    if filename[-24:] == "_eyetracking_metrics.pkl":
-        move_filename = move_path + filename
-    else:
-        continue
-
-    biorbd_model_path = "models/SoMe_reconstruction.bioMod"
-
-    with open(move_filename, "rb") as f:
-        data = pickle.load(f)
-        subject_name = data["subject_name"]
-        gaze_position_temporal_evolution_projected_facing_front_wall = data["gaze_position_temporal_evolution_projected_facing_front_wall"]
-        move_orientation = data["move_orientation"]
-        Xsens_head_position_calculated = data["Xsens_head_position_calculated"]
-        eye_position = data["eye_position"]
-        gaze_orientation = data["gaze_orientation"]
-        EulAngles_head_global = data["EulAngles_head_global"]
-        EulAngles_neck = data["EulAngles_neck"]
-        eye_angles = data["eye_angles"]
-        Xsens_orthogonal_thorax_position = data["Xsens_orthogonal_thorax_position"]
-        Xsens_orthogonal_head_position = data["Xsens_orthogonal_head_position"]
-        Xsens_position_no_level_CoM_corrected_rotated_per_move = data["Xsens_position_no_level_CoM_corrected_rotated_per_move"]
-
-
-    # get markers position from the biorbd model
-    model = biorbd.Model(biorbd_model_path)
-    markers_tuple = model.markers(np.zeros((model.nbQ())))
-    num_markers = len(markers_tuple)
-
-
-    # get joint positions from the xsens model
-    num_joints = int(Xsens_position_no_level_CoM_corrected_rotated_per_move.shape[1]/3)
-    num_frames = Xsens_position_no_level_CoM_corrected_rotated_per_move.shape[0]
-    JCS_xsens = np.zeros((3, num_joints, num_frames))
-    for j in range(num_frames):
-        for i in range(num_joints):
-            JCS_xsens[:, i, j] = Xsens_position_no_level_CoM_corrected_rotated_per_move[j, i*3:(i+1)*3]
-
-
+def reorder_markers_xsens(num_markers, num_frames, JCS_xsens, eye_position, gaze_orientation):
     # Put markers in the same order
     markers_xsens = np.zeros((3, num_markers, num_frames))
     markers_xsens[:, 0, :] = JCS_xsens[:, 2, :]  # L3_marker # T12_marker
@@ -182,64 +136,127 @@ for filename in os.listdir(move_path):
     markers_xsens[:, 14, :] = JCS_xsens[:, 20, :]  # LeftLowerLeg_marker
     markers_xsens[:, 15, :] = JCS_xsens[:, 17, :]  # RightFoot_marker
     markers_xsens[:, 16, :] = JCS_xsens[:, 21, :]  # LeftFoot_marker
+    return markers_xsens
 
-    if RECONSTRUCTION_METHOD == "KALMAN":
-        q_recons, _ = recons_kalman(num_frames, num_markers, markers_xsens, model)
-        for i in range(num_joints):
-            while q_recons[i, 0] > 2*np.pi:
-                q_recons[i, :] = q_recons[i, :] - 2*np.pi
-            while q_recons[i, 0] < -2*np.pi:
-                q_recons[i, :] = q_recons[i, :] + 2*np.pi
-        q_recons_smoothed = smooth_q_recons(q_recons)
+FLAG_SHOW_BIOVIZ = True
+RECONSTRUCTION_METHOD = "KALMAN"  # "OCP", "KALMAN" or "IK_TRF"
+FLAG_SLAP_HEAD_AND_EYE_ANGLES_ON_TOP = True
 
-    elif RECONSTRUCTION_METHOD == "IK_TRF":
-        q_recons = recons_ik_trf(markers_xsens, model)
-        q_recons_smoothed = smooth_q_recons(q_recons)
+move_path = "/home/charbie/disk/Eye-tracking/Results/SoMe/42/"
+save_path = "/home/charbie/Documents/Programmation/VisionOCP/Kalman_recons/"
 
-    elif RECONSTRUCTION_METHOD == "OCP":
-        OPTIMIZE = False
-        if OPTIMIZE:
-            q_init, qdot_init = recons_kalman(num_frames, num_markers, markers_xsens, model)
-            q_init_smoothed = smooth_q_recons(q_init)
-            x_init_kalman = np.vstack((q_init_smoothed, qdot_init))
-
-            ocp = prepare_optimal_estimation(biorbd_model_path, markers_xsens, x_init_kalman)
-            solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
-            solver.set_linear_solver("ma57")
-            solver.set_maximum_iterations(10000)
-            solver.set_convergence_tolerance(1e-4)
-            sol = ocp.solve(solver)
-            q_recons = sol.states["q"]
-            # save q_recons as plk
-            with open(save_path + filename[:-24] + RECONSTRUCTION_METHOD + '_recons.pkl', 'wb') as f:
-                pickle.dump(q_recons, f)
-            q_recons_smoothed = q_recons
+def main():
+    # loop over the files in the folder
+    for filename in os.listdir(move_path):
+        if filename[-24:] == "_eyetracking_metrics.pkl":
+            move_filename = move_path + filename
         else:
-            # load q_recons as plk
-            with open(save_path + filename[:-24] + RECONSTRUCTION_METHOD + '_recons.pkl', 'rb') as f:
-                q_recons = pickle.load(f)
-            q_recons_smoothed = q_recons
+            continue
 
-    if FLAG_SHOW_BIOVIZ:
-        print(filename)
-        b = bioviz.Viz(biorbd_model_path)
-        b.load_movement(q_recons)
-        b.load_experimental_markers(markers_xsens)
-        b.exec()
+        biorbd_model_path = "models/SoMe_reconstruction.bioMod"
+
+        with open(move_filename, "rb") as f:
+            data = pickle.load(f)
+            subject_name = data["subject_name"]
+            gaze_position_temporal_evolution_projected_facing_front_wall = data["gaze_position_temporal_evolution_projected_facing_front_wall"]
+            move_orientation = data["move_orientation"]
+            Xsens_head_position_calculated = data["Xsens_head_position_calculated"]
+            eye_position = data["eye_position"]
+            gaze_orientation = data["gaze_orientation"]
+            EulAngles_head_global = data["EulAngles_head_global"]
+            EulAngles_neck = data["EulAngles_neck"]
+            eye_angles = data["eye_angles"]
+            Xsens_orthogonal_thorax_position = data["Xsens_orthogonal_thorax_position"]
+            Xsens_orthogonal_head_position = data["Xsens_orthogonal_head_position"]
+            Xsens_position_no_level_CoM_corrected_rotated_per_move = data["Xsens_position_no_level_CoM_corrected_rotated_per_move"]
 
 
-    save_name = save_path + filename[:-24] + RECONSTRUCTION_METHOD + '_recons'
-    fig, axs = plt.subplots(3, 9, figsize=(20, 10))
-    axs = axs.ravel()
-    for i in range(q_recons_smoothed.shape[0]):
-        axs[i].plot(q_recons_smoothed[i, :], 'b')
-        axs[i].plot(q_recons[i, :], '--r')
-        axs[i].set_title(f"{model.nameDof()[i].to_string()}")
-    plt.tight_layout()
-    plt.suptitle(RECONSTRUCTION_METHOD + " reconstruction (r = Q_recons, b = Q_recons_smoothed)")
-    plt.savefig(save_name + ".png", dpi=300)
-    # plt.show()
+        # get markers position from the biorbd model
+        model = biorbd.Model(biorbd_model_path)
+        num_dofs = model.nbQ()
+        markers_tuple = model.markers(np.zeros((model.nbQ())))
+        num_markers = len(markers_tuple)
 
-    # save q_recons_smoothed as plk
-    with open(save_name + '.pkl', 'wb') as f:
-        pickle.dump(q_recons_smoothed, f)
+
+        # get joint positions from the xsens model
+        num_joints = int(Xsens_position_no_level_CoM_corrected_rotated_per_move.shape[1]/3)
+        num_frames = Xsens_position_no_level_CoM_corrected_rotated_per_move.shape[0]
+        JCS_xsens = np.zeros((3, num_joints, num_frames))
+        for j in range(num_frames):
+            for i in range(num_joints):
+                JCS_xsens[:, i, j] = Xsens_position_no_level_CoM_corrected_rotated_per_move[j, i*3:(i+1)*3]
+
+        markers_xsens = reorder_markers_xsens(num_markers, num_frames, JCS_xsens, eye_position, gaze_orientation)
+
+        if RECONSTRUCTION_METHOD == "KALMAN":
+            q_recons, _ = recons_kalman(num_frames, num_markers, markers_xsens, model)
+            for i in range(num_dofs):
+                while q_recons[i, 0] > 2*np.pi:
+                    q_recons[i, :] = q_recons[i, :] - 2*np.pi
+                while q_recons[i, 0] < -2*np.pi:
+                    q_recons[i, :] = q_recons[i, :] + 2*np.pi
+            q_recons_smoothed = smooth_q_recons(q_recons)
+
+        elif RECONSTRUCTION_METHOD == "IK_TRF":
+            q_recons = recons_ik_trf(markers_xsens, model)
+            q_recons_smoothed = smooth_q_recons(q_recons)
+
+        elif RECONSTRUCTION_METHOD == "OCP":
+            OPTIMIZE = True # False
+            if OPTIMIZE:
+                q_init, qdot_init = recons_kalman(num_frames, num_markers, markers_xsens, model)
+                q_init_smoothed = smooth_q_recons(q_init)
+                x_init_kalman = np.vstack((q_init_smoothed, qdot_init))
+
+                ocp = prepare_optimal_estimation(biorbd_model_path, markers_xsens, x_init_kalman)
+                solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
+                solver.set_linear_solver("ma57")
+                solver.set_maximum_iterations(10000)
+                solver.set_convergence_tolerance(1e-4)
+                sol = ocp.solve(solver)
+                q_recons = sol.states["q"]
+                # save q_recons as plk
+                with open(save_path + filename[:-24] + RECONSTRUCTION_METHOD + '_recons.pkl', 'wb') as f:
+                    pickle.dump(q_recons, f)
+                q_recons_smoothed = q_recons
+            else:
+                # load q_recons as plk
+                with open(save_path + filename[:-24] + RECONSTRUCTION_METHOD + '_recons.pkl', 'rb') as f:
+                    q_recons = pickle.load(f)
+                q_recons_smoothed = q_recons
+
+        if FLAG_SLAP_HEAD_AND_EYE_ANGLES_ON_TOP:
+            q_recons_smoothed[8, :] = EulAngles_neck[:, 0]
+            q_recons_smoothed[9, :] = -EulAngles_neck[:, 1]
+            q_recons_smoothed[10, :] = eye_angles[0, :]
+            q_recons_smoothed[11, :] = -eye_angles[1, :]
+
+        if FLAG_SHOW_BIOVIZ:
+            print(filename)
+            # find blocks of consecutive non-nans
+            non_nan_blocks = np.split(np.arange(len(eye_angles[0, :]))[~np.isnan(eye_angles[0, :])], np.where(np.diff(np.arange(len(eye_angles[0, :]))[~np.isnan(eye_angles[0, :])]) != 1)[0] + 1)
+            for i_non_nan in range(len(non_nan_blocks)):
+                b = bioviz.Viz(biorbd_model_path)
+                b.load_movement(q_recons_smoothed[:, non_nan_blocks[i_non_nan]])
+                b.load_experimental_markers(markers_xsens[:, :, non_nan_blocks[i_non_nan]])
+                b.exec()
+
+
+        save_name = save_path + filename[:-24] + RECONSTRUCTION_METHOD + '_recons'
+        fig, axs = plt.subplots(4, 5, figsize=(20, 10))
+        axs = axs.ravel()
+        for i in range(q_recons_smoothed.shape[0]):
+            axs[i].plot(q_recons_smoothed[i, :], 'b')
+            axs[i].plot(q_recons[i, :], '--r')
+            axs[i].set_title(f"{model.nameDof()[i].to_string()}")
+        plt.tight_layout()
+        plt.suptitle(RECONSTRUCTION_METHOD + " reconstruction (r = Q_recons, b = Q_recons_smoothed)")
+        plt.savefig(save_name + ".png", dpi=300)
+        # plt.show()
+
+        # save q_recons_smoothed as plk
+        with open(save_name + '.pkl', 'wb') as f:
+            pickle.dump(q_recons_smoothed, f)
+
+if __name__ == "__main__":
+    main()
