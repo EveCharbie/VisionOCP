@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import casadi as cas
+import biorbd
+from IPython import embed
 
 import sys
 sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
@@ -318,7 +320,7 @@ def prepare_ocp(weights, coefficients, biorbd_model_path) -> OptimalControlProgr
 
     num_twists = 1
     n_threads = 8
-    n_shooting = (100, 40)
+    n_shooting = (120, 40)
     final_time = 1.47
 
     biorbd_model = (
@@ -418,12 +420,13 @@ def prepare_ocp(weights, coefficients, biorbd_model_path) -> OptimalControlProgr
     )
 
 
-def get_final_markers(biorbd_model_path, q_final, num_markers):
+def get_final_markers(biorbd_model_path, q_final):
+    num_markers = 17
     m = biorbd.Model(biorbd_model_path)
-    markers_final = np.zeros((num_markers, np.shape(q_final)[1], 3))
+    markers_final = np.zeros((3, num_markers, np.shape(q_final)[1]))
     for i in range(np.shape(q_final)[1]):
         for j in range(num_markers):
-            markers_final[j, i, :] = m.markers(q_final[:, i])[j].to_array()
+            markers_final[:, j, i] = m.markers(q_final[:, i])[j].to_array()
     return markers_final
 
 
@@ -452,22 +455,14 @@ class prepare_iocp:
         )
         if sol.status == 0:
 
-            timestamp = time.strftime("%Y-%m-%d-%H%M")
             name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
-            qs = sol.states[0]["q"]
-            qdots = sol.states[0]["qdot"]
-            qddots = sol.controls[0]["qddot_joints"]
-            for i in range(1, len(sol.states)):
-                qs = np.hstack((qs, sol.states[i]["q"]))
-                qdots = np.hstack((qdots, sol.states[i]["qdot"]))
-                qddots = np.hstack((qddots, sol.controls[i]["qddot_joints"]))
-            time_parameters = sol.parameters["time"]
+            qs, qdots, qddots, time_parameters = get_parameters_from_optim(sol)
 
-            markers_final = get_final_markers(biorbd_model_path, q_final, num_markers)
+            markers_final = get_final_markers(biorbd_model_path, qs)
             out_score = np.sum((self.markers_xsens - markers_final) ** 2)
 
             del sol.ocp
-            with open(f"Solutions/{name}-{str(n_shooting).replace(', ', '_')}-{i_inverse}-{timestamp}.pkl", "wb") as f:
+            with open(f"Solutions/IOCP/{name}-{i_inverse}.pkl", "wb") as f:
                 data = {"qs": qs,
                         "qdots": qdots,
                         "qddots": qddots,
@@ -489,30 +484,20 @@ class prepare_iocp:
         return ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
 
 
+def get_parameters_from_optim(sol):
+    qs = np.hstack((sol.states[0]["q"][:, :-1], sol.states[1]["q"]))
+    qdots = np.hstack((sol.states[0]["qdot"][:, :-1], sol.states[1]["qdot"]))
+    qddots = np.hstack((sol.controls[0]["qddot_joints"][:, :-1], sol.controls[1]["qddot_joints"]))
+    time_parameters = sol.parameters["time"]
+    return qs, qdots, qddots, time_parameters
+
+
 def main():
 
-    move_filename = "/home/charbie/disk/Eye-tracking/Results/SoMe/42/a62d4691_0_0-45_796__42__0_eyetracking_metrics.pkl"
+    global i_inverse
+
+    move_filename = "/home/charbie/disk/Eye-tracking/Results/SoMe/42/a62d4691_0_0-45_796__42__0__eyetracking_metrics.pkl"
     biorbd_model_path = "models/SoMe_42_with_visual_criteria.bioMod"
-
-    # Define solver options
-    solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
-    solver.set_linear_solver("ma57")
-    solver.set_maximum_iterations(10000)
-    solver.set_convergence_tolerance(1e-6)
-
-    # Find coefficients of the objective using Pareto
-    coefficients = []
-    num_weights = 10
-    for i in range(num_weights):
-        weights_pareto = [0 for _ in range(num_weights)]
-        weights_pareto[i] = 1
-        ocp_pareto = prepare_ocp(weights=weights_pareto, coefficients=[1 for _ in range(num_weights)], biorbd_model_path=biorbd_model_path)
-        sol_pareto = ocp_pareto.solve(solver)
-        coefficients.append(sol_pareto.cost)
-    print("+++++++++++++++++++++++++++ coefficients generated +++++++++++++++++++++++++++")
-    with open("coefficients_pareto.pkl", "wb") as f:
-        pickle.dump(coefficients, f)
-    embed()
 
     # Load the data to track
     with open(move_filename, "rb") as f:
@@ -520,7 +505,6 @@ def main():
         eye_position = data["eye_position"]
         gaze_orientation = data["gaze_orientation"]
         Xsens_position_no_level_CoM_corrected_rotated_per_move = data["Xsens_position_no_level_CoM_corrected_rotated_per_move"]
-
 
     # get joint positions from the xsens model
     num_markers = 17
@@ -532,17 +516,58 @@ def main():
             JCS_xsens[:, i, j] = Xsens_position_no_level_CoM_corrected_rotated_per_move[j, i*3:(i+1)*3]
 
     markers_xsens = reorder_markers_xsens(num_markers, num_frames, JCS_xsens, eye_position, gaze_orientation)
+    markers_xsens = markers_xsens[:, :, ::2]
+
+    # Define solver options
+    solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
+    solver.set_linear_solver("ma57")
+    solver.set_maximum_iterations(10000)
+    solver.set_convergence_tolerance(1e-6)
+
+    # Find coefficients of the objective using Pareto
+    coefficients = []
+    num_weights = 10
+    for i in range(num_weights):
+        i_inverse = f"pareto_{i}"
+        weights_pareto = [0 for _ in range(num_weights)]
+        weights_pareto[i] = 1
+        ocp_pareto = prepare_ocp(weights=weights_pareto, coefficients=[1 for _ in range(num_weights)], biorbd_model_path=biorbd_model_path)
+        sol_pareto = ocp_pareto.solve(solver)
+        coefficients.append(sol_pareto.cost)
+
+        if sol_pareto.status != 0:
+            raise RuntimeError("Pareto failed to converge")
+        else:
+            name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
+            qs, qdots, qddots, time_parameters = get_parameters_from_optim(sol_pareto)
+
+            markers_final = get_final_markers(biorbd_model_path, qs)
+            out_score = np.sum((markers_xsens - markers_final) ** 2)
+
+            del sol_pareto.ocp
+            with open(f"Solutions/IOCP/{name}-{i_inverse}.pkl", "wb") as f:
+                data = {"qs": qs,
+                        "qdots": qdots,
+                        "qddots": qddots,
+                        "time_parameters": time_parameters,
+                        "weights": weights_pareto,
+                        "coefficients": [1 for _ in range(num_weights)],
+                        "out_score": out_score}
+                pickle.dump(data, f)
+
+    print("+++++++++++++++++++++++++++ coefficients generated +++++++++++++++++++++++++++")
+    with open("coefficients_pareto.pkl", "wb") as f:
+        pickle.dump(coefficients, f)
 
     # Running IOCP
-    global i_inverse
     i_inverse = 0
     iocp = pg.problem(prepare_iocp(coefficients, biorbd_model_path, solver, markers_xsens))
     algo = pg.algorithm(pg.simulated_annealing())
-    pop = pg.population(iocp, size=100)
+    pop = pg.population(iocp, size=10)
 
-    epsilon = 1e-8
+    epsilon = 1e-4
     diff = 10000
-    while i_inverse < 100000 and diff > epsilon:
+    while i_inverse < 1000 and diff > epsilon:
         olf_pop_f = np.min(pop.get_f())
         pop = algo.evolve(pop)
         diff = olf_pop_f - np.min(pop.get_f())
@@ -571,7 +596,7 @@ def main():
     sol_final = ocp_final.solve(solver)
     q_final, qdot_final, tau_final = sol_final.states["q"], sol_final.states["qdot"], sol_final.controls["tau"]
 
-    markers_final = get_final_markers(biorbd_model_path, q_final, num_markers)
+    markers_final = get_final_markers(biorbd_model_path, q_final)
 
     ax = fig.add_subplot(111, projection='3d')
     cmap = matplotlib.cm.get_cmap('viridis')
