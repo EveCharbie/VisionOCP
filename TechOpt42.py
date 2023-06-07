@@ -17,7 +17,6 @@ from bioptim import (
     OptimalControlProgram,
     DynamicsList,
     DynamicsFcn,
-    PenaltyNode,
     ObjectiveList,
     ObjectiveFcn,
     BoundsList,
@@ -30,13 +29,13 @@ from bioptim import (
     CostType,
     ConstraintList,
     ConstraintFcn,
-    PenaltyNodeList,
+    PenaltyController,
     BiorbdModel,
     Shooting,
     SolutionIntegrator,
 )
 
-def custom_trampoline_bed_in_peripheral_vision(all_pn: PenaltyNodeList) -> cas.MX:
+def custom_trampoline_bed_in_peripheral_vision(controller: PenaltyController) -> cas.MX:
     """
     This function aims to encourage the avatar to keep the trampoline bed in his peripheral vision.
     It is done by discretizing the vision cone into vectors and determining if the vector projection of the gaze are inside the trampoline bed.
@@ -47,9 +46,9 @@ def custom_trampoline_bed_in_peripheral_vision(all_pn: PenaltyNodeList) -> cas.M
     n = 6  # order of the polynomial for the trampoline bed rectangle equation
 
     # Get the gaze vector
-    eyes_vect_start_marker_idx = all_pn.nlp.model.marker_index(f'eyes_vect_start')
-    eyes_vect_end_marker_idx = all_pn.nlp.model.marker_index(f'eyes_vect_end')
-    gaze_vector = all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx)[eyes_vect_end_marker_idx] - all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx)[eyes_vect_start_marker_idx]
+    eyes_vect_start_marker_idx = controller.model.marker_index(f'eyes_vect_start')
+    eyes_vect_end_marker_idx = controller.model.marker_index(f'eyes_vect_end')
+    gaze_vector = controller.model.markers(controller.states["q"].mx)[eyes_vect_end_marker_idx] - controller.model.markers(controller.states["q"].mx)[eyes_vect_start_marker_idx]
 
     point_in_the_plane = np.array([1, 2, -0.83])
     vector_normal_to_the_plane = np.array([0, 0, 1])
@@ -58,9 +57,9 @@ def custom_trampoline_bed_in_peripheral_vision(all_pn: PenaltyNodeList) -> cas.M
         for i_th in range(10):
 
             # Get this vector from the vision cone
-            marker_idx = all_pn.nlp.model.marker_index(f'cone_approx_{i_r}_{i_th}')
-            vector_origin = all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx)[eyes_vect_start_marker_idx]
-            vector_end = all_pn.nlp.model.markers(all_pn.nlp.states["q"].mx)[marker_idx]
+            marker_idx = controller.model.marker_index(f'cone_approx_{i_r}_{i_th}')
+            vector_origin = controller.model.markers(controller.states["q"].mx)[eyes_vect_start_marker_idx]
+            vector_end = controller.model.markers(controller.states["q"].mx)[marker_idx]
             vector = vector_end - vector_origin
 
             # Get the intersection between the vector and the trampoline plane
@@ -81,7 +80,7 @@ def custom_trampoline_bed_in_peripheral_vision(all_pn: PenaltyNodeList) -> cas.M
     val = cas.if_else(gaze_vector[2] > -0.01, 2*10*11,
                 cas.if_else(cas.fabs(gaze_vector[0]/gaze_vector[2]) > np.tan(3*np.pi/8), 2*10*11,
                             cas.if_else(cas.fabs(gaze_vector[1]/gaze_vector[2]) > np.tan(3*np.pi/8), 2*10*11, obj)))
-    out = all_pn.nlp.mx_to_cx("peripheral_vision", val, all_pn.nlp.states["q"])
+    out = controller.mx_to_cx("peripheral_vision", val, controller.states["q"])
 
     return out
 
@@ -455,6 +454,7 @@ def prepare_ocp(
         objective_functions,
         ode_solver=ode_solver,
         n_threads=n_threads,
+        assume_phase_dynamics=True,
     )
 
 
