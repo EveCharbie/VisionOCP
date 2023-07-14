@@ -11,12 +11,11 @@ import biorbd
 from IPython import embed
 
 import sys
-sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
+sys.path.append("/home/mickaelbegon/Documents/Eve/BiorbdOptim")
 from bioptim import (
     OptimalControlProgram,
     DynamicsList,
     DynamicsFcn,
-    PenaltyNode,
     ObjectiveList,
     ObjectiveFcn,
     BoundsList,
@@ -29,7 +28,6 @@ from bioptim import (
     CostType,
     ConstraintList,
     ConstraintFcn,
-    PenaltyNodeList,
     BiorbdModel,
     Shooting,
     SolutionIntegrator,
@@ -319,7 +317,7 @@ def prepare_ocp(weights, coefficients, biorbd_model_path) -> OptimalControlProgr
 
 
     num_twists = 1
-    n_threads = 8
+    n_threads = 32
     n_shooting = (120, 40)
     final_time = 1.47
 
@@ -417,6 +415,7 @@ def prepare_ocp(weights, coefficients, biorbd_model_path) -> OptimalControlProgr
         u_bounds,
         objective_functions,
         n_threads=n_threads,
+        assume_phase_dynamics=True,
     )
 
 
@@ -458,7 +457,7 @@ class prepare_iocp:
             name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
             qs, qdots, qddots, time_parameters = get_parameters_from_optim(sol)
 
-            markers_final = get_final_markers(biorbd_model_path, qs)
+            markers_final = get_final_markers(self.biorbd_model_path, qs)
             out_score = np.sum((self.markers_xsens - markers_final) ** 2)
 
             del sol.ocp
@@ -494,9 +493,10 @@ def get_parameters_from_optim(sol):
 
 def main():
 
+    SOLVE_PARETO_FLAG = False
     global i_inverse
 
-    move_filename = "/home/charbie/disk/Eye-tracking/Results/SoMe/42/a62d4691_0_0-45_796__42__0__eyetracking_metrics.pkl"
+    move_filename = "a62d4691_0_0-45_796__42__0__eyetracking_metrics.pkl"
     biorbd_model_path = "models/SoMe_42_with_visual_criteria.bioMod"
 
     # Load the data to track
@@ -525,39 +525,43 @@ def main():
     solver.set_convergence_tolerance(1e-6)
 
     # Find coefficients of the objective using Pareto
-    coefficients = []
-    num_weights = 10
-    for i in range(num_weights):
-        i_inverse = f"pareto_{i}"
-        weights_pareto = [0 for _ in range(num_weights)]
-        weights_pareto[i] = 1
-        ocp_pareto = prepare_ocp(weights=weights_pareto, coefficients=[1 for _ in range(num_weights)], biorbd_model_path=biorbd_model_path)
-        sol_pareto = ocp_pareto.solve(solver)
-        coefficients.append(sol_pareto.cost)
+    if SOLVE_PARETO_FLAG:
+        coefficients = []
+        num_weights = 10
+        for i in range(num_weights):
+            i_inverse = f"pareto_{i}"
+            weights_pareto = [0 for _ in range(num_weights)]
+            weights_pareto[i] = 1
+            ocp_pareto = prepare_ocp(weights=weights_pareto, coefficients=[1 for _ in range(num_weights)], biorbd_model_path=biorbd_model_path)
+            sol_pareto = ocp_pareto.solve(solver)
+            coefficients.append(sol_pareto.cost)
 
-        if sol_pareto.status != 0:
-            raise RuntimeError("Pareto failed to converge")
-        else:
-            name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
-            qs, qdots, qddots, time_parameters = get_parameters_from_optim(sol_pareto)
+            if sol_pareto.status != 0:
+                raise RuntimeError("Pareto failed to converge")
+            else:
+                name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
+                qs, qdots, qddots, time_parameters = get_parameters_from_optim(sol_pareto)
 
-            markers_final = get_final_markers(biorbd_model_path, qs)
-            out_score = np.sum((markers_xsens - markers_final) ** 2)
+                markers_final = get_final_markers(biorbd_model_path, qs)
+                out_score = np.sum((markers_xsens - markers_final) ** 2)
 
-            del sol_pareto.ocp
-            with open(f"Solutions/IOCP/{name}-{i_inverse}.pkl", "wb") as f:
-                data = {"qs": qs,
-                        "qdots": qdots,
-                        "qddots": qddots,
-                        "time_parameters": time_parameters,
-                        "weights": weights_pareto,
-                        "coefficients": [1 for _ in range(num_weights)],
-                        "out_score": out_score}
-                pickle.dump(data, f)
+                del sol_pareto.ocp
+                with open(f"Solutions/IOCP/{name}-{i_inverse}.pkl", "wb") as f:
+                    data = {"qs": qs,
+                            "qdots": qdots,
+                            "qddots": qddots,
+                            "time_parameters": time_parameters,
+                            "weights": weights_pareto,
+                            "coefficients": [1 for _ in range(num_weights)],
+                            "out_score": out_score}
+                    pickle.dump(data, f)
 
-    print("+++++++++++++++++++++++++++ coefficients generated +++++++++++++++++++++++++++")
-    with open("coefficients_pareto.pkl", "wb") as f:
-        pickle.dump(coefficients, f)
+        print("+++++++++++++++++++++++++++ coefficients generated +++++++++++++++++++++++++++")
+        with open("coefficients_pareto.pkl", "wb") as f:
+            pickle.dump(coefficients, f)
+    else:
+        with open("coefficients_pareto.pkl", "rb") as f:
+            coefficients = pickle.load(f)
 
     # Running IOCP
     i_inverse = 0
