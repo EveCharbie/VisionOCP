@@ -39,9 +39,14 @@ from TechOpt42 import custom_trampoline_bed_in_peripheral_vision
 def set_bounds(biorbd_model, final_time, num_twists, nb_q, nb_qdot, nb_qddot_joints, fancy_names_index):
 
     # Path constraint
-    x_bounds = BoundsList()
-    x_bounds.add(bounds=biorbd_model[0].bounds_from_ranges(["q", "qdot"]))
-    x_bounds.add(bounds=biorbd_model[1].bounds_from_ranges(["q", "qdot"]))
+    bounds_q_min_0 = biorbd_model[0].bounds_from_ranges("q").min
+    bounds_q_max_0 = biorbd_model[0].bounds_from_ranges("q").max
+    bounds_qdot_min_0 = biorbd_model[0].bounds_from_ranges("qdot").min
+    bounds_qdot_max_0 = biorbd_model[0].bounds_from_ranges("qdot").max
+    bounds_q_min_1 = biorbd_model[1].bounds_from_ranges("q").min
+    bounds_q_max_1 = biorbd_model[1].bounds_from_ranges("q").max
+    bounds_qdot_min_1 = biorbd_model[1].bounds_from_ranges("qdot").min
+    bounds_qdot_max_1 = biorbd_model[1].bounds_from_ranges("qdot").max
 
     # For lisibility
     START, MIDDLE, END = 0, 1, 2
@@ -50,50 +55,58 @@ def set_bounds(biorbd_model, final_time, num_twists, nb_q, nb_qdot, nb_qddot_joi
     zmax = 9.81 / 8 * final_time**2 + 1
 
     # Pelvis translations
-    x_bounds[0].min[fancy_names_index["X"], :] = -0.25
-    x_bounds[0].max[fancy_names_index["X"], :] = 0.25
-    x_bounds[0].min[fancy_names_index["Y"], :] = -0.5
-    x_bounds[0].max[fancy_names_index["Y"], :] = 0.5
-    x_bounds[0][: fancy_names_index["Z"] + 1, START] = 0
-    x_bounds[0].min[fancy_names_index["Z"], MIDDLE:] = 0
-    x_bounds[0].max[fancy_names_index["Z"], MIDDLE:] = zmax
+    bounds_q_min_0[fancy_names_index["X"], :] = -0.25
+    bounds_q_max_0[fancy_names_index["X"], :] = 0.25
+    bounds_q_min_0[fancy_names_index["Y"], :] = -0.5
+    bounds_q_max_0[fancy_names_index["Y"], :] = 0.5
+    bounds_q_min_0[: fancy_names_index["Z"] + 1, START] = 0
+    bounds_q_max_0[: fancy_names_index["Z"] + 1, START] = 0
+    bounds_q_min_0[fancy_names_index["Z"], MIDDLE:] = 0
+    bounds_q_max_0[fancy_names_index["Z"], MIDDLE:] = zmax
 
     # Somersault
-    x_bounds[0][fancy_names_index["Xrot"], START] = 0
-    x_bounds[0].min[fancy_names_index["Xrot"], MIDDLE:] = -3/2 * np.pi
-    x_bounds[0].max[fancy_names_index["Xrot"], MIDDLE:] = 0.5
+    bounds_q_min_0[fancy_names_index["Xrot"], START] = 0
+    bounds_q_max_0[fancy_names_index["Xrot"], START] = 0
+    bounds_q_min_0[fancy_names_index["Xrot"], MIDDLE:] = -3/2 * np.pi
+    bounds_q_max_0[fancy_names_index["Xrot"], MIDDLE:] = 0.5
     # Tilt
-    x_bounds[0][fancy_names_index["Yrot"], START] = 0
-    x_bounds[0].min[fancy_names_index["Yrot"], MIDDLE:] = -np.pi / 4  # avoid gimbal lock
-    x_bounds[0].max[fancy_names_index["Yrot"], MIDDLE:] = np.pi / 4
+    bounds_q_min_0[fancy_names_index["Yrot"], START] = 0
+    bounds_q_max_0[fancy_names_index["Yrot"], START] = 0
+    bounds_q_min_0[fancy_names_index["Yrot"], MIDDLE:] = -np.pi / 4  # avoid gimbal lock
+    bounds_q_max_0[fancy_names_index["Yrot"], MIDDLE:] = np.pi / 4
     # Twist
-    x_bounds[0][fancy_names_index["Zrot"], START] = 0
-    x_bounds[0].min[fancy_names_index["Zrot"], MIDDLE] = -0.5
-    x_bounds[0].max[fancy_names_index["Zrot"], MIDDLE] = 2 * np.pi * num_twists
-    x_bounds[0].min[fancy_names_index["Zrot"], END] = 2 * np.pi * num_twists - 0.5
-    x_bounds[0].max[fancy_names_index["Zrot"], END] = 2 * np.pi * num_twists + 0.5
+    bounds_q_min_0[fancy_names_index["Zrot"], START] = 0
+    bounds_q_max_0[fancy_names_index["Zrot"], START] = 0
+    bounds_q_min_0[fancy_names_index["Zrot"], MIDDLE] = -0.5
+    bounds_q_max_0[fancy_names_index["Zrot"], MIDDLE] = 2 * np.pi * num_twists
+    bounds_q_min_0[fancy_names_index["Zrot"], END] = 2 * np.pi * num_twists - 0.5
+    bounds_q_max_0[fancy_names_index["Zrot"], END] = 2 * np.pi * num_twists + 0.5
 
     # Right arm
-    x_bounds[0][fancy_names_index["YrotRightUpperArm"], START] = 2.9
-    x_bounds[0][fancy_names_index["ZrotRightUpperArm"], START] = 0
+    bounds_q_min_0[fancy_names_index["YrotRightUpperArm"], START] = 2.9
+    bounds_q_max_0[fancy_names_index["YrotRightUpperArm"], START] = 2.9
+    bounds_q_min_0[fancy_names_index["ZrotRightUpperArm"], START] = 0
+    bounds_q_max_0[fancy_names_index["ZrotRightUpperArm"], START] = 0
     # Left arm
-    x_bounds[0][fancy_names_index["YrotLeftUpperArm"], START] = -2.9
-    x_bounds[0][fancy_names_index["ZrotLeftUpperArm"], START] = 0
+    bounds_q_min_0[fancy_names_index["YrotLeftUpperArm"], START] = -2.9
+    bounds_q_max_0[fancy_names_index["YrotLeftUpperArm"], START] = -2.9
+    bounds_q_min_0[fancy_names_index["ZrotLeftUpperArm"], START] = 0
+    bounds_q_max_0[fancy_names_index["ZrotLeftUpperArm"], START] = 0
 
-    x_bounds[0].min[fancy_names_index["ZrotHead"], START] = -0.1
-    x_bounds[0].max[fancy_names_index["ZrotHead"], START] = 0.1
-    x_bounds[0].min[fancy_names_index["XrotHead"], START] = -0.1
-    x_bounds[0].max[fancy_names_index["XrotHead"], START] = 0.1
-    x_bounds[0].min[fancy_names_index["ZrotEyes"], START] = -0.1
-    x_bounds[0].max[fancy_names_index["ZrotEyes"], START] = 0.1
-    x_bounds[0].min[fancy_names_index["XrotEyes"], START] = np.pi/4 - 0.1
-    x_bounds[0].max[fancy_names_index["XrotEyes"], START] = np.pi/4 + 0.1
+    bounds_q_min_0[fancy_names_index["ZrotHead"], START] = -0.1
+    bounds_q_max_0[fancy_names_index["ZrotHead"], START] = 0.1
+    bounds_q_min_0[fancy_names_index["XrotHead"], START] = -0.1
+    bounds_q_max_0[fancy_names_index["XrotHead"], START] = 0.1
+    bounds_q_min_0[fancy_names_index["ZrotEyes"], START] = -0.1
+    bounds_q_max_0[fancy_names_index["ZrotEyes"], START] = 0.1
+    bounds_q_min_0[fancy_names_index["XrotEyes"], START] = np.pi/4 - 0.1
+    bounds_q_max_0[fancy_names_index["XrotEyes"], START] = np.pi/4 + 0.1
 
     vzinit = 9.81 / 2 * final_time
 
     # Shift the initial vertical speed at the CoM
     CoM_Q_sym = cas.MX.sym("CoM", nb_q)
-    CoM_Q_init = x_bounds[0].min[:nb_q, START]
+    CoM_Q_init = bounds_q_min_0[:nb_q, START]
     CoM_Q_func = cas.Function("CoM_Q_func", [CoM_Q_sym], [biorbd_model[0].center_of_mass(CoM_Q_sym)])
     bassin_Q_func = cas.Function(
         "bassin_Q_func", [CoM_Q_sym], [biorbd_model[0].homogeneous_matrices_in_global(CoM_Q_sym, 0).to_mx()]
@@ -102,156 +115,172 @@ def set_bounds(biorbd_model, final_time, num_twists, nb_q, nb_qdot, nb_qddot_joi
     r = np.array(CoM_Q_func(CoM_Q_init)).reshape(1, 3) - np.array(bassin_Q_func(CoM_Q_init))[-1, :3]
 
     # Pelis translation velocities
-    x_bounds[0].min[fancy_names_index["vX"] : fancy_names_index["vY"] + 1, :] = -10
-    x_bounds[0].max[fancy_names_index["vX"] : fancy_names_index["vY"] + 1, :] = 10
-    x_bounds[0].min[fancy_names_index["vX"] : fancy_names_index["vY"] + 1, START] = -0.5
-    x_bounds[0].max[fancy_names_index["vX"] : fancy_names_index["vY"] + 1, START] = 0.5
-    x_bounds[0].min[fancy_names_index["vZ"], :] = -100
-    x_bounds[0].max[fancy_names_index["vZ"], :] = 100
-    x_bounds[0].min[fancy_names_index["vZ"], START] = vzinit - 0.5
-    x_bounds[0].max[fancy_names_index["vZ"], START] = vzinit + 0.5
+    bounds_qdot_min_0[fancy_names_index["vX"] : fancy_names_index["vY"] + 1, :] = -10
+    bounds_qdot_max_0[fancy_names_index["vX"] : fancy_names_index["vY"] + 1, :] = 10
+    bounds_qdot_min_0[fancy_names_index["vX"] : fancy_names_index["vY"] + 1, START] = -0.5
+    bounds_qdot_max_0[fancy_names_index["vX"] : fancy_names_index["vY"] + 1, START] = 0.5
+    bounds_qdot_min_0[fancy_names_index["vZ"], :] = -100
+    bounds_qdot_max_0[fancy_names_index["vZ"], :] = 100
+    bounds_qdot_min_0[fancy_names_index["vZ"], START] = vzinit - 0.5
+    bounds_qdot_max_0[fancy_names_index["vZ"], START] = vzinit + 0.5
 
     # Somersault
-    x_bounds[0].min[fancy_names_index["vXrot"], :] = -10
-    x_bounds[0].max[fancy_names_index["vXrot"], :] = -0.5
+    bounds_qdot_min_0[fancy_names_index["vXrot"], :] = -10
+    bounds_qdot_max_0[fancy_names_index["vXrot"], :] = -0.5
     # Tile
-    x_bounds[0].min[fancy_names_index["vYrot"], :] = -100
-    x_bounds[0].max[fancy_names_index["vYrot"], :] = 100
-    x_bounds[0][fancy_names_index["vYrot"], START] = 0
+    bounds_qdot_min_0[fancy_names_index["vYrot"], :] = -100
+    bounds_qdot_max_0[fancy_names_index["vYrot"], :] = 100
+    bounds_qdot_min_0[fancy_names_index["vYrot"], START] = 0
+    bounds_qdot_max_0[fancy_names_index["vYrot"], START] = 0
     # Twist
-    x_bounds[0].min[fancy_names_index["vZrot"], :] = -100
-    x_bounds[0].max[fancy_names_index["vZrot"], :] = 100
-    x_bounds[0][fancy_names_index["vZrot"], START] = 0
+    bounds_qdot_min_0[fancy_names_index["vZrot"], :] = -100
+    bounds_qdot_max_0[fancy_names_index["vZrot"], :] = 100
+    bounds_qdot_min_0[fancy_names_index["vZrot"], START] = 0
+    bounds_qdot_max_0[fancy_names_index["vZrot"], START] = 0
 
     min_bound_trans_velocity = (
-        x_bounds[0].min[fancy_names_index["vX"] : fancy_names_index["vZ"] + 1, START] + np.cross(r, x_bounds[0].min[fancy_names_index["vXrot"] : fancy_names_index["vZrot"] + 1, START])
+        bounds_qdot_min_0[fancy_names_index["vX"] : fancy_names_index["vZ"] + 1, START] + np.cross(r, bounds_qdot_min_0[fancy_names_index["vXrot"] : fancy_names_index["vZrot"] + 1, START])
     )[0]
     max_bound_trans_velocity = (
-        x_bounds[0].max[fancy_names_index["vX"] : fancy_names_index["vZ"] + 1, START] + np.cross(r, x_bounds[0].max[fancy_names_index["vXrot"] : fancy_names_index["vZrot"] + 1, START])
+        bounds_qdot_max_0[fancy_names_index["vX"] : fancy_names_index["vZ"] + 1, START] + np.cross(r, bounds_qdot_min_0[fancy_names_index["vXrot"] : fancy_names_index["vZrot"] + 1, START])
     )[0]
-    x_bounds[0].min[fancy_names_index["vX"] : fancy_names_index["vZ"] + 1, START] = (
+    bounds_qdot_min_0[fancy_names_index["vX"] : fancy_names_index["vZ"] + 1, START] = (
         min(max_bound_trans_velocity[0], min_bound_trans_velocity[0]),
         min(max_bound_trans_velocity[1], min_bound_trans_velocity[1]),
         min(max_bound_trans_velocity[2], min_bound_trans_velocity[2]),
     )
-    x_bounds[0].max[fancy_names_index["vX"] : fancy_names_index["vZ"] + 1, START] = (
+    bounds_qdot_max_0[fancy_names_index["vX"] : fancy_names_index["vZ"] + 1, START] = (
         max(max_bound_trans_velocity[0], min_bound_trans_velocity[0]),
         max(max_bound_trans_velocity[1], min_bound_trans_velocity[1]),
         max(max_bound_trans_velocity[2], min_bound_trans_velocity[2]),
     )
 
     # Head and eyes
-    x_bounds[0].min[fancy_names_index["vZrotHead"] : fancy_names_index["vXrotEyes"] + 1, :] = -100
-    x_bounds[0].max[fancy_names_index["vZrotHead"] : fancy_names_index["vXrotEyes"] + 1, :] = 100
-    x_bounds[0][fancy_names_index["vZrotHead"] : fancy_names_index["vXrotEyes"] + 1, START] = 0
+    bounds_qdot_min_0[fancy_names_index["vZrotHead"] : fancy_names_index["vXrotEyes"] + 1, :] = -100
+    bounds_qdot_max_0[fancy_names_index["vZrotHead"] : fancy_names_index["vXrotEyes"] + 1, :] = 100
+    bounds_qdot_min_0[fancy_names_index["vZrotHead"] : fancy_names_index["vXrotEyes"] + 1, START] = 0
+    bounds_qdot_max_0[fancy_names_index["vZrotHead"]: fancy_names_index["vXrotEyes"] + 1, START] = 0
 
     # Right arm
-    x_bounds[0].min[fancy_names_index["vZrotRightUpperArm"] : fancy_names_index["vYrotRightUpperArm"] + 1, :] = -100
-    x_bounds[0].max[fancy_names_index["vZrotRightUpperArm"] : fancy_names_index["vYrotRightUpperArm"] + 1, :] = 100
-    x_bounds[0][fancy_names_index["vZrotRightUpperArm"] : fancy_names_index["vYrotRightUpperArm"] + 1, START] = 0
+    bounds_qdot_min_0[fancy_names_index["vZrotRightUpperArm"] : fancy_names_index["vYrotRightUpperArm"] + 1, :] = -100
+    bounds_qdot_max_0[fancy_names_index["vZrotRightUpperArm"] : fancy_names_index["vYrotRightUpperArm"] + 1, :] = 100
+    bounds_qdot_min_0[fancy_names_index["vZrotRightUpperArm"] : fancy_names_index["vYrotRightUpperArm"] + 1, START] = 0
+    bounds_qdot_max_0[fancy_names_index["vZrotRightUpperArm"]: fancy_names_index["vYrotRightUpperArm"] + 1, START] = 0
     # Left arm
-    x_bounds[0].min[fancy_names_index["vZrotLeftUpperArm"] : fancy_names_index["vYrotLeftUpperArm"] + 1, :] = -100
-    x_bounds[0].max[fancy_names_index["vZrotLeftUpperArm"] : fancy_names_index["vYrotLeftUpperArm"] + 1, :] = 100
-    x_bounds[0][fancy_names_index["vZrotLeftUpperArm"] : fancy_names_index["vYrotLeftUpperArm"] + 1, START] = 0
+    bounds_qdot_min_0[fancy_names_index["vZrotLeftUpperArm"] : fancy_names_index["vYrotLeftUpperArm"] + 1, :] = -100
+    bounds_qdot_max_0[fancy_names_index["vZrotLeftUpperArm"] : fancy_names_index["vYrotLeftUpperArm"] + 1, :] = 100
+    bounds_qdot_min_0[fancy_names_index["vZrotLeftUpperArm"] : fancy_names_index["vYrotLeftUpperArm"] + 1, START] = 0
+    bounds_qdot_max_0[fancy_names_index["vZrotLeftUpperArm"]: fancy_names_index["vYrotLeftUpperArm"] + 1, START] = 0
 
     # ------------------------------- Phase 1 : landing ------------------------------- #
 
     # Pelvis translations
-    x_bounds[1].min[fancy_names_index["X"], :] = -0.25
-    x_bounds[1].max[fancy_names_index["X"], :] = 0.25
-    x_bounds[1].min[fancy_names_index["Y"], :] = -0.5
-    x_bounds[1].max[fancy_names_index["Y"], :] = 0.5
-    x_bounds[1].min[fancy_names_index["Z"], :] = 0
-    x_bounds[1].max[fancy_names_index["Z"], :] = zmax
-    x_bounds[1].min[fancy_names_index["Z"], END] = 0
-    x_bounds[1].max[fancy_names_index["Z"], END] = 0.1
+    bounds_q_min_1[fancy_names_index["X"], :] = -0.25
+    bounds_q_max_1[fancy_names_index["X"], :] = 0.25
+    bounds_q_min_1[fancy_names_index["Y"], :] = -0.5
+    bounds_q_max_1[fancy_names_index["Y"], :] = 0.5
+    bounds_q_min_1[fancy_names_index["Z"], :] = 0
+    bounds_q_max_1[fancy_names_index["Z"], :] = zmax
+    bounds_q_min_1[fancy_names_index["Z"], END] = 0
+    bounds_q_max_1[fancy_names_index["Z"], END] = 0.1
 
     # Somersault
-    x_bounds[1].min[fancy_names_index["Xrot"], :] = -0.5 - 2 * np.pi - 0.1
-    x_bounds[1].max[fancy_names_index["Xrot"], :] = -3/2 * np.pi + 0.2 + 0.2
-    x_bounds[1].min[fancy_names_index["Xrot"], END] = 0.5 - 2 * np.pi - 0.1
-    x_bounds[1].max[fancy_names_index["Xrot"], END] = 0.5 - 2 * np.pi + 0.1
+    bounds_q_min_1[fancy_names_index["Xrot"], :] = -0.5 - 2 * np.pi - 0.1
+    bounds_q_max_1[fancy_names_index["Xrot"], :] = -3/2 * np.pi + 0.2 + 0.2
+    bounds_q_min_1[fancy_names_index["Xrot"], END] = 0.5 - 2 * np.pi - 0.1
+    bounds_q_max_1[fancy_names_index["Xrot"], END] = 0.5 - 2 * np.pi + 0.1
     # Tilt
-    x_bounds[1].min[fancy_names_index["Yrot"], :] = -np.pi / 16
-    x_bounds[1].max[fancy_names_index["Yrot"], :] = np.pi / 16
+    bounds_q_min_1[fancy_names_index["Yrot"], :] = -np.pi / 16
+    bounds_q_max_1[fancy_names_index["Yrot"], :] = np.pi / 16
     # Twist
-    x_bounds[1].min[fancy_names_index["Zrot"], :] = 2 * np.pi * num_twists - np.pi / 8
-    x_bounds[1].max[fancy_names_index["Zrot"], :] = 2 * np.pi * num_twists + np.pi / 8
+    bounds_q_min_1[fancy_names_index["Zrot"], :] = 2 * np.pi * num_twists - np.pi / 8
+    bounds_q_max_1[fancy_names_index["Zrot"], :] = 2 * np.pi * num_twists + np.pi / 8
 
     # Right arm
-    x_bounds[1].min[fancy_names_index["YrotRightUpperArm"], START] = - 0.1
-    x_bounds[1].max[fancy_names_index["YrotRightUpperArm"], START] = + 0.1
-    x_bounds[1].min[fancy_names_index["YrotRightUpperArm"], END] = 2.9 - 0.1
-    x_bounds[1].max[fancy_names_index["YrotRightUpperArm"], END] = 2.9 + 0.1
-    x_bounds[1].min[fancy_names_index["ZrotRightUpperArm"], END] = -0.1
-    x_bounds[1].max[fancy_names_index["ZrotRightUpperArm"], END] = 0.1
+    bounds_q_min_1[fancy_names_index["YrotRightUpperArm"], START] = - 0.1
+    bounds_q_max_1[fancy_names_index["YrotRightUpperArm"], START] = + 0.1
+    bounds_q_min_1[fancy_names_index["YrotRightUpperArm"], END] = 2.9 - 0.1
+    bounds_q_max_1[fancy_names_index["YrotRightUpperArm"], END] = 2.9 + 0.1
+    bounds_q_min_1[fancy_names_index["ZrotRightUpperArm"], END] = -0.1
+    bounds_q_max_1[fancy_names_index["ZrotRightUpperArm"], END] = 0.1
     # Left arm
-    x_bounds[1].min[fancy_names_index["YrotLeftUpperArm"], START] = - 0.1
-    x_bounds[1].max[fancy_names_index["YrotLeftUpperArm"], START] = + 0.1
-    x_bounds[1].min[fancy_names_index["YrotLeftUpperArm"], END] = -2.9 - 0.1
-    x_bounds[1].max[fancy_names_index["YrotLeftUpperArm"], END] = -2.9 + 0.1
-    x_bounds[1].min[fancy_names_index["ZrotLeftUpperArm"], END] = -0.1
-    x_bounds[1].max[fancy_names_index["ZrotLeftUpperArm"], END] = 0.1
+    bounds_q_min_1[fancy_names_index["YrotLeftUpperArm"], START] = - 0.1
+    bounds_q_max_1[fancy_names_index["YrotLeftUpperArm"], START] = + 0.1
+    bounds_q_min_1[fancy_names_index["YrotLeftUpperArm"], END] = -2.9 - 0.1
+    bounds_q_max_1[fancy_names_index["YrotLeftUpperArm"], END] = -2.9 + 0.1
+    bounds_q_min_1[fancy_names_index["ZrotLeftUpperArm"], END] = -0.1
+    bounds_q_max_1[fancy_names_index["ZrotLeftUpperArm"], END] = 0.1
 
     # Translations velocities
-    x_bounds[1].min[fancy_names_index["vX"] : fancy_names_index["vY"] + 1, :] = -10
-    x_bounds[1].max[fancy_names_index["vX"] : fancy_names_index["vY"] + 1, :] = 10
-    x_bounds[1].min[fancy_names_index["vZ"], :] = -100
-    x_bounds[1].max[fancy_names_index["vZ"], :] = 100
+    bounds_qdot_min_1[fancy_names_index["vX"] : fancy_names_index["vY"] + 1, :] = -10
+    bounds_qdot_max_1[fancy_names_index["vX"] : fancy_names_index["vY"] + 1, :] = 10
+    bounds_qdot_min_1[fancy_names_index["vZ"], :] = -100
+    bounds_qdot_max_1[fancy_names_index["vZ"], :] = 100
 
     # Somersault
-    x_bounds[1].min[fancy_names_index["vXrot"], :] = -100
-    x_bounds[1].max[fancy_names_index["vXrot"], :] = 100
+    bounds_qdot_min_1[fancy_names_index["vXrot"], :] = -100
+    bounds_qdot_max_1[fancy_names_index["vXrot"], :] = 100
     # Tilt
-    x_bounds[1].min[fancy_names_index["vYrot"], :] = -100
-    x_bounds[1].max[fancy_names_index["vYrot"], :] = 100
+    bounds_qdot_min_1[fancy_names_index["vYrot"], :] = -100
+    bounds_qdot_max_1[fancy_names_index["vYrot"], :] = 100
     # Twist
-    x_bounds[1].min[fancy_names_index["vZrot"], :] = -100
-    x_bounds[1].max[fancy_names_index["vZrot"], :] = 100
+    bounds_qdot_min_1[fancy_names_index["vZrot"], :] = -100
+    bounds_qdot_max_1[fancy_names_index["vZrot"], :] = 100
 
     # Head and eyes
-    x_bounds[0].min[fancy_names_index["vZrotHead"] : fancy_names_index["vXrotEyes"] + 1, :] = -100
-    x_bounds[0].max[fancy_names_index["vZrotHead"] : fancy_names_index["vXrotEyes"] + 1, :] = 100
-    x_bounds[0][fancy_names_index["vZrotHead"] : fancy_names_index["vXrotEyes"] + 1, START] = 0
+    bounds_qdot_min_1[fancy_names_index["vZrotHead"] : fancy_names_index["vXrotEyes"] + 1, :] = -100
+    bounds_qdot_max_1[fancy_names_index["vZrotHead"] : fancy_names_index["vXrotEyes"] + 1, :] = 100
+    bounds_qdot_min_1[fancy_names_index["vZrotHead"] : fancy_names_index["vXrotEyes"] + 1, START] = 0
+    bounds_qdot_max_1[fancy_names_index["vZrotHead"]: fancy_names_index["vXrotEyes"] + 1, START] = 0
 
     # Right arm
-    x_bounds[1].min[fancy_names_index["vZrotRightUpperArm"] : fancy_names_index["vYrotRightUpperArm"] + 1, :] = -100
-    x_bounds[1].max[fancy_names_index["vZrotRightUpperArm"] : fancy_names_index["vYrotRightUpperArm"] + 1, :] = 100
+    bounds_qdot_min_1[fancy_names_index["vZrotRightUpperArm"] : fancy_names_index["vYrotRightUpperArm"] + 1, :] = -100
+    bounds_qdot_max_1[fancy_names_index["vZrotRightUpperArm"] : fancy_names_index["vYrotRightUpperArm"] + 1, :] = 100
     # Left arm
-    x_bounds[1].min[fancy_names_index["vZrotLeftUpperArm"] : fancy_names_index["vYrotLeftUpperArm"] + 1, :] = -100
-    x_bounds[1].max[fancy_names_index["vZrotLeftUpperArm"] : fancy_names_index["vYrotLeftUpperArm"] + 1, :] = 100
+    bounds_qdot_min_1[fancy_names_index["vZrotLeftUpperArm"] : fancy_names_index["vYrotLeftUpperArm"] + 1, :] = -100
+    bounds_qdot_max_1[fancy_names_index["vZrotLeftUpperArm"] : fancy_names_index["vYrotLeftUpperArm"] + 1, :] = 100
+
+    x_bounds = BoundsList()
+    x_bounds.add("q", min_bound=bounds_q_min_0, max_bound=bounds_q_max_0, phase=0)
+    x_bounds.add("qdot", min_bound=bounds_qdot_min_0, max_bound=bounds_qdot_max_0, phase=0)
+    x_bounds.add("q", min_bound=bounds_q_min_1, max_bound=bounds_q_max_1, phase=1)
+    x_bounds.add("qdot", min_bound=bounds_qdot_min_1, max_bound=bounds_qdot_max_1, phase=1)
 
     qddot_joints_min, qddot_joints_max, qddot_joints_init = -500, 500, 0
     u_bounds = BoundsList()
-    u_bounds.add([qddot_joints_min] * nb_qddot_joints, [qddot_joints_max] * nb_qddot_joints)
-    u_bounds.add([qddot_joints_min] * nb_qddot_joints, [qddot_joints_max] * nb_qddot_joints)
+    u_bounds.add("qddot_joints", min_bound=[qddot_joints_min] * nb_qddot_joints, max_bound=[qddot_joints_max] * nb_qddot_joints, phase=0)
+    u_bounds.add("qddot_joints", min_bound=[qddot_joints_min] * nb_qddot_joints, max_bound=[qddot_joints_max] * nb_qddot_joints, phase=1)
 
     return x_bounds, u_bounds
 
 
 def set_initial_guesses(nb_q, nb_qdot, num_twists, nb_qddot_joints, fancy_names_index):
 
-    x0 = np.vstack((np.zeros((nb_q, 2)), np.zeros((nb_qdot, 2))))
-    x1 = np.vstack((np.zeros((nb_q, 2)), np.zeros((nb_qdot, 2))))
+    q_0 = np.zeros((nb_q, 2))
+    qdot_0 = np.zeros((nb_qdot, 2))
+    q_1 = np.zeros((nb_q, 2))
+    qdot_1 = np.zeros((nb_qdot, 2))
 
-    x0[fancy_names_index["Xrot"]] = np.array([0, -3/2 * np.pi])
-    x0[fancy_names_index["Zrot"]] = np.array([0, 2 * np.pi * num_twists])
-    x0[fancy_names_index["ZrotLeftUpperArm"]] = -0.75
-    x0[fancy_names_index["ZrotRightUpperArm"]] = 0.75
-    x0[fancy_names_index["YrotLeftUpperArm"], 0] = -2.9
-    x0[fancy_names_index["YrotRightUpperArm"], 0] = 2.9
-    x0[fancy_names_index["vXrot"]] = - 2 * np.pi
+    q_0[fancy_names_index["Xrot"]] = np.array([0, -3/2 * np.pi])
+    q_0[fancy_names_index["Zrot"]] = np.array([0, 2 * np.pi * num_twists])
+    q_0[fancy_names_index["ZrotLeftUpperArm"]] = -0.75
+    q_0[fancy_names_index["ZrotRightUpperArm"]] = 0.75
+    q_0[fancy_names_index["YrotLeftUpperArm"], 0] = -2.9
+    q_0[fancy_names_index["YrotRightUpperArm"], 0] = 2.9
+    qdot_0[fancy_names_index["vXrot"]] = - 2 * np.pi
 
-    x1[fancy_names_index["Xrot"]] = np.array([-3/2 * np.pi, -2 * np.pi])
-    x1[fancy_names_index["Zrot"]] = np.array([2 * np.pi * num_twists, 2 * np.pi * num_twists])
+    q_1[fancy_names_index["Xrot"]] = np.array([-3/2 * np.pi, -2 * np.pi])
+    q_1[fancy_names_index["Zrot"]] = np.array([2 * np.pi * num_twists, 2 * np.pi * num_twists])
 
     x_init = InitialGuessList()
-    x_init.add(x0, interpolation=InterpolationType.LINEAR)
-    x_init.add(x1, interpolation=InterpolationType.LINEAR)
+    x_init.add("q", initial_guess=q_0, interpolation=InterpolationType.LINEAR, phase=0)
+    x_init.add("qdot", initial_guess=qdot_0, interpolation=InterpolationType.LINEAR, phase=0)
+    x_init.add("q", initial_guess=q_1, interpolation=InterpolationType.LINEAR, phase=1)
+    x_init.add("qdot", initial_guess=qdot_1, interpolation=InterpolationType.LINEAR, phase=1)
 
     u_init = InitialGuessList()
-    u_init.add([0] * nb_qddot_joints)
-    u_init.add([0] * nb_qddot_joints)
+    u_init.add("qddot_joints", initial_guess=[0] * nb_qddot_joints, phase=0)
+    u_init.add("qddot_joints", initial_guess=[0] * nb_qddot_joints, phase=1)
 
     return x_init, u_init
 
@@ -275,20 +304,20 @@ def set_fancy_names_index(nb_q):
     fancy_names_index["YrotRightUpperArm"] = 11
     fancy_names_index["ZrotLeftUpperArm"] = 12
     fancy_names_index["YrotLeftUpperArm"] = 13
-    fancy_names_index["vX"] = 0 + nb_q
-    fancy_names_index["vY"] = 1 + nb_q
-    fancy_names_index["vZ"] = 2 + nb_q
-    fancy_names_index["vXrot"] = 3 + nb_q
-    fancy_names_index["vYrot"] = 4 + nb_q
-    fancy_names_index["vZrot"] = 5 + nb_q
-    fancy_names_index["vZrotHead"] = 6 + nb_q
-    fancy_names_index["vXrotHead"] = 7 + nb_q
-    fancy_names_index["vZrotEyes"] = 8 + nb_q
-    fancy_names_index["vXrotEyes"] = 9 + nb_q
-    fancy_names_index["vZrotRightUpperArm"] = 10 + nb_q
-    fancy_names_index["vYrotRightUpperArm"] = 11 + nb_q
-    fancy_names_index["vZrotLeftUpperArm"] = 12 + nb_q
-    fancy_names_index["vYrotLeftUpperArm"] = 13 + nb_q
+    fancy_names_index["vX"] = 0
+    fancy_names_index["vY"] = 1
+    fancy_names_index["vZ"] = 2
+    fancy_names_index["vXrot"] = 3
+    fancy_names_index["vYrot"] = 4
+    fancy_names_index["vZrot"] = 5
+    fancy_names_index["vZrotHead"] = 6
+    fancy_names_index["vXrotHead"] = 7
+    fancy_names_index["vZrotEyes"] = 8
+    fancy_names_index["vXrotEyes"] = 9
+    fancy_names_index["vZrotRightUpperArm"] = 10
+    fancy_names_index["vYrotRightUpperArm"] = 11
+    fancy_names_index["vZrotLeftUpperArm"] = 12
+    fancy_names_index["vYrotLeftUpperArm"] = 13
     return fancy_names_index
 
 def prepare_ocp(weights, coefficients, biorbd_model_path) -> OptimalControlProgram:
@@ -336,65 +365,87 @@ def prepare_ocp(weights, coefficients, biorbd_model_path) -> OptimalControlProgr
     objective_functions = ObjectiveList()
 
     # Min controls
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=weight_qddot_joint*coefficient_qddot_joint, phase=0
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=weight_qddot_joint*coefficient_qddot_joint, phase=1
-    )
+    if weight_qddot_joint*coefficient_qddot_joint != 0:
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=weight_qddot_joint*coefficient_qddot_joint, phase=0
+        )
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=weight_qddot_joint*coefficient_qddot_joint, phase=1
+        )
 
     # Min control derivative
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=weight_qddot_joint_derivative*coefficient_qddot_joint_derivative, phase=0, derivative=True,
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=weight_qddot_joint_derivative*coefficient_qddot_joint_derivative, phase=1, derivative=True,
-    )
+    if weight_qddot_joint_derivative*coefficient_qddot_joint_derivative != 0:
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=weight_qddot_joint_derivative*coefficient_qddot_joint_derivative, phase=0, derivative=True,
+        )
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=weight_qddot_joint_derivative*coefficient_qddot_joint_derivative, phase=1, derivative=True,
+        )
 
-    objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time, weight=weight_time*coefficient_time, phase=0
-    )
-    objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=weight_time*coefficient_time, phase=1
-    )
+    if weight_time*coefficient_time != 0:
+        objective_functions.add(
+            ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time, weight=weight_time*coefficient_time, phase=0
+        )
+        objective_functions.add(
+            ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=weight_time*coefficient_time, phase=1
+        )
+    else:
+        objective_functions.add(
+            ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time, weight=1e-10, phase=0
+        )
+        objective_functions.add(
+            ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=1e-10, phase=1
+        )
 
     # aligning with the FIG regulations
-    objective_functions.add(
-         ObjectiveFcn.Lagrange.MINIMIZE_STATE,
-         key="q",
-         node=Node.ALL_SHOOTING,
-         index=[fancy_names_index["YrotRightUpperArm"], fancy_names_index["YrotLeftUpperArm"]],
-         weight=weight_arms*coefficient_arms,
-         phase=0,
-    )
+    if weight_arms*coefficient_arms != 0:
+        objective_functions.add(
+             ObjectiveFcn.Lagrange.MINIMIZE_STATE,
+             key="q",
+             node=Node.ALL_SHOOTING,
+             index=[fancy_names_index["YrotRightUpperArm"], fancy_names_index["YrotLeftUpperArm"]],
+             weight=weight_arms*coefficient_arms,
+             phase=0,
+        )
 
     # --- Visual criteria ---
     # Spotting
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=weight_spotting*coefficient_spotting, phase=1)
+    if weight_spotting*coefficient_spotting != 0:
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=weight_spotting*coefficient_spotting, phase=1)
 
     # Self-motion detection
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[fancy_names_index["ZrotEyes"], fancy_names_index["XrotEyes"]], weight=weight_self_motion_detection*coefficient_self_motion_detection, phase=0)
+    if weight_self_motion_detection*coefficient_self_motion_detection != 0:
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[fancy_names_index["ZrotEyes"], fancy_names_index["XrotEyes"]],
+                                weight=weight_self_motion_detection*coefficient_self_motion_detection, phase=0)
 
     # Keeping the trampoline bed in the peripheral vision
-    objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=weight_peripheral_vision*coefficient_peripheral_vision, phase=0)
+    if weight_peripheral_vision*coefficient_peripheral_vision != 0:
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=weight_peripheral_vision*coefficient_peripheral_vision, phase=0)
 
     # Quiet eye
-    objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
-                            vector_0_marker_0="eyes_vect_start",
-                            vector_0_marker_1="eyes_vect_end",
-                            vector_1_marker_0="eyes_vect_start",
-                            vector_1_marker_1="fixation_front",
-                            weight=weight_quiet_eye_phase_0*coefficient_quiet_eye_phase_0, phase=0)
-    objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
-                            vector_0_marker_0="eyes_vect_start",
-                            vector_0_marker_1="eyes_vect_end",
-                            vector_1_marker_0="eyes_vect_start",
-                            vector_1_marker_1="fixation_front",
-                            weight=weight_quiet_eye_phase_1*coefficient_quiet_eye_phase_1, phase=1)
+    if weight_quiet_eye_phase_0*coefficient_quiet_eye_phase_0 != 0:
+        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
+                                vector_0_marker_0="eyes_vect_start",
+                                vector_0_marker_1="eyes_vect_end",
+                                vector_1_marker_0="eyes_vect_start",
+                                vector_1_marker_1="fixation_front",
+                                weight=weight_quiet_eye_phase_0*coefficient_quiet_eye_phase_0, phase=0)
+    if weight_quiet_eye_phase_1*coefficient_quiet_eye_phase_1 != 0:
+        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
+                                vector_0_marker_0="eyes_vect_start",
+                                vector_0_marker_1="eyes_vect_end",
+                                vector_1_marker_0="eyes_vect_start",
+                                vector_1_marker_1="fixation_front",
+                                weight=weight_quiet_eye_phase_1*coefficient_quiet_eye_phase_1, phase=1)
 
     # Avoid extreme eye and neck angles
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[fancy_names_index["ZrotHead"], fancy_names_index["XrotHead"], fancy_names_index["ZrotEyes"], fancy_names_index["XrotEyes"]], weight=weight_extreme_angles*coefficient_extreme_angles, phase=0)
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[fancy_names_index["ZrotHead"], fancy_names_index["XrotHead"], fancy_names_index["ZrotEyes"], fancy_names_index["XrotEyes"]], weight=weight_extreme_angles*coefficient_extreme_angles, phase=1)
+    if weight_extreme_angles*coefficient_extreme_angles != 0:
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q",
+                                index=[fancy_names_index["ZrotHead"], fancy_names_index["XrotHead"], fancy_names_index["ZrotEyes"], fancy_names_index["XrotEyes"]],
+                                weight=weight_extreme_angles*coefficient_extreme_angles, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q",
+                                index=[fancy_names_index["ZrotHead"], fancy_names_index["XrotHead"], fancy_names_index["ZrotEyes"], fancy_names_index["XrotEyes"]],
+                                weight=weight_extreme_angles*coefficient_extreme_angles, phase=1)
 
     # Dynamics
     dynamics = DynamicsList()
@@ -409,11 +460,11 @@ def prepare_ocp(weights, coefficients, biorbd_model_path) -> OptimalControlProgr
         dynamics,
         n_shooting,
         [final_time / len(biorbd_model)] * len(biorbd_model),
-        x_init,
-        u_init,
-        x_bounds,
-        u_bounds,
-        objective_functions,
+        x_init=x_init,
+        u_init=u_init,
+        x_bounds=x_bounds,
+        u_bounds=u_bounds,
+        objective_functions=objective_functions,
         n_threads=n_threads,
         assume_phase_dynamics=True,
     )
@@ -461,7 +512,7 @@ class prepare_iocp:
             out_score = np.sum((self.markers_xsens - markers_final) ** 2)
 
             del sol.ocp
-            with open(f"Solutions/IOCP/{name}-{i_inverse}.pkl", "wb") as f:
+            with open(f"Solutions/{name}-{i_inverse}.pkl", "wb") as f:
                 data = {"qs": qs,
                         "qdots": qdots,
                         "qddots": qddots,
@@ -493,7 +544,7 @@ def get_parameters_from_optim(sol):
 
 def main():
 
-    SOLVE_PARETO_FLAG = False
+    SOLVE_PARETO_FLAG = True # False
     global i_inverse
 
     move_filename = "a62d4691_0_0-45_796__42__0__eyetracking_metrics.pkl"
@@ -546,7 +597,7 @@ def main():
                 out_score = np.sum((markers_xsens - markers_final) ** 2)
 
                 del sol_pareto.ocp
-                with open(f"Solutions/IOCP/{name}-{i_inverse}.pkl", "wb") as f:
+                with open(f"Solutions/{name}-{i_inverse}.pkl", "wb") as f:
                     data = {"qs": qs,
                             "qdots": qdots,
                             "qddots": qddots,
