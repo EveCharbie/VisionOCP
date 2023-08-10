@@ -12,7 +12,8 @@ import casadi as cas
 import IPython
 import time
 import sys
-sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
+# sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
+sys.path.append("/home/mickaelbegon/Documents/Eve/BiorbdOptim")
 from bioptim import (
     OptimalControlProgram,
     DynamicsList,
@@ -29,17 +30,19 @@ from bioptim import (
     CostType,
     ConstraintList,
     ConstraintFcn,
-    PenaltyController,
+    PenaltyNode,
+    PenaltyNodeList,
     BiorbdModel,
     Shooting,
     SolutionIntegrator,
 )
 
-def custom_trampoline_bed_in_peripheral_vision(controller: PenaltyController) -> cas.MX:
+def custom_trampoline_bed_in_peripheral_vision(all_pn: PenaltyNodeList) -> cas.MX:
     """
     This function aims to encourage the avatar to keep the trampoline bed in his peripheral vision.
     It is done by discretizing the vision cone into vectors and determining if the vector projection of the gaze are inside the trampoline bed.
     """
+    controller = all_pn.nlp
 
     a = 1.07  # Trampoline with/2
     b = 2.14  # Trampoline length/2
@@ -466,16 +469,16 @@ def main():
     WITH_VISUAL_CRITERIA = True
 
     if WITH_VISUAL_CRITERIA:
-        biorbd_model_path = "/home/charbie/Documents/Programmation/VisionOCP/models/SoMe_42_with_visual_criteria.bioMod"
+        biorbd_model_path = "models/SoMe_42_with_visual_criteria.bioMod"
     else:
-        biorbd_model_path = "/home/charbie/Documents/Programmation/VisionOCP/models/SoMe_42.bioMod"
+        biorbd_model_path = "models/SoMe_42.bioMod"
 
     n_shooting = (100, 40)
     num_twists = 1
     ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
     # ocp.add_plot_penalty(CostType.ALL)
 
-    solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
+    solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
     solver.set_linear_solver("ma57")
     solver.set_maximum_iterations(10000)
     solver.set_convergence_tolerance(1e-4)

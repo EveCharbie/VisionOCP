@@ -11,6 +11,7 @@ import biorbd
 from IPython import embed
 
 import sys
+# sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
 sys.path.append("/home/mickaelbegon/Documents/Eve/BiorbdOptim")
 from bioptim import (
     OptimalControlProgram,
