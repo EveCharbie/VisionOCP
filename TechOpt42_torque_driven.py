@@ -517,9 +517,7 @@ def main():
     tic = time.time()
     sol = ocp.solve(solver)
     toc = time.time() - tic
-    print(toc)  
-    # Before: 3.6.2: 74.02791595458984s 
-    # Before: 3.6.3: 81s
+    print(toc)
 
     timestamp = time.strftime("%Y-%m-%d-%H%M")
     name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
