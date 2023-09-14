@@ -12,7 +12,8 @@ import casadi as cas
 import IPython
 import time
 import sys
-
+# sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
+sys.path.append("/home/mickaelbegon/Documents/Eve/BiorbdOptim")
 from bioptim import (
     OptimalControlProgram,
     DynamicsList,
@@ -40,6 +41,7 @@ def custom_trampoline_bed_in_peripheral_vision(controller: PenaltyController) ->
     This function aims to encourage the avatar to keep the trampoline bed in his peripheral vision.
     It is done by discretizing the vision cone into vectors and determining if the vector projection of the gaze are inside the trampoline bed.
     """
+    controller = all_pn.nlp
 
     q = controller
     a = 1.07  # Trampoline with/2
@@ -467,9 +469,9 @@ def main():
     WITH_VISUAL_CRITERIA = True
 
     if WITH_VISUAL_CRITERIA:
-        biorbd_model_path = "/home/charbie/Documents/Programmation/VisionOCP/models/SoMe_42_with_visual_criteria.bioMod"
+        biorbd_model_path = "models/SoMe_42_with_visual_criteria.bioMod"
     else:
-        biorbd_model_path = "/home/charbie/Documents/Programmation/VisionOCP/models/SoMe_42.bioMod"
+        biorbd_model_path = "models/SoMe_42.bioMod"
 
     n_shooting = (100, 40)
     num_twists = 1

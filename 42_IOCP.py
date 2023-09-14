@@ -11,6 +11,7 @@ import biorbd
 from IPython import embed
 
 import sys
+# sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
 sys.path.append("/home/mickaelbegon/Documents/Eve/BiorbdOptim")
 from bioptim import (
     OptimalControlProgram,
@@ -544,7 +545,7 @@ def get_parameters_from_optim(sol):
 
 def main():
 
-    SOLVE_PARETO_FLAG = True # False
+    SOLVE_PARETO_FLAG = False
     global i_inverse
 
     move_filename = "a62d4691_0_0-45_796__42__0__eyetracking_metrics.pkl"
@@ -597,7 +598,7 @@ def main():
                 out_score = np.sum((markers_xsens - markers_final) ** 2)
 
                 del sol_pareto.ocp
-                with open(f"Solutions/{name}-{i_inverse}.pkl", "wb") as f:
+                with open(f"Solutions/IOCP/{name}-{i_inverse}.pkl", "wb") as f:
                     data = {"qs": qs,
                             "qdots": qdots,
                             "qddots": qddots,
