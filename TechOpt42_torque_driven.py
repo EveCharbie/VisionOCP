@@ -13,6 +13,7 @@ import IPython
 import time
 import sys
 
+sys.path.append("/home/mickaelbegon/Documents/Eve/BiorbdOptim/")
 from bioptim import (
     OptimalControlProgram,
     DynamicsList,
@@ -212,7 +213,7 @@ def prepare_ocp(
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=100, phase=0)
 
         # Keeping the trampoline bed in the peripheral vision
-        # objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, phase=0)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, phase=0)
 
         # Quiet eye
         objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
@@ -485,7 +486,7 @@ def prepare_ocp(
         u_bounds=u_bounds,
         objective_functions=objective_functions,
         ode_solver=ode_solver,
-        n_threads=n_threads,
+        n_threads=1,
         variable_mappings=variable_mappings,
         assume_phase_dynamics=True,
     )
@@ -499,9 +500,9 @@ def main():
     WITH_VISUAL_CRITERIA = True
 
     if WITH_VISUAL_CRITERIA:
-        biorbd_model_path = "models/SoMe_42_with_visual_criteria.bioMod"
+        biorbd_model_path = "models/SoMe_42_with_visual_criteria_without_mesh.bioMod"
     else:
-        biorbd_model_path = "models/SoMe_42.bioMod"
+        biorbd_model_path = "models/SoMe_42_without_mesh.bioMod.bioMod"
 
     n_shooting = (100, 40)
     num_twists = 1
@@ -511,8 +512,8 @@ def main():
     # solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
     solver = Solver.IPOPT(show_online_optim=False)
     solver.set_linear_solver("ma57")
-    solver.set_maximum_iterations(10)
-    solver.set_convergence_tolerance(1e-4)
+    solver.set_maximum_iterations(1000)
+    solver.set_convergence_tolerance(1e-6)
 
     tic = time.time()
     sol = ocp.solve(solver)
@@ -545,7 +546,7 @@ def main():
     with open(f"Solutions/{name}-{str(n_shooting).replace(', ', '_')}-{timestamp}.pkl", "wb") as f:
         pickle.dump((sol, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector), f)
 
-    # sol.animate(n_frames=-1, show_floor=False)
+    sol.animate(n_frames=-1, show_floor=False)
 
 if __name__ == "__main__":
     main()

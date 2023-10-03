@@ -7,7 +7,6 @@ import numpy as np
 import pickle
 import biorbd_casadi as biorbd
 import casadi as cas
-import IPython
 import time
 import sys
 
@@ -72,14 +71,14 @@ def prepare_ocp(
         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", node=Node.ALL_SHOOTING, weight=1, phase=0
     )
 
-    # Min control derivative
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", node=Node.ALL_SHOOTING, weight=1, phase=0, derivative=True,
-    )
-
-    objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time, weight=0.00001, phase=0
-    )
+    # # Min control derivative
+    # objective_functions.add(
+    #     ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", node=Node.ALL_SHOOTING, weight=1, phase=0, derivative=True,
+    # )
+    #
+    # objective_functions.add(
+    #     ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time, weight=0.00001, phase=0
+    # )
 
     # Dynamics
     dynamics = DynamicsList()
@@ -171,7 +170,7 @@ def prepare_ocp(
     x_init.add("qdot", initial_guess=x0[nb_q:], interpolation=InterpolationType.LINEAR, phase=0)
 
     variable_mappings = BiMappingList()
-    variable_mappings.add("tau", to_second=[None, None, None, None, None, None, 0, 1, 2, 3], to_first=[6, 7, 8, 9])
+    variable_mappings.add("tau", to_second=[None, None, None, None, None, None, 0], to_first=[6])
         
     return OptimalControlProgram(
         biorbd_model,
@@ -184,7 +183,7 @@ def prepare_ocp(
         u_bounds=u_bounds,
         objective_functions=objective_functions,
         ode_solver=ode_solver,
-        n_threads=n_threads,
+        n_threads=1,
         variable_mappings=variable_mappings,
         assume_phase_dynamics=True,
     )
@@ -192,7 +191,7 @@ def prepare_ocp(
 
 def main():
 
-    biorbd_model_path = "models/SoMe_42_without_mesh.bioMod"
+    biorbd_model_path = "models/modele_for_minmal_example.bioMod"
 
     n_shooting = 100
     num_twists = 1
@@ -200,7 +199,7 @@ def main():
 
     # solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
     solver = Solver.IPOPT(show_online_optim=False)
-    solver.set_linear_solver("ma57")
+    # solver.set_linear_solver("ma57")
     solver.set_maximum_iterations(10)
     solver.set_convergence_tolerance(1e-4)
 
