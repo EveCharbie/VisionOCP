@@ -11,7 +11,6 @@ import biorbd
 from IPython import embed
 
 import sys
-# sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
 sys.path.append("/home/mickaelbegon/Documents/Eve/BiorbdOptim")
 from bioptim import (
     OptimalControlProgram,
@@ -37,7 +36,7 @@ from get_kinematics_and_gaze import reorder_markers_xsens
 from TechOpt42 import custom_trampoline_bed_in_peripheral_vision
 
 
-def set_bounds(biorbd_model, final_time, num_twists, nb_q, nb_qdot, nb_qddot_joints, fancy_names_index):
+def set_bounds(biorbd_model, final_time, num_twists, nb_q, nb_qdot, nb_tau, fancy_names_index):
 
     # Path constraint
     bounds_q_min_0 = biorbd_model[0].bounds_from_ranges("q").min
@@ -247,15 +246,15 @@ def set_bounds(biorbd_model, final_time, num_twists, nb_q, nb_qdot, nb_qddot_joi
     x_bounds.add("q", min_bound=bounds_q_min_1, max_bound=bounds_q_max_1, phase=1)
     x_bounds.add("qdot", min_bound=bounds_qdot_min_1, max_bound=bounds_qdot_max_1, phase=1)
 
-    qddot_joints_min, qddot_joints_max, qddot_joints_init = -500, 500, 0
+    tau_min, tau_max, tau_init = -500, 500, 0
     u_bounds = BoundsList()
-    u_bounds.add("qddot_joints", min_bound=[qddot_joints_min] * nb_qddot_joints, max_bound=[qddot_joints_max] * nb_qddot_joints, phase=0)
-    u_bounds.add("qddot_joints", min_bound=[qddot_joints_min] * nb_qddot_joints, max_bound=[qddot_joints_max] * nb_qddot_joints, phase=1)
+    u_bounds.add("tau", min_bound=[tau_min] * nb_tau, max_bound=[tau_max] * nb_tau, phase=0)
+    u_bounds.add("tau", min_bound=[tau_min] * nb_tau, max_bound=[tau_max] * nb_tau, phase=1)
 
     return x_bounds, u_bounds
 
 
-def set_initial_guesses(nb_q, nb_qdot, num_twists, nb_qddot_joints, fancy_names_index):
+def set_initial_guesses(nb_q, nb_qdot, num_twists, nb_tau, fancy_names_index):
 
     q_0 = np.zeros((nb_q, 2))
     qdot_0 = np.zeros((nb_qdot, 2))
@@ -280,8 +279,8 @@ def set_initial_guesses(nb_q, nb_qdot, num_twists, nb_qddot_joints, fancy_names_
     x_init.add("qdot", initial_guess=qdot_1, interpolation=InterpolationType.LINEAR, phase=1)
 
     u_init = InitialGuessList()
-    u_init.add("qddot_joints", initial_guess=[0] * nb_qddot_joints, phase=0)
-    u_init.add("qddot_joints", initial_guess=[0] * nb_qddot_joints, phase=1)
+    u_init.add("tau", initial_guess=[0] * nb_tau, phase=0)
+    u_init.add("tau", initial_guess=[0] * nb_tau, phase=1)
 
     return x_init, u_init
 
@@ -324,10 +323,10 @@ def set_fancy_names_index(nb_q):
 def prepare_ocp(weights, coefficients, biorbd_model_path) -> OptimalControlProgram:
 
     # for lisibility
-    weight_qddot_joint = weights[0]
-    coefficient_qddot_joint = coefficients[0]
-    weight_qddot_joint_derivative = weights[1]
-    coefficient_qddot_joint_derivative = coefficients[1]
+    weight_tau = weights[0]
+    coefficient_tau = coefficients[0]
+    weight_tau_derivative = weights[1]
+    coefficient_tau_derivative = coefficients[1]
     weight_time = weights[2]
     coefficient_time = coefficients[2]
     weight_arms = weights[3]
@@ -358,7 +357,7 @@ def prepare_ocp(weights, coefficients, biorbd_model_path) -> OptimalControlProgr
 
     nb_q = biorbd_model[0].nb_q
     nb_qdot = biorbd_model[0].nb_qdot
-    nb_qddot_joints = nb_q - biorbd_model[0].nb_root
+    nb_tau = nb_q - biorbd_model[0].nb_root
 
     fancy_names_index = set_fancy_names_index(nb_q)
 
@@ -366,29 +365,35 @@ def prepare_ocp(weights, coefficients, biorbd_model_path) -> OptimalControlProgr
     objective_functions = ObjectiveList()
 
     # Min controls
-    if weight_qddot_joint*coefficient_qddot_joint != 0:
+    if weight_tau*coefficient_tau != 0:
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=weight_qddot_joint*coefficient_qddot_joint, phase=0
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", node=Node.ALL_SHOOTING,
+            weight=weight_tau*coefficient_tau, phase=0
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=weight_qddot_joint*coefficient_qddot_joint, phase=1
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", node=Node.ALL_SHOOTING,
+            weight=weight_tau*coefficient_tau, phase=1
         )
 
     # Min control derivative
-    if weight_qddot_joint_derivative*coefficient_qddot_joint_derivative != 0:
+    if weight_tau_derivative*coefficient_tau_derivative != 0:
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=weight_qddot_joint_derivative*coefficient_qddot_joint_derivative, phase=0, derivative=True,
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", node=Node.ALL_SHOOTING,
+            weight=weight_tau_derivative*coefficient_tau_derivative, phase=0, derivative=True,
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=weight_qddot_joint_derivative*coefficient_qddot_joint_derivative, phase=1, derivative=True,
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", node=Node.ALL_SHOOTING,
+            weight=weight_tau_derivative*coefficient_tau_derivative, phase=1, derivative=True,
         )
 
     if weight_time*coefficient_time != 0:
         objective_functions.add(
-            ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time, weight=weight_time*coefficient_time, phase=0
+            ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time,
+            weight=weight_time*coefficient_time, phase=0
         )
         objective_functions.add(
-            ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=weight_time*coefficient_time, phase=1
+            ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2,
+            weight=weight_time*coefficient_time, phase=1
         )
     else:
         objective_functions.add(
@@ -407,21 +412,24 @@ def prepare_ocp(weights, coefficients, biorbd_model_path) -> OptimalControlProgr
              index=[fancy_names_index["YrotRightUpperArm"], fancy_names_index["YrotLeftUpperArm"]],
              weight=weight_arms*coefficient_arms,
              phase=0,
+            expand=False,
         )
 
     # --- Visual criteria ---
     # Spotting
     if weight_spotting*coefficient_spotting != 0:
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=weight_spotting*coefficient_spotting, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head",
+                                weight=weight_spotting*coefficient_spotting, phase=1, expand=False)
 
     # Self-motion detection
     if weight_self_motion_detection*coefficient_self_motion_detection != 0:
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[fancy_names_index["ZrotEyes"], fancy_names_index["XrotEyes"]],
-                                weight=weight_self_motion_detection*coefficient_self_motion_detection, phase=0)
+                                weight=weight_self_motion_detection*coefficient_self_motion_detection, phase=0, expand=False)
 
     # Keeping the trampoline bed in the peripheral vision
     if weight_peripheral_vision*coefficient_peripheral_vision != 0:
-        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=weight_peripheral_vision*coefficient_peripheral_vision, phase=0)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange,
+                                weight=weight_peripheral_vision*coefficient_peripheral_vision, phase=0, expand=False)
 
     # Quiet eye
     if weight_quiet_eye_phase_0*coefficient_quiet_eye_phase_0 != 0:
@@ -430,31 +438,34 @@ def prepare_ocp(weights, coefficients, biorbd_model_path) -> OptimalControlProgr
                                 vector_0_marker_1="eyes_vect_end",
                                 vector_1_marker_0="eyes_vect_start",
                                 vector_1_marker_1="fixation_front",
-                                weight=weight_quiet_eye_phase_0*coefficient_quiet_eye_phase_0, phase=0)
+                                weight=weight_quiet_eye_phase_0*coefficient_quiet_eye_phase_0, phase=0, expand=False)
     if weight_quiet_eye_phase_1*coefficient_quiet_eye_phase_1 != 0:
         objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
                                 vector_0_marker_0="eyes_vect_start",
                                 vector_0_marker_1="eyes_vect_end",
                                 vector_1_marker_0="eyes_vect_start",
                                 vector_1_marker_1="fixation_front",
-                                weight=weight_quiet_eye_phase_1*coefficient_quiet_eye_phase_1, phase=1)
+                                weight=weight_quiet_eye_phase_1*coefficient_quiet_eye_phase_1, phase=1, expand=False)
 
     # Avoid extreme eye and neck angles
     if weight_extreme_angles*coefficient_extreme_angles != 0:
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q",
                                 index=[fancy_names_index["ZrotHead"], fancy_names_index["XrotHead"], fancy_names_index["ZrotEyes"], fancy_names_index["XrotEyes"]],
-                                weight=weight_extreme_angles*coefficient_extreme_angles, phase=0)
+                                weight=weight_extreme_angles*coefficient_extreme_angles, phase=0, expand=False)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q",
                                 index=[fancy_names_index["ZrotHead"], fancy_names_index["XrotHead"], fancy_names_index["ZrotEyes"], fancy_names_index["XrotEyes"]],
-                                weight=weight_extreme_angles*coefficient_extreme_angles, phase=1)
+                                weight=weight_extreme_angles*coefficient_extreme_angles, phase=1, expand=False)
 
     # Dynamics
     dynamics = DynamicsList()
-    dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN)
-    dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN)
+    dynamics.add(DynamicsFcn.TORQUE_DRIVEN, expand=False)
+    dynamics.add(DynamicsFcn.TORQUE_DRIVEN, expand=False)
 
-    x_bounds, u_bounds = set_bounds(biorbd_model, final_time, num_twists, nb_q, nb_qdot, nb_qddot_joints, fancy_names_index)
-    x_init, u_init = set_initial_guesses(nb_q, nb_qdot, num_twists, nb_qddot_joints, fancy_names_index)
+    x_bounds, u_bounds = set_bounds(biorbd_model, final_time, num_twists, nb_q, nb_qdot, nb_tau, fancy_names_index)
+    x_init, u_init = set_initial_guesses(nb_q, nb_qdot, num_twists, nb_tau, fancy_names_index)
+
+    variable_mappings = BiMappingList()
+    variable_mappings.add("tau", to_second=[None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7], to_first=[6, 7, 8, 9, 10, 11, 12, 13])
 
     return OptimalControlProgram(
         biorbd_model,
@@ -467,6 +478,7 @@ def prepare_ocp(weights, coefficients, biorbd_model_path) -> OptimalControlProgr
         u_bounds=u_bounds,
         objective_functions=objective_functions,
         n_threads=n_threads,
+        variable_mappings=variable_mappings,
         assume_phase_dynamics=True,
     )
 
@@ -507,7 +519,7 @@ class prepare_iocp:
         if sol.status == 0:
 
             name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
-            qs, qdots, qddots, time_parameters = get_parameters_from_optim(sol)
+            qs, qdots, taus, time_parameters = get_parameters_from_optim(sol)
 
             markers_final = get_final_markers(self.biorbd_model_path, qs)
             out_score = np.sum((self.markers_xsens - markers_final) ** 2)
@@ -516,7 +528,7 @@ class prepare_iocp:
             with open(f"Solutions/{name}-{i_inverse}.pkl", "wb") as f:
                 data = {"qs": qs,
                         "qdots": qdots,
-                        "qddots": qddots,
+                        "taus": taus,
                         "time_parameters": time_parameters,
                         "weights": weights,
                         "coefficients": self.coefficients,
@@ -538,18 +550,18 @@ class prepare_iocp:
 def get_parameters_from_optim(sol):
     qs = np.hstack((sol.states[0]["q"][:, :-1], sol.states[1]["q"]))
     qdots = np.hstack((sol.states[0]["qdot"][:, :-1], sol.states[1]["qdot"]))
-    qddots = np.hstack((sol.controls[0]["qddot_joints"][:, :-1], sol.controls[1]["qddot_joints"]))
+    taus = np.hstack((sol.controls[0]["tau"][:, :-1], sol.controls[1]["tau"]))
     time_parameters = sol.parameters["time"]
-    return qs, qdots, qddots, time_parameters
+    return qs, qdots, taus, time_parameters
 
 
 def main():
 
-    SOLVE_PARETO_FLAG = False
+    SOLVE_PARETO_FLAG = True # False
     global i_inverse
 
     move_filename = "a62d4691_0_0-45_796__42__0__eyetracking_metrics.pkl"
-    biorbd_model_path = "models/SoMe_42_with_visual_criteria.bioMod"
+    biorbd_model_path = "models/SoMe_42_with_visual_criteria_without_mesh.bioMod"
 
     # Load the data to track
     with open(move_filename, "rb") as f:
@@ -592,16 +604,16 @@ def main():
                 raise RuntimeError("Pareto failed to converge")
             else:
                 name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
-                qs, qdots, qddots, time_parameters = get_parameters_from_optim(sol_pareto)
+                qs, qdots, taus, time_parameters = get_parameters_from_optim(sol_pareto)
 
                 markers_final = get_final_markers(biorbd_model_path, qs)
                 out_score = np.sum((markers_xsens - markers_final) ** 2)
 
                 del sol_pareto.ocp
-                with open(f"Solutions/IOCP/{name}-{i_inverse}.pkl", "wb") as f:
+                with open(f"Solutions/{name}-{i_inverse}.pkl", "wb") as f:
                     data = {"qs": qs,
                             "qdots": qdots,
-                            "qddots": qddots,
+                            "taus": taus,
                             "time_parameters": time_parameters,
                             "weights": weights_pareto,
                             "coefficients": [1 for _ in range(num_weights)],
@@ -632,8 +644,8 @@ def main():
     print("+++++++++++++++++++++++++++ optimal weights found +++++++++++++++++++++++++++")
     print(
         "The optimizaed weight are : \n",
-        "weight_qddot_joint =", pop_weights[0] * coefficients[0], "\n",
-        "weight_qddot_joint_derivative =", pop_weights[1] * coefficients[1], "\n",
+        "weight_tau =", pop_weights[0] * coefficients[0], "\n",
+        "weight_tau_derivative =", pop_weights[1] * coefficients[1], "\n",
         "weight_time =", pop_weights[2] * coefficients[2], "\n",
         "weight_arms =", pop_weights[3] * coefficients[3], "\n",
         "weight_spotting =", pop_weights[4] * coefficients[4], "\n",
