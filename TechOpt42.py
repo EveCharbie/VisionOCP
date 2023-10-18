@@ -12,8 +12,8 @@ import casadi as cas
 import IPython
 import time
 import sys
-# sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
-sys.path.append("/home/mickaelbegon/Documents/Eve/BiorbdOptim")
+sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
+# sys.path.append("/home/mickaelbegon/Documents/Eve/BiorbdOptim")
 from bioptim import (
     OptimalControlProgram,
     DynamicsList,
@@ -41,9 +41,7 @@ def custom_trampoline_bed_in_peripheral_vision(controller: PenaltyController) ->
     This function aims to encourage the avatar to keep the trampoline bed in his peripheral vision.
     It is done by discretizing the vision cone into vectors and determining if the vector projection of the gaze are inside the trampoline bed.
     """
-    controller = all_pn.nlp
 
-    q = controller
     a = 1.07  # Trampoline with/2
     b = 2.14  # Trampoline length/2
     n = 6  # order of the polynomial for the trampoline bed rectangle equation
@@ -496,7 +494,6 @@ def prepare_ocp(
         objective_functions=objective_functions,
         ode_solver=ode_solver,
         n_threads=n_threads,
-        assume_phase_dynamics=True,
     )
 
 
@@ -520,7 +517,7 @@ def main():
     # solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
     solver = Solver.IPOPT(show_online_optim=False)
     solver.set_linear_solver("ma57")
-    solver.set_maximum_iterations(10)
+    solver.set_maximum_iterations(1000)
     solver.set_convergence_tolerance(1e-4)
 
     tic = time.time()
