@@ -9,28 +9,10 @@ import IPython
 import time
 
 import bioviz
-from bioptim import (
-    OptimalControlProgram,
-    DynamicsList,
-    DynamicsFcn,
-    ObjectiveList,
-    ObjectiveFcn,
-    BoundsList,
-    InitialGuessList,
-    InterpolationType,
-    OdeSolver,
-    Node,
-    Solver,
-    BiMappingList,
-    CostType,
-    ConstraintList,
-    ConstraintFcn,
-    PenaltyNodeList,
-    BiorbdModel,
-)
+import bioptim
 import biorbd
 
-WITH_VISUAL_CRITERIA = True # False
+WITH_VISUAL_CRITERIA = True  # False
 ACROBATICS = "42"
 
 if ACROBATICS == "831":
@@ -52,7 +34,8 @@ elif ACROBATICS == "42":
 
 # file_name = "SoMe-1-(40_100_100_100_40)-2023-04-17-2319.pkl"  # Good 831< without visual criteria
 # file_name = "SoMe_42-42-(100_40)-2023-04-21-1058.pkl"  # Good 42/ without visual criteria
-file_name = "SoMe_42_with_visual_criteria-(100_40)-2023-04-22-1132.pkl"  # OK 42/ with visual criteria -> weights to change
+# file_name = "SoMe_42_with_visual_criteria-(100_40)-2023-04-22-1132.pkl"  # OK 42/ with visual criteria -> weights to change
+file_name = "SoMe_42_with_visual_criteria-(100_40)-2023-10-19-0910.pkl"
 
 with open("Solutions/" + file_name, "rb") as f:
     data = pickle.load(f)
@@ -66,20 +49,20 @@ with open("Solutions/" + file_name, "rb") as f:
     time_vector = data[7]
 
 
-if ACROBATICS == "831":
-    from TechOpt831 import prepare_ocp
-    sol.ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
-elif ACROBATICS == "42":
-    from TechOpt42 import prepare_ocp
-
-    sol.ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7,
-                WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
+# if ACROBATICS == "831":
+#     from TechOpt831 import prepare_ocp
+#     sol.ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
+# elif ACROBATICS == "42":
+#     from TechOpt42 import prepare_ocp
+#
+#     sol.ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7,
+#                 WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
 
 b = bioviz.Viz(biorbd_model_path)
 b.load_movement(qs)
 b.exec()
 
-sol.graphs(show_bounds=True)
+# sol.graphs(show_bounds=True)
 
 
 # measure the value of the custom_trampoline_bed_in_peripheral_vision function
