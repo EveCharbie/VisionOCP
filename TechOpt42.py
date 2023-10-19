@@ -26,10 +26,7 @@ from bioptim import (
     OdeSolver,
     Node,
     Solver,
-    BiMappingList,
     CostType,
-    ConstraintList,
-    ConstraintFcn,
     PenaltyController,
     BiorbdModel,
     Shooting,
@@ -87,7 +84,12 @@ def custom_trampoline_bed_in_peripheral_vision(controller: PenaltyController) ->
 
 
 def prepare_ocp(
-    biorbd_model_path: str, n_shooting: tuple, num_twists: int, n_threads: int, ode_solver: OdeSolver = OdeSolver.RK4(), WITH_VISUAL_CRITERIA: bool = False
+        biorbd_model_path: str,
+        n_shooting: tuple,
+        num_twists: int,
+        n_threads: int,
+        ode_solver: OdeSolver = OdeSolver.RK4(),
+        WITH_VISUAL_CRITERIA: bool = False
 ) -> OptimalControlProgram:
     """
     Prepare the ocp
@@ -185,6 +187,7 @@ def prepare_ocp(
         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=1, derivative=True,
     )
 
+    # Min time
     objective_functions.add(
         ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time, weight=0.00001, phase=0
     )
@@ -402,10 +405,6 @@ def prepare_ocp(
     qdot_bounds_0_min[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, START] = 0
     qdot_bounds_0_max[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, START] = 0
 
-    x_bounds.add("q", min_bound=q_bounds_0_min, max_bound=q_bounds_0_max, phase=0)
-    x_bounds.add("q", min_bound=q_bounds_1_min, max_bound=q_bounds_1_max, phase=1)
-    x_bounds.add("qdot", min_bound=qdot_bounds_0_min, max_bound=qdot_bounds_0_max, phase=0)
-    x_bounds.add("qdot", min_bound=qdot_bounds_1_min, max_bound=qdot_bounds_1_max, phase=1)
 
     # ------------------------------- Phase 1 : landing ------------------------------- #
 
@@ -469,6 +468,12 @@ def prepare_ocp(
     qdot_bounds_1_min[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = -100
     qdot_bounds_1_max[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = 100
 
+
+    x_bounds.add("q", min_bound=q_bounds_0_min, max_bound=q_bounds_0_max, phase=0)
+    x_bounds.add("q", min_bound=q_bounds_1_min, max_bound=q_bounds_1_max, phase=1)
+    x_bounds.add("qdot", min_bound=qdot_bounds_0_min, max_bound=qdot_bounds_0_max, phase=0)
+    x_bounds.add("qdot", min_bound=qdot_bounds_1_min, max_bound=qdot_bounds_1_max, phase=1)
+
     # ------------------------------- Initial guesses ------------------------------- #
 
     q_0 = np.zeros((nb_q, 2))
@@ -529,14 +534,12 @@ def main():
     solver = Solver.IPOPT(show_online_optim=False)
     solver.set_linear_solver("ma57")
     solver.set_maximum_iterations(1000)
-    solver.set_convergence_tolerance(1e-4)
+    solver.set_convergence_tolerance(1e-6)
 
     tic = time.time()
     sol = ocp.solve(solver)
     toc = time.time() - tic
-    print(toc)  
-    # Before: 3.6.2: 74.02791595458984s 
-    # Before: 3.6.3: 81s
+    print(toc)
 
     timestamp = time.strftime("%Y-%m-%d-%H%M")
     name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
