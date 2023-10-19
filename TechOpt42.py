@@ -518,12 +518,12 @@ def main():
     Prepares and solves an ocp for a 42/ with and without visual criteria.
     """
 
-    WITH_VISUAL_CRITERIA = True
+    WITH_VISUAL_CRITERIA = False
 
     if WITH_VISUAL_CRITERIA:
-        biorbd_model_path = "models/SoMe_42_with_visual_criteria.bioMod"
+        biorbd_model_path = "models/SoMe_42_with_visual_criteria_without_mesh.bioMod"
     else:
-        biorbd_model_path = "models/SoMe_42.bioMod"
+        biorbd_model_path = "models/SoMe_42_without_mesh.bioMod"
 
     n_shooting = (100, 40)
     num_twists = 1
@@ -543,25 +543,23 @@ def main():
 
     timestamp = time.strftime("%Y-%m-%d-%H%M")
     name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
-    qs = sol.states[0]["q"]
-    qdots = sol.states[0]["qdot"]
-    qddots = sol.controls[0]["qddot_joints"]
-    for i in range(1, len(sol.states)):
-        qs = np.hstack((qs, sol.states[i]["q"]))
-        qdots = np.hstack((qdots, sol.states[i]["qdot"]))
-        qddots = np.hstack((qddots, sol.controls[i]["qddot_joints"]))
+    qs = sol.states[0]["q"][:, :-1]
+    qdots = sol.states[0]["qdot"][:, :-1]
+    qddots = sol.controls[0]["qddot_joints"][:, :-1]
+    qs = np.hstack((qs, sol.states[1]["q"]))
+    qdots = np.hstack((qdots, sol.states[1]["qdot"]))
+    qddots = np.hstack((qddots, sol.controls[1]["qddot_joints"]))
     time_parameters = sol.parameters["time"]
 
 
-    integrated_sol = sol.integrate(shooting_type=Shooting.SINGLE, integrator=SolutionIntegrator.SCIPY_DOP853)
+    integrated_sol = sol.integrate(shooting_type=Shooting.SINGLE,
+                                   integrator=SolutionIntegrator.SCIPY_DOP853,
+                                   keep_intermediate_points=False,
+                                   merge_phases=True)
 
-    time_vector = integrated_sol.time[0]
-    q_reintegrated = integrated_sol.states[0]["q"]
-    qdot_reintegrated = integrated_sol.states[0]["qdot"]
-    for i in range(1, len(sol.states)):
-        time_vector = np.hstack((time_vector, integrated_sol.time[i]))
-        q_reintegrated = np.hstack((q_reintegrated, integrated_sol.states[i]["q"]))
-        qdot_reintegrated = np.hstack((qdot_reintegrated, integrated_sol.states[i]["qdot"]))
+    time_vector = integrated_sol.time
+    q_reintegrated = integrated_sol.states["q"]
+    qdot_reintegrated = integrated_sol.states["qdot"]
 
     del sol.ocp
     with open(f"Solutions/{name}-{str(n_shooting).replace(', ', '_')}-{timestamp}.pkl", "wb") as f:
