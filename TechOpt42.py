@@ -204,7 +204,7 @@ def prepare_ocp(
 
     # Land safely (without tilt)
     objective_functions.add(
-         ObjectiveFcn.Lagrange.MINIMIZE_STATE,
+         ObjectiveFcn.Mayer.MINIMIZE_STATE,
          key="q",
          node=Node.END,
          index=[Yrot],
@@ -429,8 +429,8 @@ def prepare_ocp(
     q_bounds_1_min[Yrot, :] = -np.pi / 16
     q_bounds_1_max[Yrot, :] = np.pi / 16
     # Twist
-    q_bounds_1_min[Zrot, :] = 2 * np.pi * num_twists - np.pi / 8
-    q_bounds_1_max[Zrot, :] = 2 * np.pi * num_twists + np.pi / 8
+    q_bounds_1_min[Zrot, :] = 2 * np.pi * num_twists - 0.01
+    q_bounds_1_max[Zrot, :] = 2 * np.pi * num_twists + 0.01
 
     # Right arm
     q_bounds_1_min[YrotRightUpperArm, START] = -0.1
