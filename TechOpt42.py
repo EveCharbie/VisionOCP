@@ -192,7 +192,7 @@ def prepare_ocp(
         ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=0.00001, phase=1
     )
 
-    # aligning with the FIG regulations
+    # Aligning with the FIG regulations
     objective_functions.add(
          ObjectiveFcn.Lagrange.MINIMIZE_STATE,
          key="q",
@@ -200,6 +200,16 @@ def prepare_ocp(
          index=[YrotRightUpperArm, YrotLeftUpperArm],
          weight=100,
          phase=0,
+    )
+
+    # Land safely (without tilt)
+    objective_functions.add(
+         ObjectiveFcn.Lagrange.MINIMIZE_STATE,
+         key="q",
+         node=Node.END,
+         index=[Yrot],
+         weight=1000,
+         phase=1,
     )
 
 
@@ -413,8 +423,8 @@ def prepare_ocp(
     # Somersault
     q_bounds_1_min[Xrot, :] = -0.5 - 2 * np.pi - 0.1
     q_bounds_1_max[Xrot, :] = -3 / 2 * np.pi + 0.2 + 0.2
-    q_bounds_1_min[Xrot, END] = 0.5 - 2 * np.pi - 0.1
-    q_bounds_1_max[Xrot, END] = 0.5 - 2 * np.pi + 0.1
+    q_bounds_1_min[Xrot, END] = - 2 * np.pi - 0.1
+    q_bounds_1_max[Xrot, END] = - 2 * np.pi + 0.1
     # Tilt
     q_bounds_1_min[Yrot, :] = -np.pi / 16
     q_bounds_1_max[Yrot, :] = np.pi / 16
