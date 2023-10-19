@@ -34,8 +34,7 @@ elif ACROBATICS == "42":
 
 # file_name = "SoMe-1-(40_100_100_100_40)-2023-04-17-2319.pkl"  # Good 831< without visual criteria
 # file_name = "SoMe_42-42-(100_40)-2023-04-21-1058.pkl"  # Good 42/ without visual criteria
-# file_name = "SoMe_42_with_visual_criteria-(100_40)-2023-04-22-1132.pkl"  # OK 42/ with visual criteria -> weights to change
-file_name = "SoMe_42_with_visual_criteria-(100_40)-2023-10-19-0910.pkl"
+file_name = "SoMe_42_with_visual_criteria-(100_40)-2023-10-19-1034.pkl"  # Good 42/ with visual criteria
 
 with open("Solutions/" + file_name, "rb") as f:
     data = pickle.load(f)
