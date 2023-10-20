@@ -12,8 +12,8 @@ import bioviz
 import bioptim
 import biorbd
 
-WITH_VISUAL_CRITERIA = False
-ACROBATICS = "42" #  "831"  #
+WITH_VISUAL_CRITERIA = True
+ACROBATICS = "831"
 
 if ACROBATICS == "831":
     if WITH_VISUAL_CRITERIA:
@@ -33,9 +33,9 @@ elif ACROBATICS == "42":
     name = "SoMe"
 
 # file_name = "SoMe_831-(40_100_100_100_40)-2023-10-19-1601.pkl"  # Good 831<
-# file_name = "SoMe_with_visual_criteria_831-(40_100_100_100_40)-2023-10-20-1311.pkl"  # Good 831< with visual criteria
-# file_name = "SoMe_42_without_mesh-(100_40)-2023-10-20-1520.pkl"  # Good 42/
-# file_name = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-10-20-1505.pkl"  # Good 42/ with visual criteria
+file_name = "SoMe_with_visual_criteria_831-(40_100_100_100_40)-2023-10-20-1646.pkl"  # Good 831< with visual criteria
+# file_name = "SoMe_42_without_mesh-(100_40)-2023-10-20-1652.pkl"  # Good 42/
+# file_name = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-10-20-1631.pkl"  # Good 42/ with visual criteria
 
 with open("Solutions/" + file_name, "rb") as f:
     data = pickle.load(f)

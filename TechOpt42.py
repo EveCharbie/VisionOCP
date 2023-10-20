@@ -31,6 +31,8 @@ from bioptim import (
     BiorbdModel,
     Shooting,
     SolutionIntegrator,
+    MultinodeConstraintFcn,
+    MultinodeConstraintList,
 )
 
 def custom_trampoline_bed_in_peripheral_vision(controller: PenaltyController) -> cas.MX:
@@ -201,7 +203,7 @@ def prepare_ocp(
          key="q",
          node=Node.ALL_SHOOTING,
          index=[YrotRightUpperArm, YrotLeftUpperArm],
-         weight=100000,
+         weight=50000,
          quadratic=True,
          phase=0,
     )
@@ -248,6 +250,14 @@ def prepare_ocp(
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=1)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=1)
 
+    multinode_constraints = MultinodeConstraintList()
+    multinode_constraints.add(
+        MultinodeConstraintFcn.TRACK_TOTAL_TIME,
+        nodes_phase=(0, 1),
+        nodes=(Node.END, Node.END),
+        min_bound=final_time - 0.01,
+        max_bound=final_time + 0.01,
+    )
 
     # Dynamics
     dynamics = DynamicsList()
@@ -411,20 +421,20 @@ def prepare_ocp(
     # ------------------------------- Phase 1 : landing ------------------------------- #
 
     # Pelvis translations
-    q_bounds_1_min[X, :] = -0.25
-    q_bounds_1_max[X, :] = 0.25
+    q_bounds_1_min[X, :] = -0.01
+    q_bounds_1_max[X, :] = 0.01
     q_bounds_1_min[Y, :] = -0.5
     q_bounds_1_max[Y, :] = 0.5
     q_bounds_1_min[Z, :] = 0
     q_bounds_1_max[Z, :] = zmax
     q_bounds_1_min[Z, END] = 0
-    q_bounds_1_max[Z, END] = 0.1
+    q_bounds_1_max[Z, END] = 0.01
 
     # Somersault
     q_bounds_1_min[Xrot, :] = -0.5 - 2 * np.pi - 0.1
     q_bounds_1_max[Xrot, :] = -3 / 2 * np.pi + 0.2 + 0.2
-    q_bounds_1_min[Xrot, END] = - 2 * np.pi - 0.1
-    q_bounds_1_max[Xrot, END] = - 2 * np.pi + 0.1
+    q_bounds_1_min[Xrot, END] = - 2 * np.pi - 0.01
+    q_bounds_1_max[Xrot, END] = - 2 * np.pi + 0.01
     # Tilt
     q_bounds_1_min[Yrot, :] = -np.pi / 16
     q_bounds_1_max[Yrot, :] = np.pi / 16
@@ -510,6 +520,7 @@ def prepare_ocp(
         x_bounds=x_bounds,
         u_bounds=u_bounds,
         objective_functions=objective_functions,
+        multinode_constraints=multinode_constraints,
         ode_solver=ode_solver,
         n_threads=n_threads,
     )

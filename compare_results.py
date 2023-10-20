@@ -25,8 +25,8 @@ n_shooting_42 = (100, 40)
 
 file_name_831 = "SoMe-1-(40_100_100_100_40)-2023-04-17-2319.pkl"  # Good 831< without visual criteria
 file_name_831_with_visual_criteria = "SoMe_with_visual_criteria_831-(40_100_100_100_40)-2023-10-20-1311.pkl"
-file_name_42 = "SoMe_42_without_mesh-(100_40)-2023-10-20-1520.pkl"  # Good 42/
-file_name_42_with_visual_criteria = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-10-20-1505.pkl"   # Good 42/ with visual criteria
+file_name_42 = "SoMe_42_without_mesh-(100_40)-2023-10-20-1652.pkl"  # Good 42/
+file_name_42_with_visual_criteria = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-10-20-1631.pkl"   # Good 42/ with visual criteria
 
 with open("Solutions/" + file_name_42, "rb") as f:
     data = pickle.load(f)
@@ -162,16 +162,16 @@ axs[1, 1].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[7
 axs[1, 1].set_title("Elevation R")
 
 # Left arm
-axs[0, 0].plot(time_vector_42, qs_42[8, :], 'tab:blue')
-axs[0, 0].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[8+4, :], 'tab:red')
+axs[0, 0].plot(time_vector_42, -qs_42[8, :], 'tab:blue')
+axs[0, 0].plot(time_vector_42_with_visual_criteria, -qs_42_with_visual_criteria[8+4, :], 'tab:red')
 axs[0, 0].set_title("Change in elevation plane L")
 
-axs[1, 0].plot(time_vector_42, qs_42[9, :], 'tab:blue')
-axs[1, 0].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[9+4, :], 'tab:red')
+axs[1, 0].plot(time_vector_42, -qs_42[9, :], 'tab:blue')
+axs[1, 0].plot(time_vector_42_with_visual_criteria, -qs_42_with_visual_criteria[9+4, :], 'tab:red')
 axs[1, 0].set_title("Elevation L")
 
 # show legend below figure
-axs[0, 0].legend(bbox_to_anchor=[2.0, -1.5], ncols=2, frameon=False)
+axs[0, 1].legend(bbox_to_anchor=[0.8, -1.5], ncols=2, frameon=False)
 plt.subplots_adjust(hspace=0.35)
 plt.savefig("Graphs/compare_42_dofs.png", dpi=300)
 plt.show()
