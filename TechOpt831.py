@@ -34,6 +34,8 @@ from bioptim import (
     SolutionIntegrator,
     ConstraintList,
     ConstraintFcn,
+    MultinodeConstraintList,
+    MultinodeConstraintFcn,
 )
 
 from TechOpt42 import custom_trampoline_bed_in_peripheral_vision
@@ -235,7 +237,7 @@ def prepare_ocp(
          node=Node.ALL_SHOOTING,
          index=elbow_dofs,
          target=np.zeros((len(elbow_dofs), n_shooting[0])),
-         weight=1000,
+         weight=50000,
          quadratic=True,
          phase=0,
     )
@@ -245,7 +247,7 @@ def prepare_ocp(
          node=Node.ALL_SHOOTING,
          index=shoulder_dofs,
          target=np.zeros((len(shoulder_dofs), n_shooting[2])),
-         weight=1000,
+         weight=50000,
          quadratic=True,
          phase=2,
     )
@@ -255,7 +257,7 @@ def prepare_ocp(
         node=Node.ALL_SHOOTING,
         index=arm_dofs,
         target=np.zeros((len(arm_dofs), n_shooting[3])),
-        weight=1000,
+        weight=50000,
         quadratic=True,
         phase=3,
     )
@@ -265,7 +267,7 @@ def prepare_ocp(
         node=Node.ALL_SHOOTING,
         index=elbow_dofs,
         target=np.zeros((len(elbow_dofs), n_shooting[4])),
-        weight=1000,
+        weight=50000,
         quadratic=True,
         phase=4,
     )
@@ -324,20 +326,48 @@ def prepare_ocp(
                                 vector_0_marker_1="eyes_vect_end",
                                 vector_1_marker_0="eyes_vect_start",
                                 vector_1_marker_1="fixation_front",
-                                weight=1000, quadratic=True, phase=4)
+                                weight=100000, quadratic=True, phase=4)
 
         # Avoid extreme eye and neck angles
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=0)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=1)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=1)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=2)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=2)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=2)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=3)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=3)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=3)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=4)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=4)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=4)
 
+    constraints = ConstraintList()
+    constraints.add(
+        ConstraintFcn.SUPERIMPOSE_MARKERS,
+        node=Node.ALL_SHOOTING,
+        min_bound=-0.05,
+        max_bound=0.05,
+        first_marker="MidMainG",
+        second_marker="CibleMainG",
+        phase=2,
+    )
+    constraints.add(
+        ConstraintFcn.SUPERIMPOSE_MARKERS,
+        node=Node.ALL_SHOOTING,
+        min_bound=-0.05,
+        max_bound=0.05,
+        first_marker="MidMainD",
+        second_marker="CibleMainD",
+        phase=2,
+    )
+
+    multinode_constraints = MultinodeConstraintList()
+    multinode_constraints.add(
+        MultinodeConstraintFcn.TRACK_TOTAL_TIME,
+        nodes_phase=(0, 1, 2, 3, 4),
+        nodes=(Node.END, Node.END, Node.END, Node.END, Node.END),
+        min_bound=final_time - 0.01,
+        max_bound=final_time + 0.01,
+    )
 
     # Dynamics
     dynamics = DynamicsList()
@@ -442,6 +472,17 @@ def prepare_ocp(
     # Hip sides
     q_bounds_0_min[YrotLegs, START] = 0
     q_bounds_0_max[YrotLegs, START] = 0
+
+    # Head and eyes
+    if WITH_VISUAL_CRITERIA:
+        q_bounds_0_min[ZrotHead, START] = -0.1
+        q_bounds_0_max[ZrotHead, START] = 0.1
+        q_bounds_0_min[XrotHead, START] = -0.1
+        q_bounds_0_max[XrotHead, START] = 0.1
+        q_bounds_0_min[ZrotEyes, START] = -0.1
+        q_bounds_0_max[ZrotEyes, START] = 0.1
+        q_bounds_0_min[XrotEyes, START] = np.pi / 4 - 0.1
+        q_bounds_0_max[XrotEyes, START] = np.pi / 4 + 0.1
 
     vzinit = 9.81 / 2 * final_time
 
@@ -741,26 +782,26 @@ def prepare_ocp(
     # ------------------------------- Phase 4 : landing ------------------------------- #
 
     # Pelvis translations
-    q_bounds_4_min[X, :] = -0.25
-    q_bounds_4_max[X, :] = 0.25
+    q_bounds_4_min[X, :] = -0.01
+    q_bounds_4_max[X, :] = 0.01
     q_bounds_4_min[Y, :] = -0.5
     q_bounds_4_max[Y, :] = 0.5
     q_bounds_4_min[Z, :] = 0
     q_bounds_4_max[Z, :] = zmax
     q_bounds_4_min[Z, END] = 0
-    q_bounds_4_max[Z, END] = 0.1
+    q_bounds_4_max[Z, END] = 0.01
 
     # Somersault
     q_bounds_4_min[Xrot, :] = -0.5 - 4 * np.pi - 0.1
     q_bounds_4_max[Xrot, :] = -7/2 * np.pi + 0.2 + 0.2
-    q_bounds_4_min[Xrot, END] = 0.5 - 4 * np.pi - 0.1
-    q_bounds_4_max[Xrot, END] = 0.5 - 4 * np.pi + 0.1
+    q_bounds_4_min[Xrot, END] = 0.5 - 4 * np.pi - 0.01
+    q_bounds_4_max[Xrot, END] = 0.5 - 4 * np.pi + 0.01
     # Tilt
     q_bounds_4_min[Yrot, :] = -np.pi / 16
     q_bounds_4_max[Yrot, :] = np.pi / 16
     # Twist
-    q_bounds_4_min[Zrot, :] = 2 * np.pi * num_twists + 2 * np.pi - np.pi / 8
-    q_bounds_4_max[Zrot, :] = 2 * np.pi * num_twists + 2 * np.pi + np.pi / 8
+    q_bounds_4_min[Zrot, :] = 2 * np.pi * num_twists + 2 * np.pi - 0.01
+    q_bounds_4_max[Zrot, :] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
 
     # Right arm
     q_bounds_4_min[YrotRightUpperArm, START] = 0
@@ -888,26 +929,6 @@ def prepare_ocp(
     x_init.add("qdot", initial_guess=qdot_2, interpolation=InterpolationType.LINEAR, phase=2)
     x_init.add("qdot", initial_guess=qdot_3, interpolation=InterpolationType.LINEAR, phase=3)
     x_init.add("qdot", initial_guess=qdot_4, interpolation=InterpolationType.LINEAR, phase=4)
-
-    constraints = ConstraintList()
-    constraints.add(
-        ConstraintFcn.SUPERIMPOSE_MARKERS,
-        node=Node.ALL_SHOOTING,
-        min_bound=-0.05,
-        max_bound=0.05,
-        first_marker="MidMainG",
-        second_marker="CibleMainG",
-        phase=2,
-     )
-    constraints.add(
-        ConstraintFcn.SUPERIMPOSE_MARKERS,
-        node=Node.ALL_SHOOTING,
-        min_bound=-0.05,
-        max_bound=0.05,
-        first_marker="MidMainD",
-        second_marker="CibleMainD",
-        phase=2,
-   )
 
     return OptimalControlProgram(
         biorbd_model,
