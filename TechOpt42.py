@@ -201,7 +201,7 @@ def prepare_ocp(
          key="q",
          node=Node.ALL_SHOOTING,
          index=[YrotRightUpperArm, YrotLeftUpperArm],
-         weight=1000,
+         weight=100000,
          quadratic=True,
          phase=0,
     )
@@ -240,12 +240,12 @@ def prepare_ocp(
                                 vector_0_marker_1="eyes_vect_end",
                                 vector_1_marker_0="eyes_vect_start",
                                 vector_1_marker_1="fixation_front",
-                                weight=1000, quadratic=True, phase=1)
+                                weight=100000, quadratic=True, phase=1)
 
         # Avoid extreme eye and neck angles
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=0)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=1)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=1)
 
 
