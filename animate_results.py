@@ -33,20 +33,21 @@ elif ACROBATICS == "42":
     name = "SoMe"
 
 # file_name = "SoMe_831-(40_100_100_100_40)-2023-10-19-1601.pkl"  # Good 831<
-file_name = "SoMe_with_visual_criteria_831-(40_100_100_100_40)-2023-10-19-2014.pkl"  # Good 831< with visual criteria
+file_name = "SoMe_with_visual_criteria_831-(40_100_100_100_40)-2023-10-20-1311.pkl"  # Good 831< with visual criteria
 # file_name = "SoMe_42_without_mesh-(100_40)-2023-10-19-1319.pkl"  # Good 42/
 # file_name = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-10-19-1314.pkl"  # Good 42/ with visual criteria
 
 with open("Solutions/" + file_name, "rb") as f:
     data = pickle.load(f)
     sol = data[0]
-    qs = data[1]
-    qdots = data[2]
-    qddots = data[3]
-    time_parameters = data[4]
-    q_reintegrated = data[5]
-    qdot_reintegrated = data[6]
-    time_vector = data[7]
+    q_per_phase = data[1]
+    qs = data[2]
+    qdots = data[3]
+    qddots = data[4]
+    time_parameters = data[5]
+    q_reintegrated = data[6]
+    qdot_reintegrated = data[7]
+    time_vector = data[8]
 
 
 # if ACROBATICS == "831":

@@ -141,3 +141,5 @@ Kalman_recons/
 *.xml
 
 .idea/
+
+*.svg

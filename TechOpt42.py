@@ -550,6 +550,7 @@ def main():
     qdots = np.hstack((qdots, sol.states[1]["qdot"]))
     qddots = np.hstack((qddots, sol.controls[1]["qddot_joints"]))
     time_parameters = sol.parameters["time"]
+    q_per_phase = [sol.states[0]["q"], sol.states[1]["q"]]
 
 
     integrated_sol = sol.integrate(shooting_type=Shooting.SINGLE,
@@ -563,7 +564,7 @@ def main():
 
     del sol.ocp
     with open(f"Solutions/{name}-{str(n_shooting).replace(', ', '_')}-{timestamp}.pkl", "wb") as f:
-        pickle.dump((sol, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector), f)
+        pickle.dump((sol, q_per_phase, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector), f)
 
     # sol.animate(n_frames=-1, show_floor=False)
 

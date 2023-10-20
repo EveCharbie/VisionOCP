@@ -754,11 +754,15 @@ def prepare_ocp(
     q_bounds_4_max[Zrot, :] = 2 * np.pi * num_twists + 2 * np.pi + np.pi / 8
 
     # Right arm
+    q_bounds_4_min[YrotRightUpperArm, START] = 0
+    q_bounds_4_max[YrotRightUpperArm, START] = np.pi/8
     q_bounds_4_min[YrotRightUpperArm, END] = 2.9 - 0.1
     q_bounds_4_max[YrotRightUpperArm, END] = 2.9 + 0.1
     q_bounds_4_min[ZrotRightUpperArm, END] = -0.1
     q_bounds_4_max[ZrotRightUpperArm, END] = 0.1
     # Left arm
+    q_bounds_4_min[YrotLeftUpperArm, START] = -np.pi/8
+    q_bounds_4_max[YrotLeftUpperArm, START] = 0
     q_bounds_4_min[YrotLeftUpperArm, END] = -2.9 - 0.1
     q_bounds_4_max[YrotLeftUpperArm, END] = -2.9 + 0.1
     q_bounds_4_min[ZrotLeftUpperArm, END] = -0.1
@@ -944,14 +948,17 @@ def main():
     qs = sol.states[0]["q"][:, :-1]
     qdots = sol.states[0]["qdot"][:, :-1]
     qddots = sol.controls[0]["qddot_joints"][:, :-1]
+    q_per_phase = [sol.states[0]["q"]]
     for i in range(1, len(sol.states)-1):
         qs = np.hstack((qs, sol.states[i]["q"][:, :-1]))
         qdots = np.hstack((qdots, sol.states[i]["qdot"][:, :-1]))
         qddots = np.hstack((qddots, sol.controls[i]["qddot_joints"][:, :-1]))
+        q_per_phase.append(sol.states[i]["q"])
     qs = np.hstack((qs, sol.states[4]["q"]))
     qdots = np.hstack((qdots, sol.states[4]["qdot"]))
     qddots = np.hstack((qddots, sol.controls[4]["qddot_joints"]))
     time_parameters = sol.parameters["time"]
+    q_per_phase.append(sol.states[4]["q"])
 
 
     integrated_sol = sol.integrate(shooting_type=Shooting.SINGLE,
@@ -966,7 +973,7 @@ def main():
 
     del sol.ocp
     with open(f"Solutions/{name}_831-{str(n_shooting).replace(', ', '_')}-{timestamp}.pkl", "wb") as f:
-        pickle.dump((sol, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector), f)
+        pickle.dump((sol, q_per_phase, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector), f)
 
     # sol.animate(n_frames=-1, show_floor=False)
 
