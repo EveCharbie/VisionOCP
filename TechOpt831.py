@@ -155,52 +155,52 @@ def prepare_ocp(
 
     # Min controls
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=0
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=0
     )
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=1
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=1
     )
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=2
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=2
     )
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=3
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=3
     )
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=4
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=4
     )
 
     # Min control derivative
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=0, derivative=True,
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=0, derivative=True,
     )
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=1, derivative=True,
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=1, derivative=True,
     )
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=2, derivative=True,
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=2, derivative=True,
     )
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=3, derivative=True,
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=3, derivative=True,
     )
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=4, derivative=True,
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=4, derivative=True,
     )
 
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=100, phase=0
+        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=1, quadratic=True, phase=0
     )
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=100, phase=1
+        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=100, quadratic=True, phase=1
     )
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=-0.01, phase=2
+        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=-0.01, quadratic=True, phase=2
     )
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=-0.01, phase=3
+        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=-0.01, quadratic=True, phase=3
     )
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=-0.01, phase=4
+        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=-0.01, quadratic=True, phase=4
     )
 
 
@@ -210,7 +210,8 @@ def prepare_ocp(
         node=Node.END,
         first_marker="MidMainG",
         second_marker="CibleMainG",
-        weight=10,
+        weight=1,
+        quadratic=True,
         phase=1,
     )
     objective_functions.add(
@@ -218,7 +219,8 @@ def prepare_ocp(
          node=Node.END,
          first_marker="MidMainD",
          second_marker="CibleMainD",
-         weight=10,
+         weight=1,
+         quadratic=True,
          phase=1,
      )
 
@@ -233,7 +235,8 @@ def prepare_ocp(
          node=Node.ALL_SHOOTING,
          index=elbow_dofs,
          target=np.zeros((len(elbow_dofs), n_shooting[0])),
-         weight=1000000,
+         weight=1000,
+         quadratic=True,
          phase=0,
     )
     objective_functions.add(
@@ -242,7 +245,8 @@ def prepare_ocp(
          node=Node.ALL_SHOOTING,
          index=shoulder_dofs,
          target=np.zeros((len(shoulder_dofs), n_shooting[2])),
-         weight=1000000,
+         weight=1000,
+         quadratic=True,
          phase=2,
     )
     objective_functions.add(
@@ -251,7 +255,8 @@ def prepare_ocp(
         node=Node.ALL_SHOOTING,
         index=arm_dofs,
         target=np.zeros((len(arm_dofs), n_shooting[3])),
-        weight=1000000,
+        weight=1000,
+        quadratic=True,
         phase=3,
     )
     objective_functions.add(
@@ -260,23 +265,24 @@ def prepare_ocp(
         node=Node.ALL_SHOOTING,
         index=elbow_dofs,
         target=np.zeros((len(elbow_dofs), n_shooting[4])),
-        weight=1000000,
+        weight=1000,
+        quadratic=True,
         phase=4,
     )
 
     # Quick kick out
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[XrotLegs], target=[0], weight=10000, phase=3
+        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[XrotLegs], target=[0], weight=10, quadratic=True, phase=3
     )
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="qdot", node=list(range(int(n_shooting[3]/4), n_shooting[3])), index=[XrotLegs], target=[0], weight=100000, phase=3,
+        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="qdot", node=list(range(int(n_shooting[3]/3), n_shooting[3])), index=[XrotLegs], target=[0], weight=10, quadratic=True, phase=3,
     )
-    objective_functions.add(ObjectiveFcn.Mayer.PROPORTIONAL_STATE, key="q", node=list(range(0, int(n_shooting[3]/4))), first_dof=XrotLegs, second_dof=Zrot,
-                            coef=2.5/(0.5*np.pi), first_dof_intercept=-2.5, second_dof_intercept=3*np.pi, weight=1000000, phase=3, quadratic=True)
+    objective_functions.add(ObjectiveFcn.Mayer.PROPORTIONAL_STATE, key="q", node=list(range(0, int(n_shooting[3]/3))), first_dof=XrotLegs, second_dof=Zrot,
+                            coef=2.5/(0.5*np.pi), first_dof_intercept=-2.5, second_dof_intercept=3*np.pi, weight=100, quadratic=True, phase=3)
 
     # Minimize wobbling
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[Yrot], target=[0], weight=10000, phase=2
+        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[Yrot], target=[0], weight=100, quadratic=True, phase=2
     )
 
     # Land safely (without tilt)
@@ -286,22 +292,25 @@ def prepare_ocp(
          node=Node.END,
          index=[Yrot],
          weight=1000,
+         quadratic=True,
          phase=4,
     )
 
     if WITH_VISUAL_CRITERIA:
 
         # Spotting
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=100, phase=4)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=100, quadratic=True, phase=4)
 
         # Self-motion detection
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=10, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=10, phase=3)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=1, quadratic=True, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=1, quadratic=True, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=2)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=1, quadratic=True, phase=3)
 
         # Keeping the trampoline bed in the peripheral vision
-        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, phase=0)
-        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, phase=1)
-        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, phase=3)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, quadratic=True, phase=0)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, quadratic=True, phase=1)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, quadratic=True, phase=3)
 
         # Quiet eye
         objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
@@ -309,25 +318,25 @@ def prepare_ocp(
                                 vector_0_marker_1="eyes_vect_end",
                                 vector_1_marker_0="eyes_vect_start",
                                 vector_1_marker_1="fixation_front",
-                                weight=1, phase=0)
+                                weight=1, quadratic=True, phase=0)
         objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
                                 vector_0_marker_0="eyes_vect_start",
                                 vector_0_marker_1="eyes_vect_end",
                                 vector_1_marker_0="eyes_vect_start",
                                 vector_1_marker_1="fixation_front",
-                                weight=1000, phase=4)
+                                weight=1000, quadratic=True, phase=4)
 
         # Avoid extreme eye and neck angles
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, phase=1)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, phase=1)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, phase=2)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, phase=2)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, phase=3)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, phase=3)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, phase=4)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, phase=4)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=2)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=2)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=3)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=3)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=4)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=4)
 
 
     # Dynamics

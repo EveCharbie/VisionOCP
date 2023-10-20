@@ -173,26 +173,26 @@ def prepare_ocp(
 
     # Min controls
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=0
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=0
     )
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=1
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=1
     )
 
     # Min control derivative
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=0, derivative=True,
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=0, derivative=True,
     )
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, phase=1, derivative=True,
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=1, derivative=True,
     )
 
     # Min time
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time, weight=0.00001, phase=0
+        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time, weight=0.00001, quadratic=True, phase=0
     )
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=0.00001, phase=1
+        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=0.00001, quadratic=True, phase=1
     )
 
     # Aligning with the FIG regulations
@@ -201,7 +201,8 @@ def prepare_ocp(
          key="q",
          node=Node.ALL_SHOOTING,
          index=[YrotRightUpperArm, YrotLeftUpperArm],
-         weight=100,
+         weight=1000,
+         quadratic=True,
          phase=0,
     )
 
@@ -212,19 +213,20 @@ def prepare_ocp(
          node=Node.END,
          index=[Yrot],
          weight=1000,
+         quadratic=True,
          phase=1,
     )
 
     if WITH_VISUAL_CRITERIA:
 
         # Spotting
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=100, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=100, quadratic=True, phase=1)
 
         # Self-motion detection
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=10, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=0)
 
         # Keeping the trampoline bed in the peripheral vision
-        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, phase=0)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, quadratic=True, phase=0)
 
         # Quiet eye
         objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
@@ -232,19 +234,19 @@ def prepare_ocp(
                                 vector_0_marker_1="eyes_vect_end",
                                 vector_1_marker_0="eyes_vect_start",
                                 vector_1_marker_1="fixation_front",
-                                weight=1, phase=0)
+                                weight=1, quadratic=True, phase=0)
         objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
                                 vector_0_marker_0="eyes_vect_start",
                                 vector_0_marker_1="eyes_vect_end",
                                 vector_1_marker_0="eyes_vect_start",
                                 vector_1_marker_1="fixation_front",
-                                weight=1000, phase=1)
+                                weight=1000, quadratic=True, phase=1)
 
         # Avoid extreme eye and neck angles
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, phase=1)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, quadratic=True, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=1)
 
 
     # Dynamics
@@ -431,15 +433,15 @@ def prepare_ocp(
     q_bounds_1_max[Zrot, :] = 2 * np.pi * num_twists + 0.01
 
     # Right arm
-    q_bounds_1_min[YrotRightUpperArm, START] = -0.1
-    q_bounds_1_max[YrotRightUpperArm, START] = +0.1
+    q_bounds_1_min[YrotRightUpperArm, START] = 0
+    q_bounds_1_max[YrotRightUpperArm, START] = np.pi/8
     q_bounds_1_min[YrotRightUpperArm, END] = 2.9 - 0.1
     q_bounds_1_max[YrotRightUpperArm, END] = 2.9 + 0.1
     q_bounds_1_min[ZrotRightUpperArm, END] = -0.1
     q_bounds_1_max[ZrotRightUpperArm, END] = 0.1
     # Left arm
-    q_bounds_1_min[YrotLeftUpperArm, START] = -0.1
-    q_bounds_1_max[YrotLeftUpperArm, START] = +0.1
+    q_bounds_1_min[YrotLeftUpperArm, START] = -np.pi/8
+    q_bounds_1_max[YrotLeftUpperArm, START] = 0
     q_bounds_1_min[YrotLeftUpperArm, END] = -2.9 - 0.1
     q_bounds_1_max[YrotLeftUpperArm, END] = -2.9 + 0.1
     q_bounds_1_min[ZrotLeftUpperArm, END] = -0.1
