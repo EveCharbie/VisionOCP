@@ -5,9 +5,11 @@ The goal of this program is to compare the athlete kinematics with the optimal k
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-import bioviz
+# import bioviz
 import bioptim
 import biorbd
+
+import bioviz
 
 ACROBATICS = ["42", "831"]
 
@@ -71,6 +73,11 @@ with open("Solutions/" + file_name_42_with_visual_criteria, "rb") as f:
 
 # Animate comparison
 qs_42_combined = np.vstack((qs_42_with_visual_criteria, qs_42))
+
+b = bioviz.Kinogram(model_path=biorbd_model_path_42_both)
+b.load_movement([qs_42_combined, qs_42_combined])
+b.exec()
+
 # b = bioviz.Viz(biorbd_model_path_42_both,
 #                mesh_opacity=0.8,
 #                show_global_center_of_mass=False,
@@ -84,8 +91,23 @@ qs_42_combined = np.vstack((qs_42_with_visual_criteria, qs_42))
 # b.load_movement(qs_42_combined)
 # b.exec()
 
+# Animate comparison
+qs_831_combined = np.vstack((qs_831_with_visual_criteria, qs_831))
+# b = bioviz.Viz(biorbd_model_path_831_both,
+#                mesh_opacity=0.8,
+#                show_global_center_of_mass=False,
+#                show_gravity_vector=False,
+#                show_segments_center_of_mass=False,
+#                show_global_ref_frame=False,
+#                show_local_ref_frame=False,
+#                experimental_markers_color=(1, 1, 1),
+#                background_color=(1.0, 1.0, 1.0),
+#                )
+# b.load_movement(qs_831_combined)
+# b.exec()
 
 
+# 42 plots
 
 fig, axs = plt.subplots(1, 3, figsize=(15, 3))
 for i in range(3):
@@ -94,28 +116,78 @@ for i in range(3):
 plt.savefig("Graphs/compare_42_root.png", dpi=300)
 plt.show()
 
+
 fig, axs = plt.subplots(2, 2)
 
-axs[0, 0].plot(time_vector_42, qs_42[6, :], 'tab:blue', label="OCP without vision")
-axs[0, 0].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[6+4, :], 'tab:red', label="OCP with vision")
-axs[0, 0].set_title("Change in elevation plane R")
+# Right arm
+axs[0, 1].plot(time_vector_42, qs_42[6, :], 'tab:blue', label="OCP without vision")
+axs[0, 1].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[6+4, :], 'tab:red', label="OCP with vision")
+axs[0, 1].set_title("Change in elevation plane R")
 
-axs[0, 1].plot(time_vector_42, qs_42[7, :], 'tab:blue')
-axs[0, 1].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[7+4, :], 'tab:red')
-axs[0, 1].set_title("Elevation R")
+axs[1, 1].plot(time_vector_42, qs_42[7, :], 'tab:blue')
+axs[1, 1].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[7+4, :], 'tab:red')
+axs[1, 1].set_title("Elevation R")
 
-axs[1, 0].plot(time_vector_42, qs_42[8, :], 'tab:blue')
-axs[1, 0].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[8+4, :], 'tab:red')
-axs[1, 0].set_title("Change in elevation plane L")
+# Left arm
+axs[0, 0].plot(time_vector_42, qs_42[8, :], 'tab:blue')
+axs[0, 0].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[8+4, :], 'tab:red')
+axs[0, 0].set_title("Change in elevation plane L")
 
-axs[1, 1].plot(time_vector_42, qs_42[9, :], 'tab:blue')
-axs[1, 1].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[9+4, :], 'tab:red')
-axs[1, 1].set_title("Elevation L")
+axs[1, 0].plot(time_vector_42, qs_42[9, :], 'tab:blue')
+axs[1, 0].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[9+4, :], 'tab:red')
+axs[1, 0].set_title("Elevation L")
 
 # show legend below figure
 axs[0, 0].legend(bbox_to_anchor=[2.0, -1.5], ncols=2, frameon=False)
 plt.subplots_adjust(hspace=0.35)
 plt.savefig("Graphs/compare_42_dofs.png", dpi=300)
+plt.show()
+
+
+
+# 831 plots
+
+fig, axs = plt.subplots(1, 3, figsize=(15, 3))
+for i in range(3):
+    axs[i].plot(time_vector_831, qs_831[i+3, :], 'tab:blue')
+    axs[i].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[i+3, :], 'tab:red')
+plt.savefig("Graphs/compare_831_root.png", dpi=300)
+plt.show()
+
+
+fig, axs = plt.subplots(2, 3)
+
+# Right arm
+axs[0, 1].plot(time_vector_831, qs_831[6, :], 'tab:blue', label="OCP without vision")
+axs[0, 1].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[6+4, :], 'tab:red', label="OCP with vision")
+axs[0, 1].set_title("Change in elevation plane R")
+
+axs[1, 1].plot(time_vector_831, qs_831[7, :], 'tab:blue')
+axs[1, 1].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[7+4, :], 'tab:red')
+axs[1, 1].set_title("Elevation R")
+
+# Left arm
+axs[0, 0].plot(time_vector_831, qs_831[10, :], 'tab:blue')
+axs[0, 0].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[10+4, :], 'tab:red')
+axs[0, 0].set_title("Change in elevation plane L")
+
+axs[1, 0].plot(time_vector_831, qs_831[11, :], 'tab:blue')
+axs[1, 0].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[11+4, :], 'tab:red')
+axs[1, 0].set_title("Elevation L")
+
+# Hips
+axs[0, 2].plot(time_vector_831, qs_831[12, :], 'tab:blue')
+axs[0, 2].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[12+4, :], 'tab:red')
+axs[0, 2].set_title("Flexion")
+
+axs[1, 2].plot(time_vector_831, qs_831[13, :], 'tab:blue')
+axs[1, 2].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[13+4, :], 'tab:red')
+axs[1, 2].set_title("Lateral flexion")
+
+# show legend below figure
+axs[0, 0].legend(bbox_to_anchor=[3.0, -1.5], ncols=2, frameon=False)
+plt.subplots_adjust(hspace=0.35)
+plt.savefig("Graphs/compare_831_dofs.png", dpi=300)
 plt.show()
 
 

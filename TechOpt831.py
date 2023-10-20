@@ -299,8 +299,8 @@ def prepare_ocp(
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=10, phase=3)
 
         # Keeping the trampoline bed in the peripheral vision
-        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=1, phase=0)
-        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=1, phase=1)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, phase=0)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, phase=1)
         objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, phase=3)
 
         # Quiet eye
@@ -318,15 +318,15 @@ def prepare_ocp(
                                 weight=1000, phase=4)
 
         # Avoid extreme eye and neck angles
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, phase=0)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, phase=1)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, phase=1)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, phase=2)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, phase=2)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, phase=2)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, phase=3)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, phase=3)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, phase=3)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, phase=4)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=500, phase=4)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, phase=4)
 
 
@@ -917,7 +917,7 @@ def main():
     Prepares and solves an ocp for a 831< with and without visual criteria.
     """
 
-    WITH_VISUAL_CRITERIA = False # True
+    WITH_VISUAL_CRITERIA = True
 
     if WITH_VISUAL_CRITERIA:
         biorbd_model_path = "models/SoMe_with_visual_criteria.bioMod"
@@ -933,7 +933,6 @@ def main():
     solver.set_linear_solver("ma57")
     solver.set_maximum_iterations(10000)
     solver.set_convergence_tolerance(1e-6)
-    sol = ocp.solve(solver)
 
     tic = time.time()
     sol = ocp.solve(solver)
@@ -966,7 +965,7 @@ def main():
 
 
     del sol.ocp
-    with open(f"Solutions/{name}-{num_twists}-{str(n_shooting).replace(', ', '_')}-{timestamp}.pkl", "wb") as f:
+    with open(f"Solutions/{name}_831-{str(n_shooting).replace(', ', '_')}-{timestamp}.pkl", "wb") as f:
         pickle.dump((sol, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector), f)
 
     # sol.animate(n_frames=-1, show_floor=False)
