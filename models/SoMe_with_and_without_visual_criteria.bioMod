@@ -213,7 +213,7 @@ segment Thighs_with
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 -0.08608065292407807
 	rotations xy
 	rangesQ
-		-2.7 0.3
+		-2.4 0.3
 		-0.35 0.35
 	com 0.0 0.0 -0.17089938491274764
 	mass 16.759868032417362
@@ -296,10 +296,6 @@ endsegment
 segment Head_without
 	parent Thorax_without
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 0.322
-	rotations zx
-	rangesQ
-		-60*3.14/180 60*3.14/180
-		-70*3.14/180 3.14/8
 	com 0.0 0.0 0.1169371541218166
 	mass 3.9436452215486697
 	inertia
@@ -314,10 +310,6 @@ endsegment
 segment Eyes_without
 	parent Head_without
 	rt 0.0 0.0 0.0 xyz 0.0 -0.055 0.085
-	rotations zx
-	rangesQ
-		-3.14/8 3.14/8
-		-30*3.14/180 3.14/8
 	com 0.01 0.0 0.0
 	mass 0.0000001 
 	inertia
@@ -428,7 +420,7 @@ segment Thighs_without
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 -0.08608065292407807
 	rotations xy
 	rangesQ
-		-2.7 0.3
+		-2.4 0.3
 		-0.35 0.35
 	com 0.0 0.0 -0.17089938491274764
 	mass 16.759868032417362
