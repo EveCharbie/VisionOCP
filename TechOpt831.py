@@ -4,8 +4,9 @@ The goal of this program is to optimize the movement to achieve a 831< or a 851<
 Phase 0 : Twist
 Phase 1: Pike
 Phase 2 : Rotate in somersault in pike position
-Phase 3 : Kick out + half twist
-Phase 4 : preparation for landing
+Phase 3 : Kick out
+Phase 4: Half twist
+Phase 5 : preparation for landing
 """
 
 import numpy as np
@@ -65,6 +66,7 @@ def prepare_ocp(
 
     final_time = 1.87
     biorbd_model = (
+        BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
@@ -155,40 +157,17 @@ def prepare_ocp(
     # Add objective functions
     objective_functions = ObjectiveList()
 
-    # Min controls
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=0
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=1
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=2
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=3
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=4
-    )
+    for i in range(6):
+        # Min controls
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=i
+        )
+        # Min control derivative
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=i, derivative=True,
+        )
 
-    # Min control derivative
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=0, derivative=True,
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=1, derivative=True,
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=2, derivative=True,
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=3, derivative=True,
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", node=Node.ALL_SHOOTING, weight=1, quadratic=True, phase=4, derivative=True,
-    )
-
+    # Min/Max time
     objective_functions.add(
         ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=1, quadratic=True, phase=0
     )
@@ -199,10 +178,13 @@ def prepare_ocp(
         ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=-0.01, quadratic=True, phase=2
     )
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=-0.01, quadratic=True, phase=3
+        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=100, quadratic=True, phase=3
     )
     objective_functions.add(
         ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=-0.01, quadratic=True, phase=4
+    )
+    objective_functions.add(
+        ObjectiveFcn.Mayer.MINIMIZE_TIME, min_bound=0.05, max_bound=final_time / 2, weight=-0.01, quadratic=True, phase=5
     )
 
 
@@ -259,7 +241,7 @@ def prepare_ocp(
         target=np.zeros((len(arm_dofs), n_shooting[3])),
         weight=50000,
         quadratic=True,
-        phase=3,
+        phase=4,
     )
     objective_functions.add(
         ObjectiveFcn.Lagrange.MINIMIZE_STATE,
@@ -269,18 +251,8 @@ def prepare_ocp(
         target=np.zeros((len(elbow_dofs), n_shooting[4])),
         weight=50000,
         quadratic=True,
-        phase=4,
+        phase=5,
     )
-
-    # Quick kick out
-    objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[XrotLegs], target=[0], weight=10, quadratic=True, phase=3
-    )
-    objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="qdot", node=list(range(int(n_shooting[3]/3), n_shooting[3])), index=[XrotLegs], target=[0], weight=10, quadratic=True, phase=3,
-    )
-    objective_functions.add(ObjectiveFcn.Mayer.PROPORTIONAL_STATE, key="q", node=list(range(0, int(n_shooting[3]/3))), first_dof=XrotLegs, second_dof=Zrot,
-                            coef=2.5/(0.5*np.pi), first_dof_intercept=-2.5, second_dof_intercept=3*np.pi, weight=100, quadratic=True, phase=3)
 
     # Minimize wobbling
     objective_functions.add(
@@ -295,24 +267,24 @@ def prepare_ocp(
          index=[Yrot],
          weight=1000,
          quadratic=True,
-         phase=4,
+         phase=5,
     )
 
     if WITH_VISUAL_CRITERIA:
 
         # Spotting
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=100, quadratic=True, phase=4)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=10, quadratic=True, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=10, quadratic=True, phase=5)
 
         # Self-motion detection
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=1, quadratic=True, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=1, quadratic=True, phase=1)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=2)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=1, quadratic=True, phase=3)
+        for i in range(6):
+            objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=1, quadratic=True, phase=i)
 
         # Keeping the trampoline bed in the peripheral vision
         objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, quadratic=True, phase=0)
-        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, quadratic=True, phase=1)
         objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, quadratic=True, phase=3)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, quadratic=True, phase=4)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, quadratic=True, phase=5)
 
         # Quiet eye
         objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
@@ -326,19 +298,12 @@ def prepare_ocp(
                                 vector_0_marker_1="eyes_vect_end",
                                 vector_1_marker_0="eyes_vect_start",
                                 vector_1_marker_1="fixation_front",
-                                weight=100000, quadratic=True, phase=4)
+                                weight=1000, quadratic=True, phase=5)
 
         # Avoid extreme eye and neck angles
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=1)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=1)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=2)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=2)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=3)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=3)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=4)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=4)
+        for i in range(6):
+            objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=i)
+            objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=i)
 
     constraints = ConstraintList()
     constraints.add(
@@ -363,24 +328,21 @@ def prepare_ocp(
     multinode_constraints = MultinodeConstraintList()
     multinode_constraints.add(
         MultinodeConstraintFcn.TRACK_TOTAL_TIME,
-        nodes_phase=(0, 1, 2, 3, 4),
-        nodes=(Node.END, Node.END, Node.END, Node.END, Node.END),
+        nodes_phase=(0, 1, 2, 3, 4, 5),
+        nodes=(Node.END, Node.END, Node.END, Node.END, Node.END, Node.END),
         min_bound=final_time - 0.01,
         max_bound=final_time + 0.01,
     )
 
     # Dynamics
     dynamics = DynamicsList()
-    dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN)
-    dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN)
-    dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN)
-    dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN)
-    dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN)
+    for i in range(6):
+        dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN)
 
     qddot_joints_min, qddot_joints_max, qddot_joints_init = -1000, 1000, 0
     u_bounds = BoundsList()
     u_init = InitialGuessList()
-    for i in range(5):
+    for i in range(6):
         u_bounds.add(
             "qddot_joints",
             min_bound=[qddot_joints_min] * nb_qddot_joints,
@@ -401,6 +363,8 @@ def prepare_ocp(
     q_bounds_3_max = np.array(biorbd_model[3].bounds_from_ranges("q").max)
     q_bounds_4_min = np.array(biorbd_model[4].bounds_from_ranges("q").min)
     q_bounds_4_max = np.array(biorbd_model[4].bounds_from_ranges("q").max)
+    q_bounds_5_min = np.array(biorbd_model[5].bounds_from_ranges("q").min)
+    q_bounds_5_max = np.array(biorbd_model[5].bounds_from_ranges("q").max)
     qdot_bounds_0_min = np.array(biorbd_model[0].bounds_from_ranges("qdot").min)
     qdot_bounds_0_max = np.array(biorbd_model[0].bounds_from_ranges("qdot").max)
     qdot_bounds_1_min = np.array(biorbd_model[1].bounds_from_ranges("qdot").min)
@@ -411,6 +375,8 @@ def prepare_ocp(
     qdot_bounds_3_max = np.array(biorbd_model[3].bounds_from_ranges("qdot").max)
     qdot_bounds_4_min = np.array(biorbd_model[4].bounds_from_ranges("qdot").min)
     qdot_bounds_4_max = np.array(biorbd_model[4].bounds_from_ranges("qdot").max)
+    qdot_bounds_5_min = np.array(biorbd_model[5].bounds_from_ranges("qdot").min)
+    qdot_bounds_5_max = np.array(biorbd_model[5].bounds_from_ranges("qdot").max)
 
     # For lisibility
     START, MIDDLE, END = 0, 1, 2
@@ -596,10 +562,10 @@ def prepare_ocp(
     # Hips flexion
     q_bounds_1_min[XrotLegs, START] = -0.2
     q_bounds_1_max[XrotLegs, START] = 0.2
-    q_bounds_1_min[XrotLegs, MIDDLE] = -2.5 - 0.2
+    q_bounds_1_min[XrotLegs, MIDDLE] = -2.4 - 0.2
     q_bounds_1_max[XrotLegs, MIDDLE] = 0.2
-    q_bounds_1_min[XrotLegs, END] = -2.5 - 0.2
-    q_bounds_1_max[XrotLegs, END] = -2.5 + 0.2
+    q_bounds_1_min[XrotLegs, END] = -2.4 - 0.2
+    q_bounds_1_max[XrotLegs, END] = -2.4 + 0.2
     # Hips sides
     q_bounds_1_min[YrotLegs, END] = -0.1
     q_bounds_1_max[YrotLegs, END] = 0.1
@@ -661,8 +627,8 @@ def prepare_ocp(
     q_bounds_2_max[Zrot, :] = 2 * np.pi * num_twists + np.pi + np.pi / 8
 
     # Hips flexion
-    q_bounds_2_min[XrotLegs, :] = -2.5 - 0.2
-    q_bounds_2_max[XrotLegs, :] = -2.5 + 0.2
+    q_bounds_2_min[XrotLegs, :] = -2.4 - 0.2
+    q_bounds_2_max[XrotLegs, :] = -2.4 + 0.2
     # Hips sides
     q_bounds_2_min[YrotLegs, :] = -0.1
     q_bounds_2_max[YrotLegs, :] = 0.1
@@ -724,20 +690,18 @@ def prepare_ocp(
     # Tilt
     q_bounds_3_min[Yrot, :] = -np.pi / 4
     q_bounds_3_max[Yrot, :] = np.pi / 4
-    q_bounds_3_min[Yrot, END] = -np.pi / 8
-    q_bounds_3_max[Yrot, END] = np.pi / 8
     # Twist
     q_bounds_3_min[Zrot, START] = 2 * np.pi * num_twists + np.pi - np.pi / 4
     q_bounds_3_max[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 4
     q_bounds_3_min[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi - np.pi / 4
-    q_bounds_3_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + 2 * np.pi + np.pi / 8
-    q_bounds_3_min[Zrot, END] = 2 * np.pi * num_twists + 2 * np.pi - np.pi / 8
-    q_bounds_3_max[Zrot, END] = 2 * np.pi * num_twists + 2 * np.pi + np.pi / 8
+    q_bounds_3_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi + np.pi / 4
+    q_bounds_3_min[Zrot, END] = 2 * np.pi * num_twists + np.pi
+    q_bounds_3_max[Zrot, END] = 2 * np.pi * num_twists + np.pi + np.pi / 4
 
     # Hips flexion
-    q_bounds_3_min[XrotLegs, START] = -2.5 - 0.2
-    q_bounds_3_max[XrotLegs, START] = -2.5 + 0.2
-    q_bounds_3_min[XrotLegs, MIDDLE] = -2.5 - 0.2
+    q_bounds_3_min[XrotLegs, START] = -2.4 - 0.2
+    q_bounds_3_max[XrotLegs, START] = -2.4 + 0.2
+    q_bounds_3_min[XrotLegs, MIDDLE] = -2.4 - 0.2
     q_bounds_3_max[XrotLegs, MIDDLE] = 0.2
     q_bounds_3_min[XrotLegs, END] = -0.2
     q_bounds_3_max[XrotLegs, END] = 0.2
@@ -779,7 +743,8 @@ def prepare_ocp(
     qdot_bounds_3_min[vYrotLegs, :] = -100
     qdot_bounds_3_max[vYrotLegs, :] = 100
 
-    # ------------------------------- Phase 4 : landing ------------------------------- #
+
+    # ------------------------------- Phase 4 : 1/2 twist ------------------------------- #
 
     # Pelvis translations
     q_bounds_4_min[X, :] = -0.01
@@ -792,31 +757,31 @@ def prepare_ocp(
     q_bounds_4_max[Z, END] = 0.01
 
     # Somersault
-    q_bounds_4_min[Xrot, :] = -0.5 - 4 * np.pi - 0.1
-    q_bounds_4_max[Xrot, :] = -7/2 * np.pi + 0.2 + 0.2
-    q_bounds_4_min[Xrot, END] = 0.5 - 4 * np.pi - 0.01
-    q_bounds_4_max[Xrot, END] = 0.5 - 4 * np.pi + 0.01
+    q_bounds_4_min[Xrot, START] = -3 * np.pi
+    q_bounds_4_max[Xrot, START] = -2 * np.pi
+    q_bounds_4_min[Xrot, MIDDLE] = -7/2 * np.pi
+    q_bounds_4_max[Xrot, MIDDLE] = -2 * np.pi
+    q_bounds_4_min[Xrot, END] = -7/2 * np.pi + 0.2 - 0.2
+    q_bounds_4_max[Xrot, END] = -7/2 * np.pi + 0.2 + 0.2
     # Tilt
-    q_bounds_4_min[Yrot, :] = -np.pi / 16
-    q_bounds_4_max[Yrot, :] = np.pi / 16
+    q_bounds_4_min[Yrot, :] = -np.pi / 4
+    q_bounds_4_max[Yrot, :] = np.pi / 4
+    q_bounds_4_min[Yrot, END] = -np.pi / 8
+    q_bounds_4_max[Yrot, END] = np.pi / 8
     # Twist
-    q_bounds_4_min[Zrot, :] = 2 * np.pi * num_twists + 2 * np.pi - 0.01
-    q_bounds_4_max[Zrot, :] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
+    q_bounds_4_min[Zrot, START] = 2 * np.pi * num_twists + np.pi
+    q_bounds_4_max[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 4
+    q_bounds_4_min[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi
+    q_bounds_4_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
+    q_bounds_4_min[Zrot, END] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
+    q_bounds_4_max[Zrot, END] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
 
     # Right arm
-    q_bounds_4_min[YrotRightUpperArm, START] = 0
-    q_bounds_4_max[YrotRightUpperArm, START] = np.pi/8
-    q_bounds_4_min[YrotRightUpperArm, END] = 2.9 - 0.1
-    q_bounds_4_max[YrotRightUpperArm, END] = 2.9 + 0.1
-    q_bounds_4_min[ZrotRightUpperArm, END] = -0.1
-    q_bounds_4_max[ZrotRightUpperArm, END] = 0.1
+    q_bounds_4_min[YrotRightUpperArm, END] = 0
+    q_bounds_4_max[YrotRightUpperArm, END] = np.pi/8
     # Left arm
-    q_bounds_4_min[YrotLeftUpperArm, START] = -np.pi/8
-    q_bounds_4_max[YrotLeftUpperArm, START] = 0
-    q_bounds_4_min[YrotLeftUpperArm, END] = -2.9 - 0.1
-    q_bounds_4_max[YrotLeftUpperArm, END] = -2.9 + 0.1
-    q_bounds_4_min[ZrotLeftUpperArm, END] = -0.1
-    q_bounds_4_max[ZrotLeftUpperArm, END] = 0.1
+    q_bounds_4_min[YrotLeftUpperArm, END] = -np.pi/8
+    q_bounds_4_max[YrotLeftUpperArm, END] = 0
 
     # Right elbow
     q_bounds_4_min[ZrotRightLowerArm : XrotRightLowerArm + 1, END] = -0.1
@@ -826,12 +791,8 @@ def prepare_ocp(
     q_bounds_4_max[ZrotLeftLowerArm : XrotLeftLowerArm + 1, END] = 0.1
 
     # Hips flexion
-    q_bounds_4_min[XrotLegs, :] = -0.4
-    q_bounds_4_min[XrotLegs, END] = -0.60
-    q_bounds_4_max[XrotLegs, END] = -0.40
-    # Hips sides
-    q_bounds_4_min[YrotLegs, END] = -0.1
-    q_bounds_4_max[YrotLegs, END] = 0.1
+    q_bounds_4_min[XrotLegs, :] = -0.2
+    q_bounds_4_max[XrotLegs, :] = 0.2
 
     # Translations velocities
     qdot_bounds_4_min[vX : vY + 1, :] = -10
@@ -870,16 +831,109 @@ def prepare_ocp(
     qdot_bounds_4_min[vYrotLegs, :] = -100
     qdot_bounds_4_max[vYrotLegs, :] = 100
 
+    # ------------------------------- Phase 5 : landing ------------------------------- #
+
+    # Pelvis translations
+    q_bounds_5_min[X, :] = -0.01
+    q_bounds_5_max[X, :] = 0.01
+    q_bounds_5_min[Y, :] = -0.5
+    q_bounds_5_max[Y, :] = 0.5
+    q_bounds_5_min[Z, :] = 0
+    q_bounds_5_max[Z, :] = zmax
+    q_bounds_5_min[Z, END] = 0
+    q_bounds_5_max[Z, END] = 0.01
+
+    # Somersault
+    q_bounds_5_min[Xrot, :] = -0.5 - 4 * np.pi - 0.1
+    q_bounds_5_max[Xrot, :] = -7/2 * np.pi + 0.2 + 0.2
+    q_bounds_5_min[Xrot, END] = 0.5 - 4 * np.pi - 0.01
+    q_bounds_5_max[Xrot, END] = 0.5 - 4 * np.pi + 0.01
+    # Tilt
+    q_bounds_5_min[Yrot, :] = -np.pi / 16
+    q_bounds_5_max[Yrot, :] = np.pi / 16
+    # Twist
+    q_bounds_5_min[Zrot, :] = 2 * np.pi * num_twists + 2 * np.pi - 0.01
+    q_bounds_5_max[Zrot, :] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
+
+    # Right arm
+    q_bounds_5_min[YrotRightUpperArm, START] = 0
+    q_bounds_5_max[YrotRightUpperArm, START] = np.pi/8
+    q_bounds_5_min[YrotRightUpperArm, END] = 2.9 - 0.1
+    q_bounds_5_max[YrotRightUpperArm, END] = 2.9 + 0.1
+    q_bounds_5_min[ZrotRightUpperArm, END] = -0.1
+    q_bounds_5_max[ZrotRightUpperArm, END] = 0.1
+    # Left arm
+    q_bounds_5_min[YrotLeftUpperArm, START] = -np.pi/8
+    q_bounds_5_max[YrotLeftUpperArm, START] = 0
+    q_bounds_5_min[YrotLeftUpperArm, END] = -2.9 - 0.1
+    q_bounds_5_max[YrotLeftUpperArm, END] = -2.9 + 0.1
+    q_bounds_5_min[ZrotLeftUpperArm, END] = -0.1
+    q_bounds_5_max[ZrotLeftUpperArm, END] = 0.1
+
+    # Right elbow
+    q_bounds_5_min[ZrotRightLowerArm : XrotRightLowerArm + 1, END] = -0.1
+    q_bounds_5_max[ZrotRightLowerArm : XrotRightLowerArm + 1, END] = 0.1
+    # Left elbow
+    q_bounds_5_min[ZrotLeftLowerArm : XrotLeftLowerArm + 1, END] = -0.1
+    q_bounds_5_max[ZrotLeftLowerArm : XrotLeftLowerArm + 1, END] = 0.1
+
+    # Hips flexion
+    q_bounds_5_min[XrotLegs, :] = -0.4
+    q_bounds_5_min[XrotLegs, END] = -0.60
+    q_bounds_5_max[XrotLegs, END] = -0.40
+    # Hips sides
+    q_bounds_5_min[YrotLegs, END] = -0.1
+    q_bounds_5_max[YrotLegs, END] = 0.1
+
+    # Translations velocities
+    qdot_bounds_5_min[vX : vY + 1, :] = -10
+    qdot_bounds_5_max[vX : vY + 1, :] = 10
+    qdot_bounds_5_min[vZ, :] = -100
+    qdot_bounds_5_max[vZ, :] = 100
+
+    # Somersault
+    qdot_bounds_5_min[vXrot, :] = -100
+    qdot_bounds_5_max[vXrot, :] = 100
+    # Tilt
+    qdot_bounds_5_min[vYrot, :] = -100
+    qdot_bounds_5_max[vYrot, :] = 100
+    # Twist
+    qdot_bounds_5_min[vZrot, :] = -100
+    qdot_bounds_5_max[vZrot, :] = 100
+
+    # Right arm
+    qdot_bounds_5_min[vZrotRightUpperArm : vYrotRightUpperArm + 1, :] = -100
+    qdot_bounds_5_max[vZrotRightUpperArm : vYrotRightUpperArm + 1, :] = 100
+    # Left arm
+    qdot_bounds_5_min[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = -100
+    qdot_bounds_5_max[vZrotLeftUpperArm : vYrotLeftUpperArm + 1, :] = 100
+
+    # Right elbow
+    qdot_bounds_5_min[vZrotRightLowerArm : vYrotRightLowerArm + 1, :] = -100
+    qdot_bounds_5_max[vZrotRightLowerArm : vYrotRightLowerArm + 1, :] = 100
+    # Left elbow
+    qdot_bounds_5_min[vZrotRightLowerArm : vYrotLeftLowerArm + 1, :] = -100
+    qdot_bounds_5_max[vZrotRightLowerArm : vYrotLeftLowerArm + 1, :] = 100
+
+    # Hip flexion
+    qdot_bounds_5_min[vXrotLegs, :] = -100
+    qdot_bounds_5_max[vXrotLegs, :] = 100
+    # Hip sides
+    qdot_bounds_5_min[vYrotLegs, :] = -100
+    qdot_bounds_5_max[vYrotLegs, :] = 100
+
     x_bounds.add("q", min_bound=q_bounds_0_min, max_bound=q_bounds_0_max, phase=0)
     x_bounds.add("q", min_bound=q_bounds_1_min, max_bound=q_bounds_1_max, phase=1)
     x_bounds.add("q", min_bound=q_bounds_2_min, max_bound=q_bounds_2_max, phase=2)
     x_bounds.add("q", min_bound=q_bounds_3_min, max_bound=q_bounds_3_max, phase=3)
     x_bounds.add("q", min_bound=q_bounds_4_min, max_bound=q_bounds_4_max, phase=4)
+    x_bounds.add("q", min_bound=q_bounds_5_min, max_bound=q_bounds_5_max, phase=5)
     x_bounds.add("qdot", min_bound=qdot_bounds_0_min, max_bound=qdot_bounds_0_max, phase=0)
     x_bounds.add("qdot", min_bound=qdot_bounds_1_min, max_bound=qdot_bounds_1_max, phase=1)
     x_bounds.add("qdot", min_bound=qdot_bounds_2_min, max_bound=qdot_bounds_2_max, phase=2)
     x_bounds.add("qdot", min_bound=qdot_bounds_3_min, max_bound=qdot_bounds_3_max, phase=3)
     x_bounds.add("qdot", min_bound=qdot_bounds_4_min, max_bound=qdot_bounds_4_max, phase=4)
+    x_bounds.add("qdot", min_bound=qdot_bounds_5_min, max_bound=qdot_bounds_5_max, phase=5)
 
     # ------------------------------- Initial guesses ------------------------------- #
 
@@ -893,6 +947,8 @@ def prepare_ocp(
     qdot_3 = np.zeros((nb_qdot, 2))
     q_4 = np.zeros((nb_q, 2))
     qdot_4 = np.zeros((nb_qdot, 2))
+    q_5 = np.zeros((nb_q, 2))
+    qdot_5 = np.zeros((nb_qdot, 2))
 
     q_0[Xrot] = np.array([0, -np.pi / 2])
     q_0[Zrot] = np.array([0, 2 * np.pi * num_twists])
@@ -904,19 +960,22 @@ def prepare_ocp(
 
     q_1[Xrot] = np.array([-np.pi / 2, -3 / 4 * np.pi])
     q_1[Zrot] = np.array([2 * np.pi * num_twists, 2 * np.pi * num_twists + np.pi])
-    q_1[XrotLegs] = np.array([0, -2.5])
+    q_1[XrotLegs] = np.array([0, -2.4])
 
     q_2[Xrot] = np.array([-3 / 4 * np.pi, -3 * np.pi])
     q_2[Zrot] = np.array([2 * np.pi * num_twists + np.pi, 2 * np.pi * num_twists + np.pi])
-    q_2[XrotLegs, 0] = -2.5
+    q_2[XrotLegs, 0] = -2.4
 
-    q_3[Xrot] = np.array([-3 * np.pi, -2 * np.pi - 5 / 4 * np.pi])
-    q_3[Zrot] = np.array([2 * np.pi * num_twists + np.pi, 2 * np.pi * num_twists + 2 * np.pi])
-    q_3[XrotLegs] = np.array([-2.5, 0])
+    q_3[Xrot] = np.array([-3 * np.pi, -2 * np.pi - 5 / 4 * np.pi + 0.1])
+    q_3[Zrot] = np.array([2 * np.pi * num_twists + np.pi, 2 * np.pi * num_twists + np.pi + np.pi/8])
+    q_3[XrotLegs] = np.array([-2.4, 0])
 
-    q_4[Xrot] = np.array([-2 * np.pi - 5 / 4 * np.pi, -4 * np.pi + 0.5])
-    q_4[Zrot] = np.array([2 * np.pi * num_twists + 2 * np.pi, 2 * np.pi * num_twists + 2 * np.pi])
-    q_4[XrotLegs] = np.array([0, -0.5])
+    q_4[Xrot] = np.array([-2 * np.pi - 5 / 4 * np.pi + 0.1, -2 * np.pi - 5 / 4 * np.pi - 0.1])
+    q_4[Zrot] = np.array([2 * np.pi * num_twists + np.pi + np.pi/8, 2 * np.pi * num_twists + 2 * np.pi])
+
+    q_5[Xrot] = np.array([-2 * np.pi - 5 / 4 * np.pi - 0.1, -4 * np.pi + 0.5])
+    q_5[Zrot] = np.array([2 * np.pi * num_twists + 2 * np.pi, 2 * np.pi * num_twists + 2 * np.pi])
+    q_5[XrotLegs] = np.array([0, -0.5])
 
     x_init = InitialGuessList()
     x_init.add("q", initial_guess=q_0, interpolation=InterpolationType.LINEAR, phase=0)
@@ -924,11 +983,13 @@ def prepare_ocp(
     x_init.add("q", initial_guess=q_2, interpolation=InterpolationType.LINEAR, phase=2)
     x_init.add("q", initial_guess=q_3, interpolation=InterpolationType.LINEAR, phase=3)
     x_init.add("q", initial_guess=q_4, interpolation=InterpolationType.LINEAR, phase=4)
+    x_init.add("q", initial_guess=q_5, interpolation=InterpolationType.LINEAR, phase=5)
     x_init.add("qdot", initial_guess=qdot_0, interpolation=InterpolationType.LINEAR, phase=0)
     x_init.add("qdot", initial_guess=qdot_1, interpolation=InterpolationType.LINEAR, phase=1)
     x_init.add("qdot", initial_guess=qdot_2, interpolation=InterpolationType.LINEAR, phase=2)
     x_init.add("qdot", initial_guess=qdot_3, interpolation=InterpolationType.LINEAR, phase=3)
     x_init.add("qdot", initial_guess=qdot_4, interpolation=InterpolationType.LINEAR, phase=4)
+    x_init.add("qdot", initial_guess=qdot_5, interpolation=InterpolationType.LINEAR, phase=5)
 
     return OptimalControlProgram(
         biorbd_model,
@@ -958,12 +1019,12 @@ def main():
     else:
         biorbd_model_path = "models/SoMe.bioMod"
 
-    n_shooting = (40, 100, 100, 100, 40)
+    n_shooting = (40, 40, 40, 40, 40, 40)
     num_twists = 1
     ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
     # ocp.add_plot_penalty(CostType.ALL)
 
-    solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
+    solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
     solver.set_linear_solver("ma57")
     solver.set_maximum_iterations(10000)
     solver.set_convergence_tolerance(1e-6)
