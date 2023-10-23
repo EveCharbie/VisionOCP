@@ -691,16 +691,16 @@ def prepare_ocp(
     q_bounds_3_max[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 4
     q_bounds_3_min[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi - np.pi / 4
     q_bounds_3_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi + np.pi / 2
-    q_bounds_3_min[Zrot, END] = 2 * np.pi * num_twists + np.pi
+    q_bounds_3_min[Zrot, END] = 2 * np.pi * num_twists + np.pi + np.pi / 4 - 0.2
     q_bounds_3_max[Zrot, END] = 2 * np.pi * num_twists + np.pi + np.pi / 2
 
     # Hips flexion
     q_bounds_3_min[XrotLegs, START] = -2.4 - 0.2
     q_bounds_3_max[XrotLegs, START] = -2.4 + 0.2
     q_bounds_3_min[XrotLegs, MIDDLE] = -2.4 - 0.2
-    q_bounds_3_max[XrotLegs, MIDDLE] = 0.2
-    q_bounds_3_min[XrotLegs, END] = -0.2
-    q_bounds_3_max[XrotLegs, END] = 0.2
+    q_bounds_3_max[XrotLegs, MIDDLE] = 0.35
+    q_bounds_3_min[XrotLegs, END] = -0.35
+    q_bounds_3_max[XrotLegs, END] = 0.35
 
     # Translations velocities
     qdot_bounds_3_min[vX : vY + 1, :] = -10
@@ -761,9 +761,9 @@ def prepare_ocp(
     q_bounds_4_min[Yrot, END] = -np.pi / 8
     q_bounds_4_max[Yrot, END] = np.pi / 8
     # Twist
-    q_bounds_4_min[Zrot, START] = 2 * np.pi * num_twists + np.pi
-    q_bounds_4_max[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 4
-    q_bounds_4_min[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi
+    q_bounds_4_min[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 4 - 0.2
+    q_bounds_4_max[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 2
+    q_bounds_4_min[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi + np.pi / 4 - 0.2
     q_bounds_4_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
     q_bounds_4_min[Zrot, END] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
     q_bounds_4_max[Zrot, END] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
@@ -783,8 +783,8 @@ def prepare_ocp(
     q_bounds_4_max[ZrotLeftLowerArm : XrotLeftLowerArm + 1, END] = 0.1
 
     # Hips flexion
-    q_bounds_4_min[XrotLegs, :] = -0.2
-    q_bounds_4_max[XrotLegs, :] = 0.2
+    q_bounds_4_min[XrotLegs, :] = -0.35
+    q_bounds_4_max[XrotLegs, :] = 0.35
 
     # Translations velocities
     qdot_bounds_4_min[vX : vY + 1, :] = -10
