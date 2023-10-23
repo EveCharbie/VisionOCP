@@ -658,6 +658,8 @@ segment Thighs
 		0.0 0.32703062745636713 0.0
 		0.0 0.0 0.1605173999990793
 endsegment
+
+segment Shanks
 	parent Thighs
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 -0.3775
 	com 0.0 0.0 -0.17877624969815803

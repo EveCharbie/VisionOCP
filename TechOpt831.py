@@ -218,7 +218,6 @@ def prepare_ocp(
          key="q",
          node=Node.ALL_SHOOTING,
          index=elbow_dofs,
-         target=np.zeros((len(elbow_dofs), n_shooting[0])),
          weight=50000,
          quadratic=True,
          phase=0,
@@ -228,7 +227,6 @@ def prepare_ocp(
          key="q",
          node=Node.ALL_SHOOTING,
          index=shoulder_dofs,
-         target=np.zeros((len(shoulder_dofs), n_shooting[2])),
          weight=50000,
          quadratic=True,
          phase=2,
@@ -238,7 +236,6 @@ def prepare_ocp(
         key="q",
         node=Node.ALL_SHOOTING,
         index=arm_dofs,
-        target=np.zeros((len(arm_dofs), n_shooting[3])),
         weight=50000,
         quadratic=True,
         phase=4,
@@ -248,7 +245,6 @@ def prepare_ocp(
         key="q",
         node=Node.ALL_SHOOTING,
         index=elbow_dofs,
-        target=np.zeros((len(elbow_dofs), n_shooting[4])),
         weight=50000,
         quadratic=True,
         phase=5,
@@ -256,7 +252,7 @@ def prepare_ocp(
 
     # Minimize wobbling
     objective_functions.add(
-        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[Yrot], target=[0], weight=100, quadratic=True, phase=2
+        ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[Yrot], weight=100, quadratic=True, phase=2
     )
 
     # Land safely (without tilt)
@@ -408,9 +404,9 @@ def prepare_ocp(
     q_bounds_0_min[Zrot, START] = 0
     q_bounds_0_max[Zrot, START] = 0
     q_bounds_0_min[Zrot, MIDDLE] = -0.5
-    q_bounds_0_max[Zrot, MIDDLE] = 2 * np.pi * num_twists
-    q_bounds_0_min[Zrot, END] = 2 * np.pi * num_twists - 0.5
-    q_bounds_0_max[Zrot, END] = 2 * np.pi * num_twists + 0.5
+    q_bounds_0_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi
+    q_bounds_0_min[Zrot, END] = 2 * np.pi * num_twists
+    q_bounds_0_max[Zrot, END] = 2 * np.pi * num_twists + np.pi
 
     # Right arm
     q_bounds_0_min[YrotRightUpperArm, START] = 2.9
@@ -447,8 +443,8 @@ def prepare_ocp(
         q_bounds_0_max[XrotHead, START] = 0.1
         q_bounds_0_min[ZrotEyes, START] = -0.1
         q_bounds_0_max[ZrotEyes, START] = 0.1
-        q_bounds_0_min[XrotEyes, START] = np.pi / 4 - 0.1
-        q_bounds_0_max[XrotEyes, START] = np.pi / 4 + 0.1
+        q_bounds_0_min[XrotEyes, START] = np.pi / 8 - 0.1
+        q_bounds_0_max[XrotEyes, START] = np.pi / 8 + 0.1
 
     vzinit = 9.81 / 2 * final_time
 
@@ -554,10 +550,10 @@ def prepare_ocp(
     q_bounds_1_min[Yrot, :] = -np.pi / 4
     q_bounds_1_max[Yrot, :] = np.pi / 4
     # Twist
-    q_bounds_1_min[Zrot, :] = 2 * np.pi * num_twists - 0.5
+    q_bounds_1_min[Zrot, :] = 2 * np.pi * num_twists
     q_bounds_1_max[Zrot, :] = 2 * np.pi * num_twists + np.pi + 0.5
-    q_bounds_1_min[Zrot, END] = 2 * np.pi * num_twists + np.pi - 0.5
-    q_bounds_1_max[Zrot, END] = 2 * np.pi * num_twists + np.pi + 0.5
+    q_bounds_1_min[Zrot, END] = 2 * np.pi * num_twists + np.pi - 0.1
+    q_bounds_1_max[Zrot, END] = 2 * np.pi * num_twists + np.pi + 0.1
 
     # Hips flexion
     q_bounds_1_min[XrotLegs, START] = -0.2
@@ -694,9 +690,9 @@ def prepare_ocp(
     q_bounds_3_min[Zrot, START] = 2 * np.pi * num_twists + np.pi - np.pi / 4
     q_bounds_3_max[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 4
     q_bounds_3_min[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi - np.pi / 4
-    q_bounds_3_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi + np.pi / 4
+    q_bounds_3_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi + np.pi / 2
     q_bounds_3_min[Zrot, END] = 2 * np.pi * num_twists + np.pi
-    q_bounds_3_max[Zrot, END] = 2 * np.pi * num_twists + np.pi + np.pi / 4
+    q_bounds_3_max[Zrot, END] = 2 * np.pi * num_twists + np.pi + np.pi / 2
 
     # Hips flexion
     q_bounds_3_min[XrotLegs, START] = -2.4 - 0.2
@@ -747,20 +743,16 @@ def prepare_ocp(
     # ------------------------------- Phase 4 : 1/2 twist ------------------------------- #
 
     # Pelvis translations
-    q_bounds_4_min[X, :] = -0.01
-    q_bounds_4_max[X, :] = 0.01
+    q_bounds_4_min[X, :] = -0.25
+    q_bounds_4_max[X, :] = 0.25
     q_bounds_4_min[Y, :] = -0.5
     q_bounds_4_max[Y, :] = 0.5
     q_bounds_4_min[Z, :] = 0
     q_bounds_4_max[Z, :] = zmax
-    q_bounds_4_min[Z, END] = 0
-    q_bounds_4_max[Z, END] = 0.01
 
     # Somersault
-    q_bounds_4_min[Xrot, START] = -3 * np.pi
-    q_bounds_4_max[Xrot, START] = -2 * np.pi
-    q_bounds_4_min[Xrot, MIDDLE] = -7/2 * np.pi
-    q_bounds_4_max[Xrot, MIDDLE] = -2 * np.pi
+    q_bounds_4_min[Xrot, :] = -7/2 * np.pi
+    q_bounds_4_max[Xrot, :] = -2 * np.pi
     q_bounds_4_min[Xrot, END] = -7/2 * np.pi + 0.2 - 0.2
     q_bounds_4_max[Xrot, END] = -7/2 * np.pi + 0.2 + 0.2
     # Tilt
@@ -1015,16 +1007,16 @@ def main():
     WITH_VISUAL_CRITERIA = True
 
     if WITH_VISUAL_CRITERIA:
-        biorbd_model_path = "models/SoMe_with_visual_criteria.bioMod"
+        biorbd_model_path = "models/SoMe_with_visual_criteria_without_mesh.bioMod"
     else:
-        biorbd_model_path = "models/SoMe.bioMod"
+        biorbd_model_path = "models/SoMe_without_mesh.bioMod"
 
     n_shooting = (40, 40, 40, 40, 40, 40)
     num_twists = 1
     ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
     # ocp.add_plot_penalty(CostType.ALL)
 
-    solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
+    solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
     solver.set_linear_solver("ma57")
     solver.set_maximum_iterations(10000)
     solver.set_convergence_tolerance(1e-6)
@@ -1033,6 +1025,7 @@ def main():
     sol = ocp.solve(solver)
     toc = time.time() - tic
     print(toc)
+    # sol.graphs(show_bounds=True)
 
     timestamp = time.strftime("%Y-%m-%d-%H%M")
     name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")

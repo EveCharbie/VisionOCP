@@ -350,8 +350,8 @@ def prepare_ocp(
         q_bounds_0_max[XrotHead, START] = 0.1
         q_bounds_0_min[ZrotEyes, START] = -0.1
         q_bounds_0_max[ZrotEyes, START] = 0.1
-        q_bounds_0_min[XrotEyes, START] = np.pi / 4 - 0.1
-        q_bounds_0_max[XrotEyes, START] = np.pi / 4 + 0.1
+        q_bounds_0_min[XrotEyes, START] = np.pi / 8 - 0.1
+        q_bounds_0_max[XrotEyes, START] = np.pi / 8 + 0.1
 
     vzinit = 9.81 / 2 * final_time
 
