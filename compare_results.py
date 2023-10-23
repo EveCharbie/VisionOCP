@@ -4,13 +4,13 @@ The goal of this program is to compare the athlete kinematics with the optimal k
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 import pickle
 # import bioviz
 import sys
 sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
 import bioptim
 import biorbd
-import mpl_toolkits.mplot3d.axes3d as p3
 from IPython import embed
 
 import bioviz
@@ -351,6 +351,7 @@ def get_gaze_position_from_intersection(vector_origin, vector_end, facing_front_
         ]
 
     gaze_positions = np.zeros((vector_origin.shape[0], 3))
+    wall_indices = np.zeros((vector_origin.shape[0]))
     for i_node in range(vector_origin.shape[0]):
         intersection = []
         wall_index = None
@@ -402,8 +403,9 @@ def get_gaze_position_from_intersection(vector_origin, vector_end, facing_front_
         else:
             gaze_position = None
         gaze_positions[i_node, :] = gaze_position
+        wall_indices[i_node] = wall_index
 
-    return gaze_positions
+    return gaze_positions, wall_indices
 
 
 
@@ -488,7 +490,6 @@ def plot_gaze_trajectory(
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
 
-    # embed()
     plot_gymnasium_symmetrized(bound_side, ax)
 
     N = len(gaze_position_temporal_evolution_projected[:, 0]) - 1
@@ -510,8 +511,99 @@ def plot_gaze_trajectory(
     ax.set_title("Gaze trajectory")
 
     plt.savefig(output_file_name + "_gaze_trajectory.png", dpi=300)
-    plt.show()
+    # plt.show()
     # plt.close("all")
+    return
+
+def plot_unwrapped_trajectories(
+        gaze_position,
+        gaze_position_with_visual_criteria,
+        wall_index,
+        wall_index_with_visual_criteria,
+        output_filename,
+):
+    def plot_gymnasium_unwrapped(axs):
+
+        bound_side = 3 + 121 * 0.0254 / 2
+
+        # Plot trampo bed
+        axs.add_patch(Rectangle((-7 * 0.3048, -3.5 * 0.3048), 14 * 0.3048, 7 * 0.3048, facecolor='k', alpha=0.2))
+        # Plot vertical lines of the symmetrized gymnasium
+        axs.plot(np.array([-7.2, -7.2]), np.array([-bound_side, bound_side]), '-k')
+        axs.plot(np.array([7.2, 7.2]), np.array([-bound_side, bound_side]), '-k')
+        axs.plot(np.array([-7.2 - (9.4620 - 1.2192), -7.2 - (9.4620 - 1.2192)]), np.array([-bound_side, bound_side]),
+                    '-k')
+        axs.plot(np.array([7.2 + 9.4620 - 1.2192, 7.2 + 9.4620 - 1.2192]), np.array([-bound_side, bound_side]), '-k')
+        axs.plot(np.array([-7.2 - (9.4620 - 1.2192) - 2 * 7.2, -7.2 - (9.4620 - 1.2192) - 2 * 7.2]),
+                    np.array([-bound_side, bound_side]), '-k')
+        axs.plot(np.array([-7.2, -7.2]), np.array([-bound_side - (9.4620 - 1.2192), bound_side]), '-k')
+        axs.plot(np.array([7.2, 7.2]), np.array([-bound_side - (9.4620 - 1.2192), bound_side]), '-k')
+        axs.plot(np.array([-7.2, -7.2]), np.array([bound_side, bound_side + 9.4620 - 1.2192]), '-k')
+        axs.plot(np.array([7.2, 7.2]), np.array([bound_side, bound_side + 9.4620 - 1.2192]), '-k')
+        # Plot horizontal lines of the symmetrized gymnasium
+        axs.plot(np.array([-7.2, 7.2]), np.array([-bound_side, -bound_side]), '-k')
+        axs.plot(np.array([-7.2, 7.2]), np.array([bound_side, bound_side]), '-k')
+        axs.plot(np.array([-7.2, 7.2]), np.array([-bound_side - (9.4620 - 1.2192), -bound_side - (9.4620 - 1.2192)]),
+                    '-k')
+        axs.plot(np.array([-7.2, 7.2]), np.array([bound_side + 9.4620 - 1.2192, bound_side + 9.4620 - 1.2192]), '-k')
+        axs.plot(np.array([7.2, 7.2 + 9.4620 - 1.2192]), np.array([-bound_side, -bound_side]), '-k')
+        axs.plot(np.array([7.2, 7.2 + 9.4620 - 1.2192]), np.array([bound_side, bound_side]), '-k')
+        axs.plot(np.array([-7.2 - (9.4620 - 1.2192), 7.2]), np.array([-bound_side, -bound_side]), '-k')
+        axs.plot(np.array([-7.2 - (9.4620 - 1.2192), 7.2]), np.array([bound_side, bound_side]), '-k')
+        axs.plot(np.array([-7.2 - (9.4620 - 1.2192) - 2 * 7.2, -7.2 - (9.4620 - 1.2192)]),
+                    np.array([-bound_side, -bound_side]), '-k')
+        axs.plot(np.array([-7.2 - (9.4620 - 1.2192) - 2 * 7.2, -7.2 - (9.4620 - 1.2192)]),
+                    np.array([bound_side, bound_side]), '-k')
+
+        axs.text(-7.2 - (9.4620 - 1.2192) - 2 * 7.2 + 7.2 / 2 + 1, bound_side + 0.2, "Ceiling", fontsize=10)
+        axs.text(-7.2 - (9.4620 - 1.2192) + 1, bound_side + 0.2, "Back wall", fontsize=10)
+        axs.text(7.2 + 1, bound_side + 0.2, "Front wall", fontsize=10)
+        axs.text(-7.2 + 7.2 / 2 + 1, bound_side + 9.4620 - 1.2192 + 0.2, "Left wall", fontsize=10)
+        axs.text(-7.2 + 7.2 / 2 + 0.5, -bound_side - (9.4620 - 1.2192) - 1.2, "Right wall", fontsize=10)
+
+        return
+
+    def unwrap_gaze_positions(gaze_position, wall_index):
+        bound_side = 3 + 121 * 0.0254 / 2
+
+        gaze_position_x_y = np.zeros((2, np.shape(wall_index)[0]))
+        gaze_position_x_y[:, :] = np.nan
+        for i in range(len(wall_index)):
+            if wall_index[i] == 0:  # trampoline
+                gaze_position_x_y[:, i] = gaze_position[i][:2]
+            if wall_index[i] == 1:  # wall front
+                gaze_position_x_y[:, i] = [gaze_position[i][2] + 7.2, gaze_position[i][1]]
+            elif wall_index[i] == 2:  # ceiling
+                gaze_position_x_y[:, i] = [-7.2 - (9.4620 - 1.2192) - 7.2 - gaze_position[i][0], gaze_position[i][1]]
+            elif wall_index[i] == 3:  # wall back
+                gaze_position_x_y[:, i] = [-7.2 - gaze_position[i][2], gaze_position[i][1]]
+            elif wall_index[i] == 4:  # bound right
+                gaze_position_x_y[:, i] = [gaze_position[i][0], -bound_side - gaze_position[i][2]]
+            elif wall_index[i] == 5:  # bound left
+                gaze_position_x_y[:, i] = [gaze_position[i][0], bound_side + gaze_position[i][2]]
+        return gaze_position_x_y
+
+    fig, axs = plt.subplots(1, 1, figsize=(9, 6))
+
+    unwrapped_gaze_position = unwrap_gaze_positions(gaze_position, wall_index)
+    unwrapped_gaze_position_with_visual_criteria = unwrap_gaze_positions(gaze_position_with_visual_criteria, wall_index_with_visual_criteria)
+
+    axs.scatter(unwrapped_gaze_position[0, :],
+                unwrapped_gaze_position[1, :],
+                c=np.linspace(0, 1, unwrapped_gaze_position.shape[1]),
+                cmap='winter', marker='.')
+    axs.scatter(unwrapped_gaze_position_with_visual_criteria[0, :],
+                unwrapped_gaze_position_with_visual_criteria[1, :],
+                c=np.linspace(0, 1, unwrapped_gaze_position_with_visual_criteria.shape[1]),
+                cmap='autumn', marker='.')
+
+    plot_gymnasium_unwrapped(axs)
+    axs.axis('equal')
+
+    plt.subplots_adjust(right=0.8)
+    plt.savefig(output_filename, dpi=300)
+    # plt.show()
+    # plt.close('all')
     return
 
 def find_eye_markers_index(model):
@@ -529,24 +621,33 @@ model_42_with_visual_criteria_eyes_start_idx, model_42_with_visual_criteria_eyes
 model_831_eyes_start_idx, model_831_eyes_end_idx = find_eye_markers_index(model_831)
 model_831_with_visual_criteria_eyes_start_idx, model_831_with_visual_criteria_eyes_end_idx = find_eye_markers_index(model_831_with_visual_criteria)
 
+# Coordinate system of the gymnasium (x-orientation for xsens is front wall, x-orientation for OCP is right wall)
+rotation_matrix = biorbd.Rotation.fromEulerAngles(np.array([np.pi/2]), 'z').to_array()
+
 vector_origin_42 = np.zeros((time_vector_42.shape[0], 3))
 vector_end_42 = np.zeros((time_vector_42.shape[0], 3))
 vector_origin_42_with_visual_criteria = np.zeros((time_vector_42_with_visual_criteria.shape[0], 3))
 vector_end_42_with_visual_criteria = np.zeros((time_vector_42_with_visual_criteria.shape[0], 3))
 for i_node in range(time_vector_42.shape[0]):
-    vector_origin_42[i_node, :] = model_42.markers(qs_42[:, i_node])[model_42_eyes_start_idx].to_array()
-    vector_end_42[i_node, :] = model_42.markers(qs_42[:, i_node])[model_42_eyes_end_idx].to_array()
-    vector_origin_42_with_visual_criteria[i_node, :] = model_42_with_visual_criteria.markers(qs_42_with_visual_criteria[:, i_node])[model_42_with_visual_criteria_eyes_start_idx].to_array()
-    vector_end_42_with_visual_criteria[i_node, :] = model_42_with_visual_criteria.markers(qs_42_with_visual_criteria[:, i_node])[model_42_with_visual_criteria_eyes_end_idx].to_array()
+    vector_origin_42[i_node, :] = rotation_matrix @ model_42.markers(qs_42[:, i_node])[model_42_eyes_start_idx].to_array()
+    vector_end_42[i_node, :] = rotation_matrix @ model_42.markers(qs_42[:, i_node])[model_42_eyes_end_idx].to_array()
+    vector_origin_42_with_visual_criteria[i_node, :] = rotation_matrix @ model_42_with_visual_criteria.markers(qs_42_with_visual_criteria[:, i_node])[model_42_with_visual_criteria_eyes_start_idx].to_array()
+    vector_end_42_with_visual_criteria[i_node, :] = rotation_matrix @ model_42_with_visual_criteria.markers(qs_42_with_visual_criteria[:, i_node])[model_42_with_visual_criteria_eyes_end_idx].to_array()
 
-gaze_position_42 = get_gaze_position_from_intersection(vector_origin_42, vector_end_42, True)
-gaze_position_42_with_visual_criteria = get_gaze_position_from_intersection(vector_origin_42_with_visual_criteria, vector_end_42_with_visual_criteria, True)
+gaze_position_42, wall_index_42 = get_gaze_position_from_intersection(vector_origin_42, vector_end_42, True)
+gaze_position_42_with_visual_criteria, wall_index_42_with_visual_criteria = get_gaze_position_from_intersection(vector_origin_42_with_visual_criteria, vector_end_42_with_visual_criteria, True)
 
 plot_gaze_trajectory(gaze_position_42,
                      gaze_position_42_with_visual_criteria,
                      "Graphs/compare_42")
 
+plot_unwrapped_trajectories(gaze_position_42,
+                            gaze_position_42_with_visual_criteria,
+                            wall_index_42,
+                            wall_index_42_with_visual_criteria,
+                            "Graphs/compare_42_unwrapped")
 
+plt.show()
 
 
 
