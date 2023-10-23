@@ -28,7 +28,7 @@ from bioptim import (
 )
 
 
-def prepare_optimal_estimation(biorbd_model_path, markers_xsens, x_init_kalman):
+def prepare_optimal_estimation(biorbd_model_path, markers_xsens, q_init_kalman, qdot_init_kalman):
 
     biorbd_model = BiorbdModel(biorbd_model_path)
     n_shooting = markers_xsens.shape[2] - 1
@@ -42,7 +42,8 @@ def prepare_optimal_estimation(biorbd_model_path, markers_xsens, x_init_kalman):
         weight=100,
         target=markers_xsens,
     )
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints")
+    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", weight=1e-6)
+    # objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", target=q_init_kalman, weight=1e-6)
 
     # Dynamics
     dynamics = DynamicsList()
@@ -50,30 +51,36 @@ def prepare_optimal_estimation(biorbd_model_path, markers_xsens, x_init_kalman):
 
     # Path constraint
     x_bounds = BoundsList()
-    x_bounds.add(bounds=biorbd_model.bounds_from_ranges(["q", "qdot"]))
+    q_bounds_min = np.array(biorbd_model.bounds_from_ranges("q").min)
+    q_bounds_max = np.array(biorbd_model.bounds_from_ranges("q").max)
+    qdot_bounds_min = np.array(biorbd_model.bounds_from_ranges("qdot").min)
+    qdot_bounds_max = np.array(biorbd_model.bounds_from_ranges("qdot").max)
+    x_bounds.add("q", min_bound=q_bounds_min, max_bound=q_bounds_max)
+    x_bounds.add("qdot", min_bound=qdot_bounds_min, max_bound=qdot_bounds_max)
 
     qddot_joints_min, qddot_joints_max, qddot_joints_init = -1000, 1000, 0
     nb_u = biorbd_model.nb_q - biorbd_model.nb_root
     u_bounds = BoundsList()
-    u_bounds.add([qddot_joints_min] * nb_u, [qddot_joints_max] * nb_u)
+    u_bounds.add("qddot_joints", min_bound=[qddot_joints_min] * nb_u, max_bound=[qddot_joints_max] * nb_u)
 
     # Initial guess
     x_init = InitialGuessList()
-    x_init.add(x_init_kalman, interpolation=InterpolationType.EACH_FRAME)
+    x_init.add("q", initial_guess=q_init_kalman, interpolation=InterpolationType.EACH_FRAME)
+    x_init.add("qdot", initial_guess=qdot_init_kalman, interpolation=InterpolationType.EACH_FRAME)
 
     u_init = InitialGuessList()
-    u_init.add([qddot_joints_init] * nb_u)
+    u_init.add("qddot_joints", initial_guess=[qddot_joints_init] * nb_u)
 
     return OptimalControlProgram(
         biorbd_model,
         dynamics,
         n_shooting,
         final_time,
-        x_init,
-        u_init,
-        x_bounds,
-        u_bounds,
-        objective_functions,
+        x_init=x_init,
+        u_init=u_init,
+        x_bounds=x_bounds,
+        u_bounds=u_bounds,
+        objective_functions=objective_functions,
     )
 
 def recons_kalman(num_frames, num_markers, markers_xsens, model):
@@ -139,10 +146,10 @@ def reorder_markers_xsens(num_markers, num_frames, JCS_xsens, eye_position, gaze
     return markers_xsens
 
 FLAG_SHOW_BIOVIZ = True
-RECONSTRUCTION_METHOD = "KALMAN"  # "OCP", "KALMAN" or "IK_TRF"
+RECONSTRUCTION_METHOD = "OCP"  # "OCP", "KALMAN" or "IK_TRF"
 FLAG_SLAP_HEAD_AND_EYE_ANGLES_ON_TOP = True
 
-move_path = "/home/charbie/disk/Eye-tracking/Results/SoMe/42/"
+move_path = "/home/charbie/disk/Eye-tracking/Results_831/SoMe/42/"
 save_path = "/home/charbie/Documents/Programmation/VisionOCP/Kalman_recons/"
 
 def main():
@@ -206,9 +213,8 @@ def main():
             if OPTIMIZE:
                 q_init, qdot_init = recons_kalman(num_frames, num_markers, markers_xsens, model)
                 q_init_smoothed = smooth_q_recons(q_init)
-                x_init_kalman = np.vstack((q_init_smoothed, qdot_init))
 
-                ocp = prepare_optimal_estimation(biorbd_model_path, markers_xsens, x_init_kalman)
+                ocp = prepare_optimal_estimation(biorbd_model_path, markers_xsens, q_init_smoothed, qdot_init)
                 solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
                 solver.set_linear_solver("ma57")
                 solver.set_maximum_iterations(10000)
@@ -246,8 +252,8 @@ def main():
         fig, axs = plt.subplots(4, 5, figsize=(20, 10))
         axs = axs.ravel()
         for i in range(q_recons_smoothed.shape[0]):
-            axs[i].plot(q_recons_smoothed[i, :], 'b')
-            axs[i].plot(q_recons[i, :], '--r')
+            axs[i].plot(q_recons_smoothed[:, i], 'b')
+            axs[i].plot(q_recons[:, i], '--r')
             axs[i].set_title(f"{model.nameDof()[i].to_string()}")
         plt.tight_layout()
         plt.suptitle(RECONSTRUCTION_METHOD + " reconstruction (r = Q_recons, b = Q_recons_smoothed)")
