@@ -690,9 +690,9 @@ def prepare_ocp(
     q_bounds_3_min[Zrot, START] = 2 * np.pi * num_twists + np.pi - np.pi / 4
     q_bounds_3_max[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 4
     q_bounds_3_min[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi - np.pi / 4
-    q_bounds_3_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi + np.pi / 2
-    q_bounds_3_min[Zrot, END] = 2 * np.pi * num_twists + np.pi + np.pi / 4 - 0.2
-    q_bounds_3_max[Zrot, END] = 2 * np.pi * num_twists + np.pi + np.pi / 2
+    q_bounds_3_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi + np.pi / 4
+    q_bounds_3_min[Zrot, END] = 2 * np.pi * num_twists + np.pi + np.pi / 8
+    q_bounds_3_max[Zrot, END] = 2 * np.pi * num_twists + np.pi + np.pi / 4
 
     # Hips flexion
     q_bounds_3_min[XrotLegs, START] = -2.4 - 0.2
@@ -761,9 +761,9 @@ def prepare_ocp(
     q_bounds_4_min[Yrot, END] = -np.pi / 8
     q_bounds_4_max[Yrot, END] = np.pi / 8
     # Twist
-    q_bounds_4_min[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 4 - 0.2
-    q_bounds_4_max[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 2
-    q_bounds_4_min[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi + np.pi / 4 - 0.2
+    q_bounds_4_min[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 8
+    q_bounds_4_max[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 4
+    q_bounds_4_min[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi + np.pi / 8
     q_bounds_4_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
     q_bounds_4_min[Zrot, END] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
     q_bounds_4_max[Zrot, END] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
@@ -1038,11 +1038,11 @@ def main():
         qdots = np.hstack((qdots, sol.states[i]["qdot"][:, :-1]))
         qddots = np.hstack((qddots, sol.controls[i]["qddot_joints"][:, :-1]))
         q_per_phase.append(sol.states[i]["q"])
-    qs = np.hstack((qs, sol.states[4]["q"]))
-    qdots = np.hstack((qdots, sol.states[4]["qdot"]))
-    qddots = np.hstack((qddots, sol.controls[4]["qddot_joints"]))
+    qs = np.hstack((qs, sol.states[len(sol.states)-1]["q"]))
+    qdots = np.hstack((qdots, sol.states[len(sol.states)-1]["qdot"]))
+    qddots = np.hstack((qddots, sol.controls[len(sol.states)-1]["qddot_joints"]))
     time_parameters = sol.parameters["time"]
-    q_per_phase.append(sol.states[4]["q"])
+    q_per_phase.append(sol.states[len(sol.states)-1]["q"])
 
 
     integrated_sol = sol.integrate(shooting_type=Shooting.SINGLE,
