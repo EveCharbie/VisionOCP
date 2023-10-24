@@ -870,7 +870,6 @@ def prepare_ocp(
     q_bounds_5_max[ZrotLeftLowerArm : XrotLeftLowerArm + 1, END] = 0.1
 
     # Hips flexion
-    q_bounds_5_min[XrotLegs, :] = -0.4
     q_bounds_5_min[XrotLegs, END] = -0.60
     q_bounds_5_max[XrotLegs, END] = -0.40
     # Hips sides
@@ -956,7 +955,7 @@ def prepare_ocp(
 
     q_2[Xrot] = np.array([-3 / 4 * np.pi, -3 * np.pi])
     q_2[Zrot] = np.array([2 * np.pi * num_twists + np.pi, 2 * np.pi * num_twists + np.pi])
-    q_2[XrotLegs, 0] = -2.4
+    q_2[XrotLegs] =  np.array([-2.4, -2.4])
 
     q_3[Xrot] = np.array([-3 * np.pi, -2 * np.pi - 5 / 4 * np.pi + 0.1])
     q_3[Zrot] = np.array([2 * np.pi * num_twists + np.pi, 2 * np.pi * num_twists + np.pi + np.pi/8])
@@ -964,6 +963,7 @@ def prepare_ocp(
 
     q_4[Xrot] = np.array([-2 * np.pi - 5 / 4 * np.pi + 0.1, -2 * np.pi - 5 / 4 * np.pi - 0.1])
     q_4[Zrot] = np.array([2 * np.pi * num_twists + np.pi + np.pi/8, 2 * np.pi * num_twists + 2 * np.pi])
+    q_3[XrotLegs] = np.array([0, 0])
 
     q_5[Xrot] = np.array([-2 * np.pi - 5 / 4 * np.pi - 0.1, -4 * np.pi + 0.5])
     q_5[Zrot] = np.array([2 * np.pi * num_twists + 2 * np.pi, 2 * np.pi * num_twists + 2 * np.pi])
@@ -1016,9 +1016,9 @@ def main():
     ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
     # ocp.add_plot_penalty(CostType.ALL)
 
-    solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
+    solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
     solver.set_linear_solver("ma57")
-    solver.set_maximum_iterations(10000)
+    solver.set_maximum_iterations(3000)
     solver.set_convergence_tolerance(1e-6)
 
     tic = time.time()
