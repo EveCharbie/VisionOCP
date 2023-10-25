@@ -250,6 +250,17 @@ def prepare_ocp(
         phase=5,
     )
 
+    # Quick kick-out
+    objective_functions.add(
+        ObjectiveFcn.Lagrange.MINIMIZE_STATE,
+        key="q",
+        node=Node.ALL_SHOOTING,
+        index=XrotLegs,
+        weight=50000,
+        quadratic=True,
+        phase=3,
+    )
+
     # Minimize wobbling
     objective_functions.add(
         ObjectiveFcn.Mayer.MINIMIZE_STATE, key="q", node=Node.ALL, index=[Yrot], weight=100, quadratic=True, phase=2
@@ -419,10 +430,13 @@ def prepare_ocp(
     q_bounds_0_min[ZrotLeftUpperArm, START] = 0
     q_bounds_0_max[ZrotLeftUpperArm, START] = 0
 
-    # Right elbow
+    # Elbows
+    q_bounds_0_min[XrotRightLowerArm, :] = -np.pi/4
+    q_bounds_0_max[XrotRightLowerArm, :] = np.pi/4
+    q_bounds_0_min[XrotLeftLowerArm, :] = -np.pi/4
+    q_bounds_0_max[XrotLeftLowerArm, :] = np.pi/4
     q_bounds_0_min[ZrotRightLowerArm : XrotRightLowerArm + 1, START] = 0
     q_bounds_0_max[ZrotRightLowerArm : XrotRightLowerArm + 1, START] = 0
-    # Left elbow
     q_bounds_0_min[ZrotLeftLowerArm : XrotLeftLowerArm + 1, START] = 0
     q_bounds_0_max[ZrotLeftLowerArm : XrotLeftLowerArm + 1, START] = 0
 
@@ -613,7 +627,7 @@ def prepare_ocp(
     q_bounds_2_max[Z, :] = zmax  # beaucoup plus que necessaire, juste pour que la parabole fonctionne
 
     # Somersault
-    q_bounds_2_min[Xrot, :] = -3 * np.pi
+    q_bounds_2_min[Xrot, :] = -3 * np.pi + np.pi/2
     q_bounds_2_max[Xrot, :] = - np.pi
     # Tilt
     q_bounds_2_min[Yrot, :] = -np.pi / 8
@@ -666,7 +680,7 @@ def prepare_ocp(
     qdot_bounds_2_min[vYrotLegs, :] = -100
     qdot_bounds_2_max[vYrotLegs, :] = 100
 
-    # ------------------------------- Phase 3 : kick out + 1/2 twist ------------------------------- #
+    # ------------------------------- Phase 3 : kick out ------------------------------- #
 
     # Pelvis translations
     q_bounds_3_min[X, :] = -0.25
@@ -677,27 +691,23 @@ def prepare_ocp(
     q_bounds_3_max[Z, :] = zmax
 
     # Somersault
-    q_bounds_3_min[Xrot, START] = -3 * np.pi
-    q_bounds_3_max[Xrot, START] = -2 * np.pi
-    q_bounds_3_min[Xrot, MIDDLE] = -7/2 * np.pi
-    q_bounds_3_max[Xrot, MIDDLE] = -2 * np.pi
-    q_bounds_3_min[Xrot, END] = -7/2 * np.pi + 0.2 - 0.2
-    q_bounds_3_max[Xrot, END] = -7/2 * np.pi + 0.2 + 0.2
+    q_bounds_3_min[Xrot, :] = -3 * np.pi + np.pi/2
+    q_bounds_3_max[Xrot, :] = -2 * np.pi
     # Tilt
     q_bounds_3_min[Yrot, :] = -np.pi / 4
     q_bounds_3_max[Yrot, :] = np.pi / 4
     # Twist
-    q_bounds_3_min[Zrot, START] = 2 * np.pi * num_twists + np.pi - np.pi / 4
-    q_bounds_3_max[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 4
-    q_bounds_3_min[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi - np.pi / 4
-    q_bounds_3_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi + np.pi / 4
-    q_bounds_3_min[Zrot, END] = 2 * np.pi * num_twists + np.pi + np.pi / 8
-    q_bounds_3_max[Zrot, END] = 2 * np.pi * num_twists + np.pi + np.pi / 4
+    q_bounds_3_min[Zrot, START] = 2 * np.pi * num_twists + np.pi - np.pi / 8
+    q_bounds_3_max[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 8
+    q_bounds_3_min[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi - np.pi / 8
+    q_bounds_3_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi + np.pi / 2
+    q_bounds_3_min[Zrot, END] = 2 * np.pi * num_twists + np.pi + np.pi / 4
+    q_bounds_3_max[Zrot, END] = 2 * np.pi * num_twists + np.pi + np.pi / 2
 
     # Hips flexion
-    q_bounds_3_min[XrotLegs, START] = -2.4 - 0.2
-    q_bounds_3_max[XrotLegs, START] = -2.4 + 0.2
-    q_bounds_3_min[XrotLegs, MIDDLE] = -2.4 - 0.2
+    q_bounds_3_min[XrotLegs, START] = -2.4 + 0.2 - 0.01
+    q_bounds_3_max[XrotLegs, START] = -2.4 + 0.2 + 0.01
+    q_bounds_3_min[XrotLegs, MIDDLE] = -2.4 + 0.2 - 0.01
     q_bounds_3_max[XrotLegs, MIDDLE] = 0.35
     q_bounds_3_min[XrotLegs, END] = -0.35
     q_bounds_3_max[XrotLegs, END] = 0.35
@@ -761,9 +771,9 @@ def prepare_ocp(
     q_bounds_4_min[Yrot, END] = -np.pi / 8
     q_bounds_4_max[Yrot, END] = np.pi / 8
     # Twist
-    q_bounds_4_min[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 8
-    q_bounds_4_max[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 4
-    q_bounds_4_min[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi + np.pi / 8
+    q_bounds_4_min[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 4
+    q_bounds_4_max[Zrot, START] = 2 * np.pi * num_twists + np.pi + np.pi / 2
+    q_bounds_4_min[Zrot, MIDDLE] = 2 * np.pi * num_twists + np.pi + np.pi / 4
     q_bounds_4_max[Zrot, MIDDLE] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
     q_bounds_4_min[Zrot, END] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
     q_bounds_4_max[Zrot, END] = 2 * np.pi * num_twists + 2 * np.pi + 0.01
@@ -941,6 +951,7 @@ def prepare_ocp(
     q_5 = np.zeros((nb_q, 2))
     qdot_5 = np.zeros((nb_qdot, 2))
 
+    # Twisting
     q_0[Xrot] = np.array([0, -np.pi / 2])
     q_0[Zrot] = np.array([0, 2 * np.pi * num_twists])
     q_0[ZrotLeftUpperArm] = -0.75
@@ -949,22 +960,27 @@ def prepare_ocp(
     q_0[YrotRightUpperArm, 0] = 2.9
     qdot_0[vXrot] = - 4 * np.pi
 
+    # Piking
     q_1[Xrot] = np.array([-np.pi / 2, -3 / 4 * np.pi])
     q_1[Zrot] = np.array([2 * np.pi * num_twists, 2 * np.pi * num_twists + np.pi])
     q_1[XrotLegs] = np.array([0, -2.4])
 
+    # Somersaulting
     q_2[Xrot] = np.array([-3 / 4 * np.pi, -3 * np.pi])
     q_2[Zrot] = np.array([2 * np.pi * num_twists + np.pi, 2 * np.pi * num_twists + np.pi])
     q_2[XrotLegs] =  np.array([-2.4, -2.4])
 
+    # Kick-out
     q_3[Xrot] = np.array([-3 * np.pi, -2 * np.pi - 5 / 4 * np.pi + 0.1])
-    q_3[Zrot] = np.array([2 * np.pi * num_twists + np.pi, 2 * np.pi * num_twists + np.pi + np.pi/8])
+    q_3[Zrot] = np.array([2 * np.pi * num_twists + np.pi, 2 * np.pi * num_twists + np.pi + np.pi/4])
     q_3[XrotLegs] = np.array([-2.4, 0])
 
+    # 1/2 twist
     q_4[Xrot] = np.array([-2 * np.pi - 5 / 4 * np.pi + 0.1, -2 * np.pi - 5 / 4 * np.pi - 0.1])
-    q_4[Zrot] = np.array([2 * np.pi * num_twists + np.pi + np.pi/8, 2 * np.pi * num_twists + 2 * np.pi])
-    q_3[XrotLegs] = np.array([0, 0])
+    q_4[Zrot] = np.array([2 * np.pi * num_twists + np.pi + np.pi/4, 2 * np.pi * num_twists + 2 * np.pi])
+    q_4[XrotLegs] = np.array([0, 0])
 
+    # Landing
     q_5[Xrot] = np.array([-2 * np.pi - 5 / 4 * np.pi - 0.1, -4 * np.pi + 0.5])
     q_5[Zrot] = np.array([2 * np.pi * num_twists + 2 * np.pi, 2 * np.pi * num_twists + 2 * np.pi])
     q_5[XrotLegs] = np.array([0, -0.5])
