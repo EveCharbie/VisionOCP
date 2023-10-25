@@ -691,7 +691,7 @@ def prepare_ocp(
     q_bounds_3_max[Z, :] = zmax
 
     # Somersault
-    q_bounds_3_min[Xrot, :] = -3 * np.pi + np.pi/2
+    q_bounds_3_min[Xrot, :] = -3 * np.pi
     q_bounds_3_max[Xrot, :] = -2 * np.pi
     # Tilt
     q_bounds_3_min[Yrot, :] = -np.pi / 4
@@ -836,12 +836,16 @@ def prepare_ocp(
     # ------------------------------- Phase 5 : landing ------------------------------- #
 
     # Pelvis translations
-    q_bounds_5_min[X, :] = -0.01
-    q_bounds_5_max[X, :] = 0.01
+    q_bounds_5_min[X, :] = -0.25
+    q_bounds_5_max[X, :] = 0.25
     q_bounds_5_min[Y, :] = -0.5
     q_bounds_5_max[Y, :] = 0.5
     q_bounds_5_min[Z, :] = 0
     q_bounds_5_max[Z, :] = zmax
+    q_bounds_5_min[X, END] = -0.01
+    q_bounds_5_max[X, END] = 0.01
+    q_bounds_5_min[Y, END] = -0.01
+    q_bounds_5_max[Y, END] = 0.01
     q_bounds_5_min[Z, END] = 0
     q_bounds_5_max[Z, END] = 0.01
 

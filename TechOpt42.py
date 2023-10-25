@@ -421,12 +421,16 @@ def prepare_ocp(
     # ------------------------------- Phase 1 : landing ------------------------------- #
 
     # Pelvis translations
-    q_bounds_1_min[X, :] = -0.01
-    q_bounds_1_max[X, :] = 0.01
+    q_bounds_1_min[X, :] = -0.25
+    q_bounds_1_max[X, :] = 0.25
     q_bounds_1_min[Y, :] = -0.5
     q_bounds_1_max[Y, :] = 0.5
     q_bounds_1_min[Z, :] = 0
     q_bounds_1_max[Z, :] = zmax
+    q_bounds_1_min[X, END] = -0.01
+    q_bounds_1_max[X, END] = 0.01
+    q_bounds_1_min[Y, END] = -0.01
+    q_bounds_1_max[Y, END] = 0.01
     q_bounds_1_min[Z, END] = 0
     q_bounds_1_max[Z, END] = 0.01
 
