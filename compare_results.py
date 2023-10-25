@@ -31,8 +31,8 @@ model_42 = biorbd.Model(biorbd_model_path_42)
 biorbd_model_path_42_both = "models/SoMe_42_with_and_without_visual_criteria.bioMod"
 n_shooting_42 = (100, 40)
 
-file_name_831 = "SoMe-1-(40_100_100_100_40)-2023-04-17-2319.pkl"  # Good 831< without visual criteria
-file_name_831_with_visual_criteria = "SoMe_with_visual_criteria_831-(40_100_100_100_40)-2023-10-20-1311.pkl"
+file_name_831 = "SoMe-1-(40_100_100_100_40)-2023-04-17-2319.pkl"  # Good 831<
+file_name_831_with_visual_criteria = "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2023-10-25-1426.pkl"  # Good 831< with visual criteria
 file_name_42 = "SoMe_42_without_mesh-(100_40)-2023-10-20-1652.pkl"  # Good 42/
 file_name_42_with_visual_criteria = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-10-20-1631.pkl"   # Good 42/ with visual criteria
 

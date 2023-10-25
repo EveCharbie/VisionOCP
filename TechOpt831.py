@@ -1024,7 +1024,7 @@ def main():
     Prepares and solves an ocp for a 831< with and without visual criteria.
     """
 
-    WITH_VISUAL_CRITERIA = True
+    WITH_VISUAL_CRITERIA = False  # True
 
     if WITH_VISUAL_CRITERIA:
         biorbd_model_path = "models/SoMe_with_visual_criteria_without_mesh.bioMod"

@@ -50,7 +50,7 @@ def prepare_optimal_estimation(biorbd_model_path, markers_xsens, q_init_kalman, 
 
     # Dynamics
     dynamics = DynamicsList()
-    dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN)
+    dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN, phase_dynamics=PhaseDynamics.ONE_PER_NODE)
 
     # Path constraint
     x_bounds = BoundsList()

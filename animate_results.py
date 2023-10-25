@@ -32,8 +32,8 @@ elif ACROBATICS == "42":
     num_twists = 1
     name = "SoMe"
 
-# file_name = "SoMe_831-(40_100_100_100_40)-2023-10-19-1601.pkl"  # Good 831<
-file_name = "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2023-10-25-1136.pkl"  # Good 831< with visual criteria
+file_name = "SoMe_831-(40_100_100_100_40)-2023-10-19-1601.pkl"  # Good 831<
+# file_name = "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2023-10-25-1426.pkl"  # Good 831< with visual criteria
 # file_name = "SoMe_42_without_mesh-(100_40)-2023-10-20-1652.pkl"  # Good 42/
 # file_name = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-10-20-1631.pkl"  # Good 42/ with visual criteria
 
