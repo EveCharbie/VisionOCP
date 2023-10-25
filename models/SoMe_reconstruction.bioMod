@@ -9,13 +9,6 @@ segment Pelvis
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 0.0
 	translations xyz
 	rotations xyz
-	rangesQ
-		-0.5 0.5
-		-0.5 0.5
-		0 5
-		-10*3.14 10*3.14
-		-10*3.14 10*3.14
-		-10*3.14 10*3.14
 	com 0.0 0.0 0.0
 	mass 7.675025110374424
 	inertia
@@ -28,10 +21,6 @@ segment Thorax
 	parent Pelvis
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 0.10691934707592193
 	rotations xy
-	rangesQ
-		-3.14/2 3.14/2
-		-3.14/2 3.14/2
-		// -3.14/2 3.14/2
 	com 0.0 0.0 0.16964581895320646
 	mass 16.761753111614897
 	inertia
@@ -49,16 +38,6 @@ segment Head
 	parent Thorax
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 0.322
 	rotations zx
-	rangesQ
-		-60*3.14/180 60*3.14/180
-		-70*3.14/180 3.14/8
-	/*
-	rotations xyz
-	rangesQ
-		-3.14/2 3.14/2
-		-3.14/2 3.14/2
-		-3.14/2 3.14/2
-	*/
 	com 0.0 0.0 0.1169371541218166
 	mass 3.9436452215486697
 	inertia
@@ -76,9 +55,6 @@ segment Eyes
 	parent Head
 	rt 0.0 0.0 0.0 xyz 0.0 -0.055 0.085
 	rotations zx
-	rangesQ
-		-3.14/8 3.14/8
-		-30*3.14/180 3.14/8
 	com 0.01 0.0 0.0
 	mass 0.0000001 
 	inertia
@@ -101,9 +77,6 @@ segment RightUpperArm
 	parent Thorax
 	rt 0 0.17 0.1 xyz -0.18 0.0 0.25999999999999995
 	rotations zy
-	rangesQ
-		-0.65 2
-		-0.05 3
 	com 0.0 0.0 -0.11579539469552311
 	mass 1.569290839009084
 	inertia
@@ -121,9 +94,6 @@ segment RightForearm
 	parent RightUpperArm
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 -0.24350000000000002
 	rotations zx
-	rangesQ
-		-1.8 1.1
-		-2.65 0
 	com 0.0 0.0 -0.09478305833450895
 	mass 0.8754802725163806
 	inertia
@@ -157,9 +127,6 @@ segment LeftUpperArm
 	parent Thorax
 	rt 0 -0.17 -0.1 xyz 0.18 0.0 0.25999999999999995
 	rotations zy
-	rangesQ
-		-2 0.65
-		-3 0.05
 	com 0.0 0.0 -0.11579539469552311
 	mass 1.569290839009084
 	inertia
@@ -177,9 +144,6 @@ segment LeftForearm
 	parent LeftUpperArm
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 -0.24350000000000002
 	rotations zx
-	rangesQ
-		-1.1 1.8
-		-2.65 0
 	com 0.0 0.0 -0.09478305833450895
 	mass 0.8754802725163806
 	inertia
@@ -213,15 +177,6 @@ segment Thighs
 	parent Pelvis
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 -0.08608065292407807
 	rotations x
-	rangesQ
-		-3.14/2 3.14/2
-	/*
-	rotations xy
-	rangesQ
-		-2.7 0.3
-		-0.35 0.35
-		// -3.14/2 3.14/2
-	*/
 	com 0.0 0.0 -0.17089938491274764
 	mass 16.759868032417362
 	inertia
@@ -249,15 +204,6 @@ segment Shanks
 	parent Thighs
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 -0.3775
 	rotations x
-	rangesQ
-		-3.14/2 3.14/2
-	/*
-	rotations xyz
-	rangesQ
-		-3.14/2 3.14/2
-		-3.14/2 3.14/2
-		-3.14/2 3.14/2
-	*/
 	com 0.0 0.0 -0.17877624969815803
 	mass 6.025039072122063
 	inertia

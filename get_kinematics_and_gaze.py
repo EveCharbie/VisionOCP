@@ -25,6 +25,7 @@ from bioptim import (
     Node,
     Solver,
     InterpolationType,
+    PhaseDynamics,
 )
 
 
@@ -37,17 +38,19 @@ def prepare_optimal_estimation(biorbd_model_path, markers_xsens, q_init_kalman, 
     # Add objective functions
     objective_functions = ObjectiveList()
     objective_functions.add(
-        ObjectiveFcn.Lagrange.TRACK_MARKERS,
+        ObjectiveFcn.Mayer.TRACK_MARKERS,
         node=Node.ALL,
         weight=100,
         target=markers_xsens,
     )
+    objective_functions.add(ObjectiveFcn.Mayer.TRACK_MARKERS, node=Node.ALL, weight=500, target=markers_xsens, marker_index="eyes_vect_end")
     objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", weight=1e-6)
+    objective_functions.add(ObjectiveFcn.Mayer.MINIMIZE_TIME, weight=1, target=final_time, quadratic=True)
     # objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", target=q_init_kalman, weight=1e-6)
 
     # Dynamics
     dynamics = DynamicsList()
-    dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN)
+    dynamics.add(DynamicsFcn.JOINTS_ACCELERATION_DRIVEN, phase_dynamics=PhaseDynamics.ONE_PER_NODE)
 
     # Path constraint
     x_bounds = BoundsList()
