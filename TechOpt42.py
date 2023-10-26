@@ -6,6 +6,7 @@ Phase 1 : preparation for landing
 """
 
 import numpy as np
+import bioviz
 import pickle
 import biorbd_casadi as biorbd
 import casadi as cas
@@ -85,13 +86,42 @@ def custom_trampoline_bed_in_peripheral_vision(controller: PenaltyController) ->
     return out
 
 
+def create_video(biorbd_model_path, interpolated_states, save_name):
+    b = bioviz.Viz(biorbd_model_path,
+                   mesh_opacity=0.8,
+                   show_global_center_of_mass=False,
+                   show_gravity_vector=False,
+                   show_segments_center_of_mass=False,
+                   show_global_ref_frame=False,
+                   show_local_ref_frame=False,
+                   experimental_markers_color=(1, 1, 1),
+                   background_color=(1.0, 1.0, 1.0),
+                   )
+    b.set_camera_zoom(0.25)
+    b.set_camera_focus_point(0, 0, 2)
+
+    q_for_video = interpolated_states[0]["q"][:, :-1]
+    for i_phase in range(1, len(interpolated_states["q"][0]) - 1):
+        q_for_video = np.hstack((q_for_video, interpolated_states[i_phase]["q"][:, :-1]))
+    q_for_video = np.hstack((q_for_video, interpolated_states[len(interpolated_states["q"][0]) - 1]["q"]))
+
+    b.start_recording(f"Video/" + save_name + ".ogv")
+    b.load_movement(q_for_video)
+    for frame in range(q_for_video.shape[1] + 1):
+        b.movement_slider[0].setValue(frame)
+        b.add_frame()
+    b.stop_recording()
+    b.quit()
+    return
+
 def prepare_ocp(
         biorbd_model_path: str,
         n_shooting: tuple,
         num_twists: int,
         n_threads: int,
         ode_solver: OdeSolver = OdeSolver.RK4(),
-        WITH_VISUAL_CRITERIA: bool = False
+        WITH_VISUAL_CRITERIA: bool = False,
+        visual_weight: float = 1.0,
 ) -> OptimalControlProgram:
     """
     Prepare the ocp
@@ -101,8 +131,16 @@ def prepare_ocp(
         The path to the bioMod file
     n_shooting: int
         The number of shooting points
+    num_twists: int
+        The number of twists to perform
+    n_threads: int
+        The number of threads to use in parallel
     ode_solver: OdeSolver
         The ode solver to use
+    WITH_VISUAL_CRITERIA: bool
+        Whether to use the visual criteria or not
+    visual_weight: float
+        The global weighting of the visual criteria
     Returns
     -------
     The OptimalControlProgram ready to be solved
@@ -222,13 +260,13 @@ def prepare_ocp(
     if WITH_VISUAL_CRITERIA:
 
         # Spotting
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=10, quadratic=True, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_VELOCITY, segment="Head", weight=10*visual_weight, quadratic=True, phase=1)
 
         # Self-motion detection
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=1, quadratic=True, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key='qdot', index=[ZrotEyes, XrotEyes], weight=1*visual_weight, quadratic=True, phase=0)
 
         # Keeping the trampoline bed in the peripheral vision
-        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100, quadratic=True, phase=0)
+        objective_functions.add(custom_trampoline_bed_in_peripheral_vision, custom_type=ObjectiveFcn.Lagrange, weight=100*visual_weight, quadratic=True, phase=0)
 
         # Quiet eye
         objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
@@ -236,19 +274,19 @@ def prepare_ocp(
                                 vector_0_marker_1="eyes_vect_end",
                                 vector_1_marker_0="eyes_vect_start",
                                 vector_1_marker_1="fixation_front",
-                                weight=1, quadratic=True, phase=0)
+                                weight=1*visual_weight, quadratic=True, phase=0)
         objective_functions.add(ObjectiveFcn.Lagrange.TRACK_VECTOR_ORIENTATIONS_FROM_MARKERS,
                                 vector_0_marker_0="eyes_vect_start",
                                 vector_0_marker_1="eyes_vect_end",
                                 vector_1_marker_0="eyes_vect_start",
                                 vector_1_marker_1="fixation_front",
-                                weight=1000, quadratic=True, phase=1)
+                                weight=1000*visual_weight, quadratic=True, phase=1)
 
         # Avoid extreme eye and neck angles
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=0)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100, quadratic=True, phase=1)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10, quadratic=True, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100*visual_weight, quadratic=True, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10*visual_weight, quadratic=True, phase=0)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotHead, XrotHead], weight=100*visual_weight, quadratic=True, phase=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[ZrotEyes, XrotEyes], weight=10*visual_weight, quadratic=True, phase=1)
 
     multinode_constraints = MultinodeConstraintList()
     multinode_constraints.add(
@@ -461,6 +499,17 @@ def prepare_ocp(
     q_bounds_1_min[ZrotLeftUpperArm, END] = -0.1
     q_bounds_1_max[ZrotLeftUpperArm, END] = 0.1
 
+    # Head and eyes
+    if WITH_VISUAL_CRITERIA:
+        q_bounds_1_min[ZrotHead, END] = -0.2
+        q_bounds_1_max[ZrotHead, END] = 0.2
+        q_bounds_1_min[XrotHead, END] = -0.2
+        q_bounds_1_max[XrotHead, END] = 0.2
+        q_bounds_1_min[ZrotEyes, END] = -0.2
+        q_bounds_1_max[ZrotEyes, END] = 0.2
+        q_bounds_1_min[XrotEyes, END] = np.pi / 8 - 0.2
+        q_bounds_1_max[XrotEyes, END] = np.pi / 8 + 0.2
+
     # Translations velocities
     qdot_bounds_1_min[vX : vY + 1, :] = -10
     qdot_bounds_1_max[vX : vY + 1, :] = 10
@@ -530,12 +579,10 @@ def prepare_ocp(
     )
 
 
-def main():
+def main(WITH_VISUAL_CRITERIA, visual_weight):
     """
     Prepares and solves an ocp for a 42/ with and without visual criteria.
     """
-
-    WITH_VISUAL_CRITERIA = True
 
     if WITH_VISUAL_CRITERIA:
         biorbd_model_path = "models/SoMe_42_with_visual_criteria_without_mesh.bioMod"
@@ -544,7 +591,7 @@ def main():
 
     n_shooting = (100, 40)
     num_twists = 1
-    ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
+    ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA, visual_weight=visual_weight)
     # ocp.add_plot_penalty(CostType.ALL)
 
     # solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
@@ -560,6 +607,12 @@ def main():
 
     timestamp = time.strftime("%Y-%m-%d-%H%M")
     name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
+    if sol.status == 0:
+        save_name = f"{name}-{str(n_shooting).replace(', ', '_')}-{timestamp}-{visual_weight}_CVG"
+    else:
+        save_name = f"{name}-{str(n_shooting).replace(', ', '_')}-{timestamp}-{visual_weight}_DVG"
+
+
     qs = sol.states[0]["q"][:, :-1]
     qdots = sol.states[0]["qdot"][:, :-1]
     qddots = sol.controls[0]["qddot_joints"][:, :-1]
@@ -585,10 +638,12 @@ def main():
     qdot_reintegrated = integrated_sol.states["qdot"]
 
     del sol.ocp
-    with open(f"Solutions/{name}-{str(n_shooting).replace(', ', '_')}-{timestamp}.pkl", "wb") as f:
+    with open("Solutions/" + save_name + "pkl", "wb") as f:
         pickle.dump((sol, q_per_phase, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector, interpolated_states), f)
 
-    # sol.animate(n_frames=-1, show_floor=False)
+    create_video(biorbd_model_path, interpolated_states, save_name)
 
 if __name__ == "__main__":
-    main()
+    WITH_VISUAL_CRITERIA = False
+    visual_weight = 1.0
+    main(WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA, visual_weight=visual_weight)

@@ -43,7 +43,7 @@ def prepare_optimal_estimation(biorbd_model_path, markers_xsens, q_init_kalman, 
         weight=100,
         target=markers_xsens,
     )
-    objective_functions.add(ObjectiveFcn.Mayer.TRACK_MARKERS, node=Node.ALL, weight=500, target=markers_xsens, marker_index="eyes_vect_end")
+    # objective_functions.add(ObjectiveFcn.Mayer.TRACK_MARKERS, node=Node.ALL, weight=500, target=markers_xsens, marker_index="eyes_vect_end")
     objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot_joints", weight=1e-6)
     objective_functions.add(ObjectiveFcn.Mayer.MINIMIZE_TIME, weight=1, target=final_time, quadratic=True)
     objective_functions.add(ObjectiveFcn.Mayer.MINIMIZE_STATE, node=Node.ALL, key="q", target=q_init_kalman, weight=1)

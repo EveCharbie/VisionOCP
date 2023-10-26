@@ -6,7 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import pickle
-# import bioviz
 import sys
 sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
 import bioptim
@@ -33,8 +32,8 @@ n_shooting_42 = (100, 40)
 
 file_name_831 = "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-10-26-1040.pkl"  # Good 831<
 file_name_831_with_visual_criteria = "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2023-10-25-1426.pkl"  # Good 831< with visual criteria
-file_name_42 = "SoMe_42_without_mesh-(100_40)-2023-10-20-1652.pkl"  # Good 42/
-file_name_42_with_visual_criteria = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-10-20-1631.pkl"   # Good 42/ with visual criteria
+file_name_42 = "SoMe_42_without_mesh-(100_40)-2023-10-26-1518.pkl"  # Good 42/
+file_name_42_with_visual_criteria = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-10-26-1533.pkl"   # Good 42/ with visual criteria
 
 
 # ---------------------------------------- Load data ---------------------------------------- #
@@ -76,7 +75,7 @@ with open("Solutions/" + file_name_831, "rb") as f:
     # q_reintegrated = data[6]
     # qdot_reintegrated = data[7]
     time_vector_831 = data[8]
-    interpolated_states_831 = data[9]
+    # interpolated_states_831 = data[9]
 
 with open("Solutions/" + file_name_831_with_visual_criteria, "rb") as f:
     data = pickle.load(f)
@@ -89,60 +88,60 @@ with open("Solutions/" + file_name_831_with_visual_criteria, "rb") as f:
     # q_reintegrated = data[6]
     # qdot_reintegrated = data[7]
     time_vector_831_with_visual_criteria = data[8]
-    interpolated_states_831_with_visual_criteria = data[9]
+    # interpolated_states_831_with_visual_criteria = data[9]
 
 
 # ---------------------------------------- Animate comparison ---------------------------------------- #
 
-q_per_phase_42_combined = [np.vstack((q_per_phase_42_with_visual_criteria[i], q_per_phase_42[i])) for i in range(len(q_per_phase_42))]
-qs_42_combined = np.vstack((qs_42_with_visual_criteria, qs_42))
-b = bioviz.Kinogram(model_path=biorbd_model_path_42_both,
-                   mesh_opacity=0.8,
-                   show_global_center_of_mass=False,
-                   show_gravity_vector=False,
-                   show_segments_center_of_mass=False,
-                   show_global_ref_frame=False,
-                   show_local_ref_frame=False,
-                   experimental_markers_color=(1, 1, 1),
-                   background_color=(1.0, 1.0, 1.0),
-                    )
-b.load_movement(q_per_phase_42_combined)
-b.set_camera_zoom(0.25)
-b.exec(frame_step=20,
-       save_path="Kinograms/42_both.svg")
+# q_per_phase_42_combined = [np.vstack((q_per_phase_42_with_visual_criteria[i], q_per_phase_42[i])) for i in range(len(q_per_phase_42))]
+# qs_42_combined = np.vstack((qs_42_with_visual_criteria, qs_42))
+# b = bioviz.Kinogram(model_path=biorbd_model_path_42_both,
+#                    mesh_opacity=0.8,
+#                    show_global_center_of_mass=False,
+#                    show_gravity_vector=False,
+#                    show_segments_center_of_mass=False,
+#                    show_global_ref_frame=False,
+#                    show_local_ref_frame=False,
+#                    experimental_markers_color=(1, 1, 1),
+#                    background_color=(1.0, 1.0, 1.0),
+#                     )
+# b.load_movement(q_per_phase_42_combined)
+# b.set_camera_zoom(0.25)
+# b.exec(frame_step=20,
+#        save_path="Kinograms/42_both.svg")
 
-qs_42_combined_real_time = [np.vstack((interpolated_states_42_with_visual_criteria[i]["q"], interpolated_states_42[i]["q"])) for i in range(len(q_per_phase_42))]
-b = bioviz.Viz(biorbd_model_path_42_both,
-               mesh_opacity=0.8,
-               show_global_center_of_mass=False,
-               show_gravity_vector=False,
-               show_segments_center_of_mass=False,
-               show_global_ref_frame=False,
-               show_local_ref_frame=False,
-               experimental_markers_color=(1, 1, 1),
-               background_color=(1.0, 1.0, 1.0),
-               )
-b.load_movement(qs_42_combined_real_time)
-b.set_camera_zoom(0.25)
-b.exec()
+# qs_42_combined_real_time = [np.vstack((interpolated_states_42_with_visual_criteria[i]["q"], interpolated_states_42[i]["q"])) for i in range(len(q_per_phase_42))]
+# b = bioviz.Viz(biorbd_model_path_42_both,
+#                mesh_opacity=0.8,
+#                show_global_center_of_mass=False,
+#                show_gravity_vector=False,
+#                show_segments_center_of_mass=False,
+#                show_global_ref_frame=False,
+#                show_local_ref_frame=False,
+#                experimental_markers_color=(1, 1, 1),
+#                background_color=(1.0, 1.0, 1.0),
+#                )
+# b.load_movement(qs_42_combined_real_time)
+# b.set_camera_zoom(0.25)
+# b.exec()
 
 # # Animate comparison
-q_per_phase_831_combined = [np.vstack((q_per_phase_831_with_visual_criteria[i], q_per_phase_831[i])) for i in range(len(q_per_phase_831))]
-qs_831_combined = np.vstack((qs_831_with_visual_criteria, qs_831))
-b = bioviz.Kinogram(model_path=biorbd_model_path_831_both,
-                   mesh_opacity=0.8,
-                   show_global_center_of_mass=False,
-                   show_gravity_vector=False,
-                   show_segments_center_of_mass=False,
-                   show_global_ref_frame=False,
-                   show_local_ref_frame=False,
-                   experimental_markers_color=(1, 1, 1),
-                   background_color=(1.0, 1.0, 1.0),
-                    )
-b.load_movement(q_per_phase_831_combined)
-b.set_camera_zoom(0.25)
-b.exec(frame_step=20,
-       save_path="Kinograms/831_both.svg")
+# q_per_phase_831_combined = [np.vstack((q_per_phase_831_with_visual_criteria[i], q_per_phase_831[i])) for i in range(len(q_per_phase_831))]
+# qs_831_combined = np.vstack((qs_831_with_visual_criteria, qs_831))
+# b = bioviz.Kinogram(model_path=biorbd_model_path_831_both,
+#                    mesh_opacity=0.8,
+#                    show_global_center_of_mass=False,
+#                    show_gravity_vector=False,
+#                    show_segments_center_of_mass=False,
+#                    show_global_ref_frame=False,
+#                    show_local_ref_frame=False,
+#                    experimental_markers_color=(1, 1, 1),
+#                    background_color=(1.0, 1.0, 1.0),
+#                     )
+# b.load_movement(q_per_phase_831_combined)
+# b.set_camera_zoom(0.25)
+# b.exec(frame_step=20,
+#        save_path="Kinograms/831_both.svg")
 
 # qs_831_combined_real_time = [np.vstack((interpolated_states_831_with_visual_criteria[i]["q"], interpolated_states_831[i]["q"])) for i in range(len(q_per_phase_831))]
 # b = bioviz.Viz(biorbd_model_path_831_both,
