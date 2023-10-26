@@ -50,6 +50,7 @@ with open("Solutions/" + file_name_42, "rb") as f:
     # q_reintegrated = data[6]
     # qdot_reintegrated = data[7]
     time_vector_42 = data[8]
+    interpolated_states_42 = data[9]
 
 with open("Solutions/" + file_name_42_with_visual_criteria, "rb") as f:
     data = pickle.load(f)
@@ -62,6 +63,7 @@ with open("Solutions/" + file_name_42_with_visual_criteria, "rb") as f:
     # q_reintegrated = data[6]
     # qdot_reintegrated = data[7]
     time_vector_42_with_visual_criteria = data[8]
+    interpolated_states_42_with_visual_criteria = data[9]
 
 with open("Solutions/" + file_name_831, "rb") as f:
     data = pickle.load(f)
@@ -74,6 +76,7 @@ with open("Solutions/" + file_name_831, "rb") as f:
     # q_reintegrated = data[6]
     # qdot_reintegrated = data[7]
     time_vector_831 = data[8]
+    interpolated_states_831 = data[9]
 
 with open("Solutions/" + file_name_831_with_visual_criteria, "rb") as f:
     data = pickle.load(f)
@@ -86,13 +89,13 @@ with open("Solutions/" + file_name_831_with_visual_criteria, "rb") as f:
     # q_reintegrated = data[6]
     # qdot_reintegrated = data[7]
     time_vector_831_with_visual_criteria = data[8]
+    interpolated_states_831_with_visual_criteria = data[9]
 
 
 # ---------------------------------------- Animate comparison ---------------------------------------- #
 
 q_per_phase_42_combined = [np.vstack((q_per_phase_42_with_visual_criteria[i], q_per_phase_42[i])) for i in range(len(q_per_phase_42))]
 qs_42_combined = np.vstack((qs_42_with_visual_criteria, qs_42))
-
 b = bioviz.Kinogram(model_path=biorbd_model_path_42_both,
                    mesh_opacity=0.8,
                    show_global_center_of_mass=False,
@@ -108,6 +111,7 @@ b.set_camera_zoom(0.25)
 b.exec(frame_step=20,
        save_path="Kinograms/42_both.svg")
 
+qs_42_combined_real_time = [np.vstack((interpolated_states_42_with_visual_criteria[i]["q"], interpolated_states_42[i]["q"])) for i in range(len(q_per_phase_42))]
 b = bioviz.Viz(biorbd_model_path_42_both,
                mesh_opacity=0.8,
                show_global_center_of_mass=False,
@@ -118,14 +122,13 @@ b = bioviz.Viz(biorbd_model_path_42_both,
                experimental_markers_color=(1, 1, 1),
                background_color=(1.0, 1.0, 1.0),
                )
-b.load_movement(qs_42_combined)
+b.load_movement(qs_42_combined_real_time)
 b.set_camera_zoom(0.25)
 b.exec()
 
 # # Animate comparison
 q_per_phase_831_combined = [np.vstack((q_per_phase_831_with_visual_criteria[i], q_per_phase_831[i])) for i in range(len(q_per_phase_831))]
 qs_831_combined = np.vstack((qs_831_with_visual_criteria, qs_831))
-
 b = bioviz.Kinogram(model_path=biorbd_model_path_831_both,
                    mesh_opacity=0.8,
                    show_global_center_of_mass=False,
@@ -141,19 +144,20 @@ b.set_camera_zoom(0.25)
 b.exec(frame_step=20,
        save_path="Kinograms/831_both.svg")
 
-b = bioviz.Viz(biorbd_model_path_831_both,
-               mesh_opacity=0.8,
-               show_global_center_of_mass=False,
-               show_gravity_vector=False,
-               show_segments_center_of_mass=False,
-               show_global_ref_frame=False,
-               show_local_ref_frame=False,
-               experimental_markers_color=(1, 1, 1),
-               background_color=(1.0, 1.0, 1.0),
-               )
-b.load_movement(qs_831_combined)
-b.set_camera_zoom(0.25)
-b.exec()
+# qs_831_combined_real_time = [np.vstack((interpolated_states_831_with_visual_criteria[i]["q"], interpolated_states_831[i]["q"])) for i in range(len(q_per_phase_831))]
+# b = bioviz.Viz(biorbd_model_path_831_both,
+#                mesh_opacity=0.8,
+#                show_global_center_of_mass=False,
+#                show_gravity_vector=False,
+#                show_segments_center_of_mass=False,
+#                show_global_ref_frame=False,
+#                show_local_ref_frame=False,
+#                experimental_markers_color=(1, 1, 1),
+#                background_color=(1.0, 1.0, 1.0),
+#                )
+# b.load_movement(qs_831_combined_real_time)
+# b.set_camera_zoom(0.25)
+# b.exec()
 
 
 # ---------------------------------------- Plot comparison ---------------------------------------- #
@@ -190,7 +194,6 @@ axs[0, 1].legend(bbox_to_anchor=[0.8, -1.5], ncols=2, frameon=False)
 plt.subplots_adjust(hspace=0.35)
 plt.savefig("Graphs/compare_42_dofs.png", dpi=300)
 # plt.show()
-
 
 
 # 831 plots

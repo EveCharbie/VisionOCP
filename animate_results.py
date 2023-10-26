@@ -48,6 +48,7 @@ with open("Solutions/" + file_name, "rb") as f:
     q_reintegrated = data[6]
     qdot_reintegrated = data[7]
     time_vector = data[8]
+    interpolated_states = data[9]
 
 
 b = bioviz.Viz(biorbd_model_path)

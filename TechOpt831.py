@@ -1072,6 +1072,11 @@ def main():
                                    keep_intermediate_points=False,
                                    merge_phases=True)
 
+    # Interpolate the solution so that the video at 30fps is at real life speed.
+    fps = 30
+    n_frames = [round(time_parameters[i][0] * fps) for i in range(len(time_parameters))]
+    interpolated_states = sol.interpolate(n_frames).states
+
     time_vector = integrated_sol.time
     q_reintegrated = integrated_sol.states["q"]
     qdot_reintegrated = integrated_sol.states["qdot"]
@@ -1079,7 +1084,7 @@ def main():
 
     del sol.ocp
     with open(f"Solutions/{name}_831-{str(n_shooting).replace(', ', '_')}-{timestamp}.pkl", "wb") as f:
-        pickle.dump((sol, q_per_phase, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector), f)
+        pickle.dump((sol, q_per_phase, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector, interpolated_states), f)
 
     # sol.animate(n_frames=-1, show_floor=False)
 

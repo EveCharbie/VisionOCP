@@ -109,9 +109,9 @@ segment Eyes_with
 		0.000001 0.0 0.0
 		0.0 0.000001 0.0
 		0.0 0.0 0.000001
-	meshfile Model_mesh/cone.stl
-	meshrt 0 0 0 xyz 0 -1.5 0
-	meshcolor 0.99 0.0 0.0
+	// meshfile Model_mesh/cone.stl
+	// meshrt 0 0 0 xyz 0 -1.5 0
+	// meshcolor 0.99 0.0 0.0
 endsegment
 
 segment RightUpperArm_with
@@ -316,9 +316,9 @@ segment Eyes_without
 		0.000001 0.0 0.0
 		0.0 0.000001 0.0
 		0.0 0.0 0.000001
-	meshfile Model_mesh/cone.stl
-	meshrt 0 0 0 xyz 0 -1.5 0
-	meshcolor 0.0 0.0 0.99
+	// meshfile Model_mesh/cone.stl
+	// meshrt 0 0 0 xyz 0 -1.5 0
+	// meshcolor 0.0 0.0 0.99
 endsegment
 
 segment RightUpperArm_without
