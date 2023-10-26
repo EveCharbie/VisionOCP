@@ -1038,8 +1038,10 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
 
     if WITH_VISUAL_CRITERIA:
         biorbd_model_path = "models/SoMe_with_visual_criteria_without_mesh.bioMod"
+        biorbd_model_path_with_mesh = "models/SoMe_with_visual_criteria.bioMod"
     else:
         biorbd_model_path = "models/SoMe_without_mesh.bioMod"
+        biorbd_model_path_with_mesh = "models/SoMe.bioMod"
 
     n_shooting = (40, 40, 40, 40, 40, 40)
     num_twists = 1
@@ -1060,9 +1062,9 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
     timestamp = time.strftime("%Y-%m-%d-%H%M")
     name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
     if sol.status == 0:
-        save_name = f"{name}_831-{str(n_shooting).replace(', ', '_')}-{timestamp}-{visual_weight}_CVG"
+        save_name = f"{name}_831-{str(n_shooting).replace(', ', '_')}-{timestamp}-{str(visual_weight).replace('.', 'p')}_CVG"
     else:
-        save_name = f"{name}_831-{str(n_shooting).replace(', ', '_')}-{timestamp}-{visual_weight}_DVG"
+        save_name = f"{name}_831-{str(n_shooting).replace(', ', '_')}-{timestamp}-{str(visual_weight).replace('.', 'p')}_DVG"
 
     qs = sol.states[0]["q"][:, :-1]
     qdots = sol.states[0]["qdot"][:, :-1]
@@ -1086,7 +1088,7 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
                                    merge_phases=True)
 
     # Interpolate the solution so that the video at 30fps is at real life speed.
-    fps = 30
+    fps = 60
     n_frames = [round(time_parameters[i][0] * fps) for i in range(len(time_parameters))]
     interpolated_states = sol.interpolate(n_frames).states
 
@@ -1099,7 +1101,7 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
     with open("Solutions/" + save_name + ".pkl", "wb") as f:
         pickle.dump((sol, q_per_phase, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector, interpolated_states), f)
 
-    create_video(biorbd_model_path, interpolated_states, save_name)
+    create_video(biorbd_model_path_with_mesh, interpolated_states, save_name)
 
 if __name__ == "__main__":
     WITH_VISUAL_CRITERIA = False

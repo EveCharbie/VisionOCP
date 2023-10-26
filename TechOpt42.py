@@ -86,32 +86,35 @@ def custom_trampoline_bed_in_peripheral_vision(controller: PenaltyController) ->
     return out
 
 
-def create_video(biorbd_model_path, interpolated_states, save_name):
-    b = bioviz.Viz(biorbd_model_path,
-                   mesh_opacity=0.8,
-                   show_global_center_of_mass=False,
-                   show_gravity_vector=False,
-                   show_segments_center_of_mass=False,
-                   show_global_ref_frame=False,
-                   show_local_ref_frame=False,
-                   experimental_markers_color=(1, 1, 1),
-                   background_color=(1.0, 1.0, 1.0),
-                   )
-    b.set_camera_zoom(0.25)
-    b.set_camera_focus_point(0, 0, 2)
+def create_video(biorbd_model_paths, interpolated_states, save_name):
+    model_type = ["with_cone", "without_cone"]
+    for i in range(2):
+        b = bioviz.Viz(biorbd_model_paths[i],
+                       mesh_opacity=0.8,
+                       show_global_center_of_mass=False,
+                       show_gravity_vector=False,
+                       show_segments_center_of_mass=False,
+                       show_global_ref_frame=False,
+                       show_local_ref_frame=False,
+                       experimental_markers_color=(1, 1, 1),
+                       background_color=(1.0, 1.0, 1.0),
+                       )
+        b.set_camera_zoom(0.2)
+        b.set_camera_focus_point(0, 0, 2.5)
+        b.maximize()
 
-    q_for_video = interpolated_states[0]["q"][:, :-1]
-    for i_phase in range(1, len(interpolated_states["q"][0]) - 1):
-        q_for_video = np.hstack((q_for_video, interpolated_states[i_phase]["q"][:, :-1]))
-    q_for_video = np.hstack((q_for_video, interpolated_states[len(interpolated_states["q"][0]) - 1]["q"]))
+        q_for_video = interpolated_states[0]["q"][:, :-1]
+        for i_phase in range(1, len(interpolated_states) - 1):
+            q_for_video = np.hstack((q_for_video, interpolated_states[i_phase]["q"][:, :-1]))
+        q_for_video = np.hstack((q_for_video, interpolated_states[len(interpolated_states) - 1]["q"]))
 
-    b.start_recording(f"Video/" + save_name + ".ogv")
-    b.load_movement(q_for_video)
-    for frame in range(q_for_video.shape[1] + 1):
-        b.movement_slider[0].setValue(frame)
-        b.add_frame()
-    b.stop_recording()
-    b.quit()
+        b.start_recording(f"Videos/official/" + save_name + f"_{model_type[i]}.ogv")
+        b.load_movement(q_for_video)
+        for frame in range(q_for_video.shape[1] + 1):
+            b.movement_slider[0].setValue(frame)
+            b.add_frame()
+        b.stop_recording()
+        b.quit()
     return
 
 def prepare_ocp(
@@ -586,13 +589,16 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
 
     if WITH_VISUAL_CRITERIA:
         biorbd_model_path = "models/SoMe_42_with_visual_criteria_without_mesh.bioMod"
+        biorbd_model_path_with_mesh = "models/SoMe_42_with_visual_criteria.bioMod"
+        biorbd_model_path_with_mesh_without_cone = "models/SoMe_42_with_visual_criteria_without_cone.bioMod"
     else:
         biorbd_model_path = "models/SoMe_42_without_mesh.bioMod"
+        biorbd_model_path_with_mesh = "models/SoMe_42.bioMod"
+        biorbd_model_path_with_mesh_without_cone = "models/SoMe_42_without_cone.bioMod"
 
     n_shooting = (100, 40)
     num_twists = 1
     ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA, visual_weight=visual_weight)
-    # ocp.add_plot_penalty(CostType.ALL)
 
     # solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
     solver = Solver.IPOPT(show_online_optim=False)
@@ -608,9 +614,9 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
     timestamp = time.strftime("%Y-%m-%d-%H%M")
     name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
     if sol.status == 0:
-        save_name = f"{name}-{str(n_shooting).replace(', ', '_')}-{timestamp}-{visual_weight}_CVG"
+        save_name = f"{name}-{str(n_shooting).replace(', ', '_')}-{timestamp}-{str(visual_weight).replace('.', 'p')}_CVG"
     else:
-        save_name = f"{name}-{str(n_shooting).replace(', ', '_')}-{timestamp}-{visual_weight}_DVG"
+        save_name = f"{name}-{str(n_shooting).replace(', ', '_')}-{timestamp}-{str(visual_weight).replace('.', 'p')}_DVG"
 
 
     qs = sol.states[0]["q"][:, :-1]
@@ -629,7 +635,7 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
                                    merge_phases=True)
 
     # Interpolate the solution so that the video at 30fps is at real life speed.
-    fps = 30
+    fps = 60
     n_frames = [round(time_parameters[i][0] * fps) for i in range(len(time_parameters))]
     interpolated_states = sol.interpolate(n_frames).states
 
@@ -638,10 +644,10 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
     qdot_reintegrated = integrated_sol.states["qdot"]
 
     del sol.ocp
-    with open("Solutions/" + save_name + "pkl", "wb") as f:
+    with open("Solutions/" + save_name + ".pkl", "wb") as f:
         pickle.dump((sol, q_per_phase, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector, interpolated_states), f)
 
-    create_video(biorbd_model_path, interpolated_states, save_name)
+    create_video([biorbd_model_path_with_mesh, biorbd_model_path_with_mesh_without_cone], interpolated_states, save_name)
 
 if __name__ == "__main__":
     WITH_VISUAL_CRITERIA = False
