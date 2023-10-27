@@ -894,8 +894,10 @@ def prepare_ocp(
     q_bounds_5_max[ZrotLeftLowerArm : XrotLeftLowerArm + 1, END] = 0.1
 
     # Hips flexion
-    q_bounds_5_min[XrotLegs, :] = -0.60
+    q_bounds_5_min[XrotLegs, :] = -0.35
     q_bounds_5_max[XrotLegs, :] = 0.35
+    q_bounds_5_min[XrotLegs, START] = 0
+    q_bounds_5_max[XrotLegs, START] = 0.35
     q_bounds_5_min[XrotLegs, END] = -0.60
     q_bounds_5_max[XrotLegs, END] = -0.40
     # Hips sides

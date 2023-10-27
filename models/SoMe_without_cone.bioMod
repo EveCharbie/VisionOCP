@@ -68,6 +68,7 @@ segment Thorax
 		0.0 0.0 0.16817009906757605
 	meshfile Model_mesh/thorax.stl
 	meshrt -0.15 0 0 xyz 0 -0.025 0
+	meshscale 1.1 1 1
 endsegment
 
 segment Head

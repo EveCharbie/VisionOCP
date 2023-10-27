@@ -102,6 +102,7 @@ def create_video(biorbd_model_paths, interpolated_states, save_name):
         b.set_camera_zoom(0.2)
         b.set_camera_focus_point(0, 0, 2.5)
         b.maximize()
+        b.update()
 
         q_for_video = interpolated_states[0]["q"][:, :-1]
         for i_phase in range(1, len(interpolated_states) - 1):

@@ -76,6 +76,7 @@ segment Thorax_with
 	meshfile Model_mesh/thorax.stl
 	meshrt -0.15 0 0 xyz 0 -0.025 0
 	meshcolor 0.99 0.0 0.0
+	meshscale 1.1 1 1
 endsegment
 
 segment Head_with
@@ -291,6 +292,7 @@ segment Thorax_without
 	meshfile Model_mesh/thorax.stl
 	meshrt -0.15 0 0 xyz 0 -0.025 0
 	meshcolor 0.0 0.0 0.99
+	meshscale 1.1 1 1
 endsegment
 
 segment Head_without

@@ -15,7 +15,7 @@ for weight in vision_weights:
     else:
         WITH_VISUAL_CRITERIA = True
     ocp_module_42.main(WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA, visual_weight=weight)
-    # ocp_module_831.main(WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA, visual_weight=weight)
+    ocp_module_831.main(WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA, visual_weight=weight)
     print(f"\n\n\n\n I am done with {weight} :) \n\n\n\n")
 
 
