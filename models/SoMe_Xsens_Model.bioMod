@@ -1,0 +1,230 @@
+version    4
+
+variables
+	$body_height 1.545
+	$shoulder_height 1.248
+	$hip_height 0.79
+	$knee_height 0.48
+	$ankle_height 0.07
+	$foot_length 0.21
+	$hip_width 0.27
+	$shoulder_width 0.39
+	$elbow_span 0.80
+	$wrist_span 1.215
+	$arm_span 1.525
+	$eye_height 0.0564622475933951
+	$eye_depth 0.0852029331945667
+endvariables
+
+
+segment	Pelvis
+	translations	xyz
+	rotations	xyz
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	T8
+	parent	Pelvis
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.229
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+	
+segment	Head
+	parent	T8
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.099
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	Eye
+	parent	Head
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 $eye_depth $eye_height
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	RightUpperArm
+	parent	T8
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz -0.205 0 0
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	RightForeArm
+	parent	RightUpperArm
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.2075
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	RightHand
+	parent	RightForeArm
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.155
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	LeftUpperArm
+	parent	T8
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0.205 0 0
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	LeftForeArm
+	parent	LeftUpperArm
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.2075
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	LeftHand
+	parent	LeftForeArm
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.155
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	RightUpperLeg
+	parent	Pelvis
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz -0.135 0 0
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	RightLowerLeg
+	parent	RightUpperLeg
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.31
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	RightFoot
+	parent	RightLowerLeg
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.41
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	LeftUpperLeg
+	parent	Pelvis
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0.135 0 0
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	LeftLowerLeg
+	parent	LeftUpperLeg
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.31
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	LeftFoot
+	parent	LeftLowerLeg
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.41
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+
+
+
+
+
