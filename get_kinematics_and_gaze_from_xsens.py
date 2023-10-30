@@ -10,6 +10,71 @@ import os
 import biorbd
 import bioviz
 
+def get_q(Xsens_orientation_per_move):
+    """
+    This function returns de generalized coordinates in the sequence XYZ (biorbd) from the quaternion of the orientation
+    of the Xsens segments.
+    The translation is left empty as it has to be computed otherwise.
+    I am not sure if I would use this for kinematics analysis, but for visualisation it is not that bad.
+    """
+
+    parent_idx_list = {"Pelvis": None,  # 0
+                       "L5": [0, "Pelvis"],  # 1
+                       "L3": [1, "L5"],  # 2
+                       "T12": [2, "L3"],  # 3
+                       "T8": [3, "T12"],  # 4
+                       "Neck": [4, "T8"],  # 5
+                       "Head": [5, "Neck"],  # 6
+                       "ShoulderR": [4, "T8"],  # 7
+                       "UpperArmR": [7, "ShoulderR"],  # 8
+                       "LowerArmR": [8, "UpperArmR"],  # 9
+                       "HandR": [9, "LowerArmR"],  # 10
+                       "ShoulderL": [4, "T8"],  # 11
+                       "UpperArmL": [11, "ShoulderR"],  # 12
+                       "LowerArmL": [12, "UpperArmR"],  # 13
+                       "HandL": [13, "LowerArmR"],  # 14
+                       "UpperLegR": [0, "Pelvis"],  # 15
+                       "LowerLegR": [15, "UpperLegR"],  # 16
+                       "FootR": [16, "LowerLegR"],  # 17
+                       "ToesR": [17, "FootR"],  # 18
+                       "UpperLegL": [0, "Pelvis"],  # 19
+                       "LowerLegL": [19, "UpperLegL"],  # 20
+                       "FootL": [20, "LowerLegL"],  # 21
+                       "ToesL": [21, "FootL"],  # 22
+                       }
+
+    nb_frames = Xsens_orientation_per_move.shape[0]
+    Q = np.zeros((23*3, nb_frames))
+    rotation_matrices = np.zeros((23, nb_frames, 3, 3))
+    for i_segment, key in enumerate(parent_idx_list):
+        for i_frame in range(nb_frames):
+            Quat_normalized = Xsens_orientation_per_move[i_frame, i_segment*4: (i_segment+1)*4] / np.linalg.norm(
+                Xsens_orientation_per_move[i_frame, i_segment*4: (i_segment+1)*4]
+            )
+            Quat = biorbd.Quaternion(Quat_normalized[0],
+                                     Quat_normalized[1],
+                                     Quat_normalized[2],
+                                     Quat_normalized[3])
+
+            RotMat_current = biorbd.Quaternion.toMatrix(Quat).to_array()
+            z_rotation = biorbd.Rotation.fromEulerAngles(np.array([-np.pi/2]), 'z').to_array()
+            RotMat_current = z_rotation @ RotMat_current
+
+            if parent_idx_list[key] is None:
+                RotMat = np.eye(3)
+            else:
+                RotMat = rotation_matrices[parent_idx_list[key][0], i_frame, :, :]
+
+            RotMat_between = np.linalg.inv(RotMat) @ RotMat_current
+            RotMat_between = biorbd.Rotation(RotMat_between[0, 0], RotMat_between[0, 1], RotMat_between[0, 2],
+                            RotMat_between[1, 0], RotMat_between[1, 1], RotMat_between[1, 2],
+                            RotMat_between[2, 0], RotMat_between[2, 1], RotMat_between[2, 2])
+            Q[i_segment*3:(i_segment+1)*3, i_frame] = biorbd.Rotation.toEulerAngles(RotMat_between, 'xyz').to_array()
+
+            rotation_matrices[i_segment, i_frame, :, :] = RotMat_current
+    return Q
+
+
 joint_labels = [
     "jL5S1_x",  # 0
     "jL5S1_y",  # 1
@@ -90,7 +155,7 @@ for i in range(1):
     if filename[-24:] == "_eyetracking_metrics.pkl":
         move_filename = move_path + filename
 
-    biorbd_model_path = "models/SoMe_Xsens_Model.bioMod"
+    biorbd_model_path = "models/SoMe_Xsens_Model_rotated.bioMod"
 
     with open(move_filename, "rb") as f:
         data = pickle.load(f)
@@ -109,19 +174,16 @@ for i in range(1):
         Xsens_position_no_level_CoM_corrected_rotated_per_move = data[
             "Xsens_position_no_level_CoM_corrected_rotated_per_move"]
         Xsens_jointAngle_per_move = data["Xsens_jointAngle_per_move"]
+        Xsens_orientation_per_move = data["Xsens_orientation_per_move"]
 
     # get markers position from the biorbd model
     model = biorbd.Model(biorbd_model_path)
     num_dofs = model.nbQ()
 
-
     DoFs = np.zeros((num_dofs, len(Xsens_jointAngle_per_move)))
-    # DoFs[0, :] = Xsens_jointAngle_per_move[:, 0]  # Trans X
-    # DoFs[1, :] = Xsens_jointAngle_per_move[:, 1]  # Trans Y
-    # DoFs[2, :] = Xsens_jointAngle_per_move[:, 2]  # Trans Z
-    DoFs[3, :] = Xsens_jointAngle_per_move[:, 3]  # Rot X
-    # DoFs[4, :] = Xsens_jointAngle_per_move[:, 4]  # Rot Y
-    # DoFs[5, :] = Xsens_jointAngle_per_move[:, 5]  # Rot Z
+    DoFs[3:-3, :] = get_q(Xsens_orientation_per_move)
+    for i in range(DoFs.shape[0]):
+        DoFs[i, :] = np.unwrap(DoFs[i, :])
 
     b = bioviz.Viz(model_path=biorbd_model_path)
     b.load_movement(DoFs)
@@ -139,8 +201,8 @@ shoulder_width = 0.39
 elbow_span = 0.80
 wrist_span = 1.215
 arm_span = 1.525
-eye_height = 5.64622475933951
-eye_depth = 8.52029331945667
+eye_height = 0.0564622475933951
+eye_depth = 0.0852029331945667
 
 T8_height = (shoulder_height - hip_height) / 2
 C7_height = (body_height - shoulder_height) / 3
@@ -151,6 +213,7 @@ hand_length = (wrist_span - arm_span) / 2
 upper_leg_lateral_position = -0.5*hip_width
 lower_leg_height = -(hip_height-knee_height)
 foot_height = -(knee_height-ankle_height)
+ball = foot_length * 4/5
 
 
 

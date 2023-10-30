@@ -14,12 +14,54 @@ variables
 	$arm_span 1.525
 	$eye_height 0.0564622475933951
 	$eye_depth 0.0852029331945667
+	$pi 3.14159265359
 endvariables
 
 
 segment	Pelvis
 	translations	xyz
 	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.0915
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	L5
+	parent	Pelvis
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.0915
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	L3
+	parent	L5
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.0915
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	T12
+	parent	L3
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.0915
 	mass	1
 	inertia
 		1	0	0
@@ -29,10 +71,10 @@ segment	Pelvis
 endsegment
 
 segment	T8
-	parent	Pelvis
+	parent	T12
 	rotations	xyz
 	rtinmatrix 0
-	rt 0 0 0 xyz 0 0 0.229
+	rt 0 0 0 xyz 0 0 0.0915
 	mass	1
 	inertia
 		1	0	0
@@ -41,8 +83,22 @@ segment	T8
 	com	0	0	0
 endsegment
 	
-segment	Head
+segment	Neck // C7
 	parent	T8
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.0915
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+	
+	
+segment	Head
+	parent	Neck
 	rotations	xyz
 	rtinmatrix 0
 	rt 0 0 0 xyz 0 0 0.099
@@ -54,11 +110,11 @@ segment	Head
 	com	0	0	0
 endsegment
 
-segment	Eye
-	parent	Head
+segment	RightShoulder
+	parent	T8
 	rotations	xyz
 	rtinmatrix 0
-	rt 0 0 0 xyz 0 $eye_depth $eye_height
+	rt 0 0 0 xyz 0 0 0.0915  // to be verified
 	mass	1
 	inertia
 		1	0	0
@@ -68,10 +124,10 @@ segment	Eye
 endsegment
 
 segment	RightUpperArm
-	parent	T8
+	parent	RightShoulder
 	rotations	xyz
 	rtinmatrix 0
-	rt 0 0 0 xyz -0.205 0 0
+	rt 0 0 0 xyz 0 -0.205 0
 	mass	1
 	inertia
 		1	0	0
@@ -106,11 +162,24 @@ segment	RightHand
 	com	0	0	0
 endsegment
 
-segment	LeftUpperArm
+segment	LeftShoulder
 	parent	T8
 	rotations	xyz
 	rtinmatrix 0
-	rt 0 0 0 xyz 0.205 0 0
+	rt 0 0 0 xyz 0 0 0.0915  // to be verified
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	LeftUpperArm
+	parent	LeftShoulder
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0.205 0
 	mass	1
 	inertia
 		1	0	0
@@ -149,7 +218,7 @@ segment	RightUpperLeg
 	parent	Pelvis
 	rotations	xyz
 	rtinmatrix 0
-	rt 0 0 0 xyz -0.135 0 0
+	rt 0 0 0 xyz 0 -0.135 0
 	mass	1
 	inertia
 		1	0	0
@@ -184,11 +253,24 @@ segment	RightFoot
 	com	0	0	0
 endsegment
 
+segment	RightToes
+	parent	RightFoot
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0.15 0 0
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
 segment	LeftUpperLeg
 	parent	Pelvis
 	rotations	xyz
 	rtinmatrix 0
-	rt 0 0 0 xyz 0.135 0 0
+	rt 0 0 0 xyz 0 0.135 0
 	mass	1
 	inertia
 		1	0	0
@@ -223,8 +305,30 @@ segment	LeftFoot
 	com	0	0	0
 endsegment
 
+segment	LeftToes
+	parent	LeftFoot
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0.15 0 0
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
 
-
-
+segment	Eye
+	parent	Head
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz $eye_depth  0 $eye_height
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
 
 
