@@ -99,7 +99,7 @@ def create_video(biorbd_model_paths, interpolated_states, save_name):
                        experimental_markers_color=(1, 1, 1),
                        background_color=(1.0, 1.0, 1.0),
                        )
-        b.set_camera_zoom(0.2)
+        b.set_camera_zoom(0.25)
         b.set_camera_focus_point(0, 0, 2.5)
         b.maximize()
         b.update()

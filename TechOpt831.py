@@ -270,6 +270,26 @@ def prepare_ocp(
         quadratic=True,
         phase=3,
     )
+    # Keeping the body alignement after kick out
+    objective_functions.add(
+        ObjectiveFcn.Lagrange.MINIMIZE_STATE,
+        key="q",
+        node=Node.ALL_SHOOTING,
+        index=XrotLegs,
+        weight=50000,
+        quadratic=True,
+        phase=4,
+    )
+    # Keeping the body alignement after kick out
+    objective_functions.add(
+        ObjectiveFcn.Lagrange.MINIMIZE_STATE,
+        key="q",
+        node=Node.ALL_SHOOTING,
+        index=XrotLegs,
+        weight=50000,
+        quadratic=True,
+        phase=5,
+    )
 
     # Minimize wobbling
     objective_functions.add(
@@ -894,7 +914,7 @@ def prepare_ocp(
     q_bounds_5_max[ZrotLeftLowerArm : XrotLeftLowerArm + 1, END] = 0.1
 
     # Hips flexion
-    q_bounds_5_min[XrotLegs, :] = -0.35
+    q_bounds_5_min[XrotLegs, :] = -0.60
     q_bounds_5_max[XrotLegs, :] = 0.35
     q_bounds_5_min[XrotLegs, START] = 0
     q_bounds_5_max[XrotLegs, START] = 0.35
@@ -1041,9 +1061,11 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
     if WITH_VISUAL_CRITERIA:
         biorbd_model_path = "models/SoMe_with_visual_criteria_without_mesh.bioMod"
         biorbd_model_path_with_mesh = "models/SoMe_with_visual_criteria.bioMod"
+        biorbd_model_path_with_mesh_without_cone = "models/SoMe_with_visual_criteria_without_cone.bioMod"
     else:
         biorbd_model_path = "models/SoMe_without_mesh.bioMod"
         biorbd_model_path_with_mesh = "models/SoMe.bioMod"
+        biorbd_model_path_with_mesh_without_cone = "models/SoMe_without_cone.bioMod"
 
     n_shooting = (40, 40, 40, 40, 40, 40)
     num_twists = 1
@@ -1103,7 +1125,7 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
     with open("Solutions/" + save_name + ".pkl", "wb") as f:
         pickle.dump((sol, q_per_phase, qs, qdots, qddots, time_parameters, q_reintegrated, qdot_reintegrated, time_vector, interpolated_states), f)
 
-    create_video(biorbd_model_path_with_mesh, interpolated_states, save_name)
+    create_video([biorbd_model_path_with_mesh, biorbd_model_path_with_mesh_without_cone], interpolated_states, save_name)
 
 if __name__ == "__main__":
     WITH_VISUAL_CRITERIA = False
