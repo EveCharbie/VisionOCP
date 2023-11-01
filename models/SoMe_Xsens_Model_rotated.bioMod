@@ -1,5 +1,10 @@
 version    4
 
+root_actuated 0
+external_forces 0
+
+gravity 0 0 -9.81
+
 variables
 	$body_height 1.545
 	$shoulder_height 1.248
@@ -18,6 +23,37 @@ variables
 endvariables
 
 
+segment Trampo_bed
+	meshfile Model_mesh/trampo_bed.stl
+	meshrt 0 0 0 xyz 0 0 -0.83
+endsegment
+
+marker Trampo_corner_1
+	parent Trampo_bed
+	position -1.07 -2.14 -0.83
+endmarker
+
+marker Trampo_corner_2
+	parent Trampo_bed
+	position -1.07 2.14 -0.83
+endmarker
+
+marker Trampo_corner_3
+	parent Trampo_bed
+	position 1.07 -2.14 -0.83
+endmarker
+
+marker Trampo_corner_4
+	parent Trampo_bed
+	position 1.07 2.14 -0.83
+endmarker
+
+marker fixation
+	parent Trampo_bed
+	position 0 -1.07 -0.83
+endmarker
+
+
 segment	Pelvis
 	translations	xyz
 	rotations	xyz
@@ -29,6 +65,8 @@ segment	Pelvis
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/pelvis.stl
+	meshrt -0.175 0 0 xyz 0 0 0
 endsegment
 
 segment	L5
@@ -55,6 +93,8 @@ segment	L3
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshrt -0.15 0 0 xyz 0 -0.025 0
+	meshscale 1.1 1 1
 endsegment
 
 segment	T12
@@ -108,6 +148,8 @@ segment	Head
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/tete.stl
+	meshrt 0 0 pi xyz 0 0 0
 endsegment
 
 segment	RightShoulder
@@ -134,6 +176,7 @@ segment	RightUpperArm
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/bras.stl
 endsegment
 
 segment	RightForeArm
@@ -147,6 +190,7 @@ segment	RightForeArm
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/avantbras.stl
 endsegment
 
 segment	RightHand
@@ -160,6 +204,7 @@ segment	RightHand
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/main.stl
 endsegment
 
 segment	LeftShoulder
@@ -186,6 +231,7 @@ segment	LeftUpperArm
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/bras.stl
 endsegment
 
 segment	LeftForeArm
@@ -199,6 +245,7 @@ segment	LeftForeArm
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/avantbras.stl
 endsegment
 
 segment	LeftHand
@@ -212,6 +259,7 @@ segment	LeftHand
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/main.stl
 endsegment
 
 segment	RightUpperLeg
@@ -225,6 +273,7 @@ segment	RightUpperLeg
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/thigh.stl
 endsegment
 
 segment	RightLowerLeg
@@ -238,6 +287,8 @@ segment	RightLowerLeg
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/leg_left.stl
+	meshrt pi 0 0 xyz 0 0 0
 endsegment
 
 segment	RightFoot
@@ -251,6 +302,8 @@ segment	RightFoot
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/foot.stl
+	meshrt 0 0 pi xyz 0 0 0
 endsegment
 
 segment	RightToes
@@ -277,6 +330,8 @@ segment	LeftUpperLeg
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/thigh.stl
+	meshrt pi 0 0 xyz 0 0 0
 endsegment
 
 segment	LeftLowerLeg
@@ -290,6 +345,8 @@ segment	LeftLowerLeg
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/leg_left.stl
+	meshrt pi 0 0 xyz 0 0 0
 endsegment
 
 segment	LeftFoot
@@ -303,6 +360,8 @@ segment	LeftFoot
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/foot.stl
+	meshrt pi 0 0 xyz 0 0 0
 endsegment
 
 segment	LeftToes
@@ -329,6 +388,18 @@ segment	Eye
 		0	1	0
 		0	0	1
 	com	0	0	0
+	meshfile Model_mesh/cone.stl
+	meshrt 0 0 0 xyz 0 -1.5 0
 endsegment
+
+marker eyes_vect_start
+	parent Eyes
+	position 0 0 0
+endmarker
+
+marker eyes_vect_end
+	parent Eyes
+	position 0 -1 0
+endmarker
 
 
