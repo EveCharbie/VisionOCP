@@ -180,42 +180,23 @@ for i in range(1):
     model = biorbd.Model(biorbd_model_path)
     num_dofs = model.nbQ()
 
+    eye_angles_without_nans = np.zeros(eye_angles.shape)
+    eye_angles_without_nans[:, :] = eye_angles[:, :]
+    blink_index = np.isnan(eye_angles[0, :]).astype(int)
+    end_of_blinks = np.where(blink_index[1:] - blink_index[:-1] == -1)[0]
+    start_of_blinks = np.where(blink_index[1:] - blink_index[:-1] == 1)[0]
+    for i in range(len(start_of_blinks)):
+        eye_angles_without_nans[:, start_of_blinks[i]+1:end_of_blinks[i]+1] = np.linspace(eye_angles_without_nans[:, start_of_blinks[i]], eye_angles_without_nans[:, end_of_blinks[i]+1], end_of_blinks[i]-start_of_blinks[i]).T
+
     DoFs = np.zeros((num_dofs, len(Xsens_jointAngle_per_move)))
-    DoFs[3:-3, :] = get_q(Xsens_orientation_per_move)
+    DoFs[3:-2, :] = get_q(Xsens_orientation_per_move)
+    DoFs[-2:, :] = eye_angles_without_nans
     for i in range(DoFs.shape[0]):
         DoFs[i, :] = np.unwrap(DoFs[i, :])
 
     b = bioviz.Viz(model_path=biorbd_model_path)
     b.load_movement(DoFs)
     b.exec()
-
-
-body_height = 1.545
-shoulder_height = 1.248
-hip_height = 0.79
-knee_height = 0.48
-ankle_height = 0.07
-foot_length = 0.21
-hip_width = 0.27
-shoulder_width = 0.39
-elbow_span = 0.80
-wrist_span = 1.215
-arm_span = 1.525
-eye_height = 0.0564622475933951
-eye_depth = 0.0852029331945667
-
-T8_height = (shoulder_height - hip_height) / 2
-C7_height = (body_height - shoulder_height) / 3
-Shoulder_height = T8_height
-Shoulder_lateral_position = (shoulder_width - elbow_span) / 2
-forearm_length = (elbow_span - wrist_span) / 2
-hand_length = (wrist_span - arm_span) / 2
-upper_leg_lateral_position = -0.5*hip_width
-lower_leg_height = -(hip_height-knee_height)
-foot_height = -(knee_height-ankle_height)
-ball = foot_length * 4/5
-
-
 
 
 
