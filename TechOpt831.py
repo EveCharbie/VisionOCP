@@ -1067,6 +1067,10 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
         biorbd_model_path_with_mesh = "models/SoMe.bioMod"
         biorbd_model_path_with_mesh_without_cone = "models/SoMe_without_cone.bioMod"
 
+    # import bioviz
+    # b = bioviz.Viz(biorbd_model_path_with_mesh)
+    # b.exec()
+
     n_shooting = (40, 40, 40, 40, 40, 40)
     num_twists = 1
     ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA, visual_weight=visual_weight)

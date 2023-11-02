@@ -88,6 +88,7 @@ def custom_trampoline_bed_in_peripheral_vision(controller: PenaltyController) ->
 
 def create_video(biorbd_model_paths, interpolated_states, save_name):
     model_type = ["with_cone", "without_cone"]
+    print(f"Videos/official/" + save_name + f"_{model_type[i]}.ogv")
     for i in range(2):
         b = bioviz.Viz(biorbd_model_paths[i],
                        mesh_opacity=0.8,
@@ -108,14 +109,15 @@ def create_video(biorbd_model_paths, interpolated_states, save_name):
         for i_phase in range(1, len(interpolated_states) - 1):
             q_for_video = np.hstack((q_for_video, interpolated_states[i_phase]["q"][:, :-1]))
         q_for_video = np.hstack((q_for_video, interpolated_states[len(interpolated_states) - 1]["q"]))
-
-        b.start_recording(f"Videos/official/" + save_name + f"_{model_type[i]}.ogv")
         b.load_movement(q_for_video)
-        for frame in range(q_for_video.shape[1] + 1):
-            b.movement_slider[0].setValue(frame)
-            b.add_frame()
-        b.stop_recording()
-        b.quit()
+
+        b.exec()
+        # b.start_recording(f"Videos/official/" + save_name + f"_{model_type[i]}.ogv")
+        # for frame in range(q_for_video.shape[1] + 1):
+        #     b.movement_slider[0].setValue(frame)
+        #     b.add_frame()
+        # b.stop_recording()
+        # b.quit()
     return
 
 def prepare_ocp(

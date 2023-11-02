@@ -199,5 +199,7 @@ for i in range(1):
     b.exec()
 
 
+# real time in video
+# CoM translation
 
 
