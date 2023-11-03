@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import os
 import biorbd
 import bioviz
+import scipy
 
 def get_q(Xsens_orientation_per_move):
     """
@@ -151,7 +152,7 @@ save_path = "/home/charbie/Documents/Programmation/VisionOCP/Kalman_recons/"
 
 # for filename in os.listdir(move_path):
 for i in range(1):
-    filename = "a62d4691_0_0-45_796__42__0__eyetracking_metrics.pkl"
+    filename = "caccfb24_0_0-48_286__42__0__eyetracking_metrics.pkl"
     if filename[-24:] == "_eyetracking_metrics.pkl":
         move_filename = move_path + filename
 
@@ -175,6 +176,8 @@ for i in range(1):
             "Xsens_position_no_level_CoM_corrected_rotated_per_move"]
         Xsens_jointAngle_per_move = data["Xsens_jointAngle_per_move"]
         Xsens_orientation_per_move = data["Xsens_orientation_per_move"]
+        Xsens_CoM_per_move = data["Xsens_CoM_per_move"]
+        time_vector_pupil_per_move = data["time_vector_pupil_per_move"]
 
     # get markers position from the biorbd model
     model = biorbd.Model(biorbd_model_path)
@@ -194,12 +197,45 @@ for i in range(1):
     for i in range(DoFs.shape[0]):
         DoFs[i, :] = np.unwrap(DoFs[i, :])
 
-    b = bioviz.Viz(model_path=biorbd_model_path)
-    b.load_movement(DoFs)
-    b.exec()
+    time_vector_pupil_per_move = time_vector_pupil_per_move - time_vector_pupil_per_move[0]
+    duration = time_vector_pupil_per_move[-1]
+    vz_init = 9.81 * duration / 2
 
+    trans = np.zeros((3, len(Xsens_jointAngle_per_move)))
+    trans[2, :] = vz_init * time_vector_pupil_per_move - 0.5 * 9.81 * time_vector_pupil_per_move ** 2
 
-# real time in video
-# CoM translation
+    Xsens_CoM_position_per_move = Xsens_CoM_per_move[:, :3] - Xsens_CoM_per_move[0, :3]
+    trans = trans + Xsens_CoM_position_per_move.T
+    DoFs[:3, :] = trans
+
+    # real-time video
+    fps = 60
+    n_frames = round(duration * fps)
+    time_vector = np.linspace(0, duration, n_frames)
+    interpolated_DoFs = np.zeros((num_dofs, n_frames))
+    for i in range(DoFs.shape[0]):
+        interp = scipy.interpolate.interp1d(time_vector_pupil_per_move, DoFs[i, :])
+        interpolated_DoFs[i, :] = interp(time_vector)
+
+    print(f"Videos/official/{filename[:-25]}.ogv")
+    model_type = ["with_cone", "without_cone"]
+    biorbe_model_paths = ["models/SoMe_Xsens_Model_rotated.bioMod", "models/SoMe_Xsens_Model_rotated_without_cone.bioMod"]
+    for i in range(2):
+        b = bioviz.Viz(biorbe_model_paths[i],
+                       mesh_opacity=0.8,
+                       show_global_center_of_mass=False,
+                       show_gravity_vector=False,
+                       show_segments_center_of_mass=False,
+                       show_global_ref_frame=False,
+                       show_local_ref_frame=False,
+                       experimental_markers_color=(1, 1, 1),
+                       background_color=(1.0, 1.0, 1.0),
+                       )
+        b.set_camera_zoom(0.25)
+        b.set_camera_focus_point(0, 0, 2.5)
+        b.maximize()
+        b.update()
+        b.load_movement(interpolated_DoFs)
+        b.exec()
 
 
