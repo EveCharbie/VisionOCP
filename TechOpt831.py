@@ -10,11 +10,10 @@ Phase 5 : preparation for landing
 """
 
 import numpy as np
-import bioviz
 import pickle
 import biorbd_casadi as biorbd
 import casadi as cas
-import IPython
+from IPython import embed
 import time
 import sys
 sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
@@ -1067,16 +1066,11 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
         biorbd_model_path_with_mesh = "models/SoMe.bioMod"
         biorbd_model_path_with_mesh_without_cone = "models/SoMe_without_cone.bioMod"
 
-    # import bioviz
-    # b = bioviz.Viz(biorbd_model_path_with_mesh)
-    # b.exec()
-
     n_shooting = (40, 40, 40, 40, 40, 40)
     num_twists = 1
     ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA, visual_weight=visual_weight)
-    # ocp.add_plot_penalty(CostType.ALL)
 
-    solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
+    solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
     solver.set_linear_solver("ma57")
     solver.set_maximum_iterations(3000)
     solver.set_convergence_tolerance(1e-6)
@@ -1085,7 +1079,6 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
     sol = ocp.solve(solver)
     toc = time.time() - tic
     print(toc)
-    # sol.graphs(show_bounds=True)
 
     timestamp = time.strftime("%Y-%m-%d-%H%M")
     name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
@@ -1123,7 +1116,6 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
     time_vector = integrated_sol.time
     q_reintegrated = integrated_sol.states["q"]
     qdot_reintegrated = integrated_sol.states["qdot"]
-
 
     del sol.ocp
     with open("Solutions/" + save_name + ".pkl", "wb") as f:

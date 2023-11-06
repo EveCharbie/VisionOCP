@@ -10,7 +10,7 @@ import bioviz
 import pickle
 import biorbd_casadi as biorbd
 import casadi as cas
-import IPython
+from IPython import embed
 import time
 import sys
 sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
@@ -88,8 +88,8 @@ def custom_trampoline_bed_in_peripheral_vision(controller: PenaltyController) ->
 
 def create_video(biorbd_model_paths, interpolated_states, save_name):
     model_type = ["with_cone", "without_cone"]
-    print(f"Videos/official/" + save_name + f"_{model_type[i]}.ogv")
     for i in range(2):
+        print(f"Videos/official/" + save_name + f"_{model_type[i]}.ogv")
         b = bioviz.Viz(biorbd_model_paths[i],
                        mesh_opacity=0.8,
                        show_global_center_of_mass=False,
@@ -111,13 +111,12 @@ def create_video(biorbd_model_paths, interpolated_states, save_name):
         q_for_video = np.hstack((q_for_video, interpolated_states[len(interpolated_states) - 1]["q"]))
         b.load_movement(q_for_video)
 
-        b.exec()
-        # b.start_recording(f"Videos/official/" + save_name + f"_{model_type[i]}.ogv")
-        # for frame in range(q_for_video.shape[1] + 1):
-        #     b.movement_slider[0].setValue(frame)
-        #     b.add_frame()
-        # b.stop_recording()
-        # b.quit()
+        b.start_recording(f"Videos/official/" + save_name + f"_{model_type[i]}.ogv")
+        for frame in range(q_for_video.shape[1] + 1):
+            b.movement_slider[0].setValue(frame)
+            b.add_frame()
+        b.stop_recording()
+        b.quit()
     return
 
 def prepare_ocp(
