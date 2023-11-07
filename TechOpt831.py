@@ -1047,6 +1047,7 @@ def prepare_ocp(
         u_bounds=u_bounds,
         objective_functions=objective_functions,
         constraints=constraints,
+        multinode_constraints=multinode_constraints,
         ode_solver=ode_solver,
         n_threads=n_threads,
     )
