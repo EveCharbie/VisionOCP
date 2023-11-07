@@ -32,13 +32,13 @@ biorbd_model_path_42_both = "models/SoMe_42_with_and_without_visual_criteria.bio
 n_shooting_42 = (100, 40)
 
 # file_name_831 = "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-10-26-1040.pkl"  # Good 831<
-file_name_831 = "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-11-01-1206-0p0_CVG.pkl"  # Good 831<
+file_name_831 = "old/SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-11-01-1206-0p0_CVG.pkl"  # Good 831<
 # file_name_831_with_visual_criteria = "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2023-10-25-1426.pkl"  # Good 831< with visual criteria
-file_name_831_with_visual_criteria = "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2023-11-02-1729-1p0_CVG.pkl"  # Good 831< with visual criteria
+file_name_831_with_visual_criteria = "old/SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2023-11-02-1729-1p0_CVG.pkl"  # Good 831< with visual criteria
 # file_name_42 = "SoMe_42_without_mesh-(100_40)-2023-10-26-1518.pkl"  # Good 42/
-file_name_42 = "SoMe_42_without_mesh-(100_40)-2023-10-28-0825-0p0_CVG.pkl"  # Good 42/
+file_name_42 = "old/SoMe_42_without_mesh-(100_40)-2023-10-28-0825-0p0_CVG.pkl"  # Good 42/
 # file_name_42_with_visual_criteria = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-10-26-1533.pkl"   # Good 42/ with visual criteria
-file_name_42_with_visual_criteria = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-11-02-1810-1p0_CVG.pkl"   # Good 42/ with visual criteria
+file_name_42_with_visual_criteria = "old/SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-11-02-1810-1p0_CVG.pkl"   # Good 42/ with visual criteria
 
 
 # ---------------------------------------- Load data ---------------------------------------- #
@@ -131,6 +131,31 @@ with open("Solutions/" + file_name_831_with_visual_criteria, "rb") as f:
 # b.set_camera_zoom(0.25)
 # b.set_camera_focus_point(0, 0, 2.5)
 # b.exec()
+
+# qs_42_combined_array = np.hstack((q_per_phase_42_combined[0][:, :-1], q_per_phase_42_combined[1]))
+# qs_42_combined_array[15, :] -= 2
+#
+# b = bioviz.Viz(biorbd_model_path_42_both,
+#                mesh_opacity=0.8,
+#                show_global_center_of_mass=False,
+#                show_gravity_vector=False,
+#                show_segments_center_of_mass=False,
+#                show_global_ref_frame=False,
+#                show_local_ref_frame=False,
+#                experimental_markers_color=(1, 1, 1),
+#                background_color=(1.0, 1.0, 1.0),
+#                )
+# b.load_movement(qs_42_combined_array)
+# b.set_camera_zoom(0.25)
+# b.set_camera_focus_point(0, 0, 1.5) ##
+# b.maximize()
+# b.update()
+# b.start_recording(f"comp_42.ogv")
+# for frame in range(qs_42_combined_array.shape[1] + 1):
+#     b.movement_slider[0].setValue(frame)
+#     b.add_frame()
+# b.stop_recording()
+# b.quit()
 
 # Animate comparison
 # q_per_phase_831_combined = [np.vstack((q_per_phase_831_with_visual_criteria[i], q_per_phase_831[i])) for i in range(len(q_per_phase_831))]
