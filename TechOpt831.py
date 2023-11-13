@@ -366,8 +366,8 @@ def prepare_ocp(
         MultinodeConstraintFcn.TRACK_TOTAL_TIME,
         nodes_phase=(0, 1, 2, 3, 4, 5),
         nodes=(Node.END, Node.END, Node.END, Node.END, Node.END, Node.END),
-        min_bound=final_time - 0.01,
-        max_bound=final_time + 0.01,
+        min_bound=final_time - 0.02,
+        max_bound=final_time + 0.02,
     )
 
     # Dynamics
@@ -418,7 +418,7 @@ def prepare_ocp(
     START, MIDDLE, END = 0, 1, 2
 
     # ------------------------------- Phase 0 : twist ------------------------------- #
-    zmax = 9.81 / 8 * final_time**2 + 1
+    zmax = 9.81 / 8 * final_time**2 + 2
 
     # Pelvis translations
     q_bounds_0_min[X, :] = -0.25
@@ -504,12 +504,10 @@ def prepare_ocp(
     # Pelis translation velocities
     qdot_bounds_0_min[vX : vY + 1, :] = -10
     qdot_bounds_0_max[vX : vY + 1, :] = 10
-    qdot_bounds_0_min[vX : vY + 1, START] = -0.5
-    qdot_bounds_0_max[vX : vY + 1, START] = 0.5
     qdot_bounds_0_min[vZ, :] = -100
     qdot_bounds_0_max[vZ, :] = 100
-    qdot_bounds_0_min[vZ, START] = vzinit - 0.5
-    qdot_bounds_0_max[vZ, START] = vzinit + 0.5
+    qdot_bounds_0_min[vZ, START] = vzinit - 2
+    qdot_bounds_0_max[vZ, START] = vzinit + 2
 
     # Somersault
     qdot_bounds_0_min[vXrot, :] = -20
