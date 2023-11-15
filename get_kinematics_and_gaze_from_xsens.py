@@ -147,95 +147,110 @@ joint_labels = [
 
 
 # Load the data
-move_path = "/home/charbie/disk/Eye-tracking/Results_831/SoMe/42/"
-save_path = "/home/charbie/Documents/Programmation/VisionOCP/Kalman_recons/"
+move_path = ["/home/charbie/disk/Eye-tracking/Results_831/SoMe/831</", "/home/charbie/disk/Eye-tracking/Results_831/SoMe/42/"]
+save_path = "/home/charbie/Documents/Programmation/VisionOCP/Xsens_recons/"
 
-# for filename in os.listdir(move_path):
-for i in range(1):
-    filename = "caccfb24_0_0-48_286__42__0__eyetracking_metrics.pkl"
-    if filename[-24:] == "_eyetracking_metrics.pkl":
-        move_filename = move_path + filename
+for move_path in move_path:
+    for filename in os.listdir(move_path):
+        if filename[-24:] == "_eyetracking_metrics.pkl":
+            move_filename = move_path + filename
 
-    biorbd_model_path = "models/SoMe_Xsens_Model_rotated.bioMod"
+            biorbd_model_path = "models/SoMe_Xsens_Model_rotated.bioMod"
 
-    with open(move_filename, "rb") as f:
-        data = pickle.load(f)
-        subject_name = data["subject_name"]
-        gaze_position_temporal_evolution_projected_facing_front_wall = data[
-            "gaze_position_temporal_evolution_projected_facing_front_wall"]
-        move_orientation = data["move_orientation"]
-        Xsens_head_position_calculated = data["Xsens_head_position_calculated"]
-        eye_position = data["eye_position"]
-        gaze_orientation = data["gaze_orientation"]
-        EulAngles_head_global = data["EulAngles_head_global"]
-        EulAngles_neck = data["EulAngles_neck"]
-        eye_angles = data["eye_angles"]
-        Xsens_orthogonal_thorax_position = data["Xsens_orthogonal_thorax_position"]
-        Xsens_orthogonal_head_position = data["Xsens_orthogonal_head_position"]
-        Xsens_position_no_level_CoM_corrected_rotated_per_move = data[
-            "Xsens_position_no_level_CoM_corrected_rotated_per_move"]
-        Xsens_jointAngle_per_move = data["Xsens_jointAngle_per_move"]
-        Xsens_orientation_per_move = data["Xsens_orientation_per_move"]
-        Xsens_CoM_per_move = data["Xsens_CoM_per_move"]
-        time_vector_pupil_per_move = data["time_vector_pupil_per_move"]
+            with open(move_filename, "rb") as f:
+                data = pickle.load(f)
+                subject_name = data["subject_name"]
+                gaze_position_temporal_evolution_projected_facing_front_wall = data[
+                    "gaze_position_temporal_evolution_projected_facing_front_wall"]
+                move_orientation = data["move_orientation"]
+                Xsens_head_position_calculated = data["Xsens_head_position_calculated"]
+                eye_position = data["eye_position"]
+                gaze_orientation = data["gaze_orientation"]
+                EulAngles_head_global = data["EulAngles_head_global"]
+                EulAngles_neck = data["EulAngles_neck"]
+                eye_angles = data["eye_angles"]
+                Xsens_orthogonal_thorax_position = data["Xsens_orthogonal_thorax_position"]
+                Xsens_orthogonal_head_position = data["Xsens_orthogonal_head_position"]
+                Xsens_position_no_level_CoM_corrected_rotated_per_move = data[
+                    "Xsens_position_no_level_CoM_corrected_rotated_per_move"]
+                Xsens_jointAngle_per_move = data["Xsens_jointAngle_per_move"]
+                Xsens_orientation_per_move = data["Xsens_orientation_per_move"]
+                Xsens_CoM_per_move = data["Xsens_CoM_per_move"]
+                time_vector_pupil_per_move = data["time_vector_pupil_per_move"]
 
-    # get markers position from the biorbd model
-    model = biorbd.Model(biorbd_model_path)
-    num_dofs = model.nbQ()
+            # get markers position from the biorbd model
+            model = biorbd.Model(biorbd_model_path)
+            num_dofs = model.nbQ()
 
-    eye_angles_without_nans = np.zeros(eye_angles.shape)
-    eye_angles_without_nans[:, :] = eye_angles[:, :]
-    blink_index = np.isnan(eye_angles[0, :]).astype(int)
-    end_of_blinks = np.where(blink_index[1:] - blink_index[:-1] == -1)[0]
-    start_of_blinks = np.where(blink_index[1:] - blink_index[:-1] == 1)[0]
-    for i in range(len(start_of_blinks)):
-        eye_angles_without_nans[:, start_of_blinks[i]+1:end_of_blinks[i]+1] = np.linspace(eye_angles_without_nans[:, start_of_blinks[i]], eye_angles_without_nans[:, end_of_blinks[i]+1], end_of_blinks[i]-start_of_blinks[i]).T
+            eye_angles_without_nans = np.zeros(eye_angles.shape)
+            eye_angles_without_nans[:, :] = eye_angles[:, :]
+            blink_index = np.isnan(eye_angles[0, :]).astype(int)
+            end_of_blinks = np.where(blink_index[1:] - blink_index[:-1] == -1)[0]
+            start_of_blinks = np.where(blink_index[1:] - blink_index[:-1] == 1)[0]
+            for i in range(len(start_of_blinks)):
+                eye_angles_without_nans[:, start_of_blinks[i]+1:end_of_blinks[i]+1] = np.linspace(eye_angles_without_nans[:, start_of_blinks[i]], eye_angles_without_nans[:, end_of_blinks[i]+1], end_of_blinks[i]-start_of_blinks[i]).T
 
-    DoFs = np.zeros((num_dofs, len(Xsens_jointAngle_per_move)))
-    DoFs[3:-2, :] = get_q(Xsens_orientation_per_move)
-    DoFs[-2:, :] = eye_angles_without_nans
-    for i in range(DoFs.shape[0]):
-        DoFs[i, :] = np.unwrap(DoFs[i, :])
+            DoFs = np.zeros((num_dofs, len(Xsens_jointAngle_per_move)))
+            DoFs[3:-2, :] = get_q(Xsens_orientation_per_move)
+            DoFs[-2:, :] = eye_angles_without_nans
+            for i in range(DoFs.shape[0]):
+                DoFs[i, :] = np.unwrap(DoFs[i, :])
 
-    time_vector_pupil_per_move = time_vector_pupil_per_move - time_vector_pupil_per_move[0]
-    duration = time_vector_pupil_per_move[-1]
-    vz_init = 9.81 * duration / 2
+            time_vector_pupil_per_move = time_vector_pupil_per_move - time_vector_pupil_per_move[0]
+            duration = time_vector_pupil_per_move[-1]
+            vz_init = 9.81 * duration / 2
 
-    trans = np.zeros((3, len(Xsens_jointAngle_per_move)))
-    trans[2, :] = vz_init * time_vector_pupil_per_move - 0.5 * 9.81 * time_vector_pupil_per_move ** 2
+            trans = np.zeros((3, len(Xsens_jointAngle_per_move)))
+            trans[2, :] = vz_init * time_vector_pupil_per_move - 0.5 * 9.81 * time_vector_pupil_per_move ** 2
 
-    Xsens_CoM_position_per_move = Xsens_CoM_per_move[:, :3] - Xsens_CoM_per_move[0, :3]
-    trans = trans + Xsens_CoM_position_per_move.T
-    DoFs[:3, :] = trans
+            model = biorbd.Model(biorbd_model_path)
+            for i in range(DoFs.shape[1]):
+                CoM = model.CoM(DoFs[:, i]).to_array()
+                trans[:, i] = trans[:, i] - CoM
+            DoFs[:3, :] = trans
 
-    # real-time video
-    fps = 60
-    n_frames = round(duration * fps)
-    time_vector = np.linspace(0, duration, n_frames)
-    interpolated_DoFs = np.zeros((num_dofs, n_frames))
-    for i in range(DoFs.shape[0]):
-        interp = scipy.interpolate.interp1d(time_vector_pupil_per_move, DoFs[i, :])
-        interpolated_DoFs[i, :] = interp(time_vector)
+            # real-time video
+            fps = 60
+            n_frames = round(duration * fps)
+            time_vector = np.linspace(0, duration, n_frames)
+            interpolated_DoFs = np.zeros((num_dofs, n_frames))
+            for i in range(DoFs.shape[0]):
+                interp = scipy.interpolate.interp1d(time_vector_pupil_per_move, DoFs[i, :])
+                interpolated_DoFs[i, :] = interp(time_vector)
 
-    print(f"Videos/official/{filename[:-25]}.ogv")
-    model_type = ["with_cone", "without_cone"]
-    biorbe_model_paths = ["models/SoMe_Xsens_Model_rotated.bioMod", "models/SoMe_Xsens_Model_rotated_without_cone.bioMod"]
-    for i in range(2):
-        b = bioviz.Viz(biorbe_model_paths[i],
-                       mesh_opacity=0.8,
-                       show_global_center_of_mass=False,
-                       show_gravity_vector=False,
-                       show_segments_center_of_mass=False,
-                       show_global_ref_frame=False,
-                       show_local_ref_frame=False,
-                       experimental_markers_color=(1, 1, 1),
-                       background_color=(1.0, 1.0, 1.0),
-                       )
-        b.set_camera_zoom(0.25)
-        b.set_camera_focus_point(0, 0, 2.5)
-        b.maximize()
-        b.update()
-        b.load_movement(interpolated_DoFs)
-        b.exec()
+            with open(save_path + filename[:-25] + "_DoFs.pkl", "wb") as f:
+                pickle.dump({"DoFs": DoFs, "interpolated_DoFs": interpolated_DoFs}, f)
+
+            print(f"Videos/official/{filename[:-25]}.ogv")
+            model_type = ["with_cone", "without_cone"]
+            biorbe_model_paths = ["models/SoMe_Xsens_Model_rotated.bioMod", "models/SoMe_Xsens_Model_rotated_without_cone.bioMod"]
+            for i in range(2):
+                b = bioviz.Viz(biorbe_model_paths[i],
+                               mesh_opacity=0.8,
+                               show_global_center_of_mass=False,
+                               show_gravity_vector=False,
+                               show_segments_center_of_mass=False,
+                               show_global_ref_frame=False,
+                               show_local_ref_frame=False,
+                               experimental_markers_color=(1, 1, 1),
+                               background_color=(1.0, 1.0, 1.0),
+                               )
+                b.set_camera_zoom(0.25)
+                b.set_camera_focus_point(0, 0, 2.5)
+                b.maximize()
+                b.update()
+                b.load_movement(interpolated_DoFs)
+
+                b.set_camera_zoom(0.25)
+                b.set_camera_focus_point(0, 0, 2.5)
+                b.maximize()
+                b.update()
+
+                b.start_recording(f"Videos/official/{filename[:-25]}_{model_type[i]}.ogv")
+                for frame in range(interpolated_DoFs.shape[1] + 1):
+                    b.movement_slider[0].setValue(frame)
+                    b.add_frame()
+                b.stop_recording()
+                b.quit()
 
 
