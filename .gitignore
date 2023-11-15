@@ -143,3 +143,5 @@ Kalman_recons/
 .idea/
 
 *.svg
+
+Xsens_recons/
