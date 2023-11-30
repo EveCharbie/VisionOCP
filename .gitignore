@@ -145,3 +145,7 @@ Kalman_recons/
 *.svg
 
 Xsens_recons/
+
+coaches_ratings
+
+Videos/official/
