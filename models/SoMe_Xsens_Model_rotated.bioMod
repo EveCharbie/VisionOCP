@@ -1,0 +1,394 @@
+version    4
+
+root_actuated 0
+external_forces 0
+
+gravity 0 0 -9.81
+
+variables
+	$pi 3.14159265359
+endvariables
+
+
+segment Trampo_bed
+	meshfile Model_mesh/trampo_bed.stl
+	meshrt 0 0 0 xyz 0 0 -0.83
+endsegment
+
+marker Trampo_corner_1
+	parent Trampo_bed
+	position -1.07 -2.14 -0.83
+endmarker
+
+marker Trampo_corner_2
+	parent Trampo_bed
+	position -1.07 2.14 -0.83
+endmarker
+
+marker Trampo_corner_3
+	parent Trampo_bed
+	position 1.07 -2.14 -0.83
+endmarker
+
+marker Trampo_corner_4
+	parent Trampo_bed
+	position 1.07 2.14 -0.83
+endmarker
+
+marker fixation
+	parent Trampo_bed
+	position 0 -1.07 -0.83
+endmarker
+
+
+segment	Pelvis
+	translations	xyz
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.085
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/pelvis.stl
+	meshrt 0 -0.15 pi/2 xyz 0 0 0.1
+	meshscale 1 1.1 1
+endsegment
+
+segment	L5
+	parent	Pelvis
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.0915
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	L3
+	parent	L5
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.0915
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	T12
+	parent	L3
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.0915
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/thorax.stl
+	meshrt 0 -0.15 pi/2 xyz 0.025 0 0.02
+	meshscale 1 1.1 1
+endsegment
+
+segment	T8
+	parent	T12
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.0915
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+	
+segment	Neck
+	parent	T8
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.0915
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+	
+	
+segment	Head
+	parent	Neck
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.055
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/tete.stl
+	meshrt 0 0 -pi/2 xyz 0 0 0
+endsegment
+
+segment	RightShoulder
+	parent	T8
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.08
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	RightUpperArm
+	parent	RightShoulder
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 -0.18 0
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/bras.stl
+endsegment
+
+segment	RightForeArm
+	parent	RightUpperArm
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.24350000000000002
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/avantbras.stl
+endsegment
+
+segment	RightHand
+	parent	RightForeArm
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.22349999999999998
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/main.stl
+endsegment
+
+segment	LeftShoulder
+	parent	T8
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 0.08
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	LeftUpperArm
+	parent	LeftShoulder
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0.18 0
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/bras.stl
+endsegment
+
+segment	LeftForeArm
+	parent	LeftUpperArm
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.24350000000000002
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/avantbras.stl
+endsegment
+
+segment	LeftHand
+	parent	LeftForeArm
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.22349999999999998
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/main.stl
+endsegment
+
+segment	RightUpperLeg
+	parent	Pelvis
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 -0.135+0.05 0
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/thigh.stl
+endsegment
+
+segment	RightLowerLeg
+	parent	RightUpperLeg
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.3775
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/leg_left.stl
+	meshrt 0 -0.09 0 xyz 0 0 0
+endsegment
+
+segment	RightFoot
+	parent	RightLowerLeg
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.36400000000000005
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/foot.stl
+	meshrt pi/2 -pi/2 0 xyz 0 0 0
+endsegment
+
+segment	RightToes
+	parent	RightFoot
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0.15 0 0
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	LeftUpperLeg
+	parent	Pelvis
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0.135-0.05 0
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/thigh.stl
+endsegment
+
+segment	LeftLowerLeg
+	parent	LeftUpperLeg
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.3775
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/leg_left.stl
+	meshrt 0 -0.1 0 xyz 0 0 0
+endsegment
+
+segment	LeftFoot
+	parent	LeftLowerLeg
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0 0 -0.36400000000000005
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/foot.stl
+	meshrt pi/2 -pi/2 0 xyz 0 0 0
+endsegment
+
+segment	LeftToes
+	parent	LeftFoot
+	rotations	xyz
+	rtinmatrix 0
+	rt 0 0 0 xyz 0.15 0 0
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+endsegment
+
+segment	Eyes
+	parent	Head
+	rotations	zy
+	rtinmatrix 0
+	rt 0.0 0.0 0.0 xyz 0.055 0.0 0.085
+	mass	1
+	inertia
+		1	0	0
+		0	1	0
+		0	0	1
+	com	0	0	0
+	meshfile Model_mesh/cone.stl
+	meshrt 0 0 pi/2 xyz 1.5 0 0
+endsegment
+
+marker eyes_vect_start
+	parent Eyes
+	position 0 0 0
+endmarker
+
+marker eyes_vect_end
+	parent Eyes
+	position 1 0 0
+endmarker
+
+
+

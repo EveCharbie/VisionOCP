@@ -93,19 +93,7 @@ segment Eyes
 		0.000001 0.0 0.0
 		0.0 0.000001 0.0
 		0.0 0.0 0.000001
-	meshfile Model_mesh/cone.stl
-	meshrt 0 0 0 xyz 0 -1.5 0
 endsegment
-
-marker eyes_vect_start
-	parent Eyes
-	position 0 0 0
-endmarker
-
-marker eyes_vect_end
-	parent Eyes
-	position 0 -1 0
-endmarker
 
 segment RightUpperArm
 	parent Thorax
@@ -147,11 +135,6 @@ segment RightHand
 	meshfile Model_mesh/main.stl
 endsegment
 
-	marker MidMainD
-		parent RightHand
-		position 0 0 -0.1
-	endmarker
-
 segment LeftUpperArm
 	parent Thorax
 	rt 0 -0.17 -0.1 xyz 0.18 0.0 0.25999999999999995
@@ -192,11 +175,6 @@ segment LeftHand
 	meshfile Model_mesh/main.stl
 endsegment
 
-	marker MidMainG
-		parent LeftHand
-		position 0 0 -0.1
-	endmarker
-
 segment Thighs
 	parent Pelvis
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 -0.08608065292407807
@@ -221,16 +199,6 @@ segment Shanks
 	meshfile Model_mesh/jambe.stl
 	meshrt pi 0 0 xyz 0 0 0
 endsegment
-
-	marker CibleMainD
-		parent Shanks
-		position -0.1 0 -0.22
-	endmarker
-
-	marker CibleMainG
-		parent Shanks
-		position 0.1 0 -0.22
-	endmarker
 
 segment Feet
 	parent Shanks

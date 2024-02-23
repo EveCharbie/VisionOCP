@@ -9,29 +9,11 @@ import IPython
 import time
 
 import bioviz
-from bioptim import (
-    OptimalControlProgram,
-    DynamicsList,
-    DynamicsFcn,
-    ObjectiveList,
-    ObjectiveFcn,
-    BoundsList,
-    InitialGuessList,
-    InterpolationType,
-    OdeSolver,
-    Node,
-    Solver,
-    BiMappingList,
-    CostType,
-    ConstraintList,
-    ConstraintFcn,
-    PenaltyNodeList,
-    BiorbdModel,
-)
+import bioptim
 import biorbd
 
-WITH_VISUAL_CRITERIA = True # False
-ACROBATICS = "42"
+WITH_VISUAL_CRITERIA = False
+ACROBATICS = "831"
 
 if ACROBATICS == "831":
     if WITH_VISUAL_CRITERIA:
@@ -50,36 +32,28 @@ elif ACROBATICS == "42":
     num_twists = 1
     name = "SoMe"
 
-# file_name = "SoMe-1-(40_100_100_100_40)-2023-04-17-2319.pkl"  # Good 831< without visual criteria
-# file_name = "SoMe_42-42-(100_40)-2023-04-21-1058.pkl"  # Good 42/ without visual criteria
-file_name = "SoMe_42_with_visual_criteria-(100_40)-2023-04-22-1132.pkl"  # OK 42/ with visual criteria -> weights to change
+file_name = "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-10-26-1040.pkl"  # Good 831<
+# file_name = "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2023-10-25-1426.pkl"  # Good 831< with visual criteria
+# file_name = "SoMe_42_without_mesh-(100_40)-2023-10-20-1652.pkl"  # Good 42/
+# file_name = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-10-20-1631.pkl"  # Good 42/ with visual criteria
 
 with open("Solutions/" + file_name, "rb") as f:
     data = pickle.load(f)
     sol = data[0]
-    qs = data[1]
-    qdots = data[2]
-    qddots = data[3]
-    time_parameters = data[4]
-    q_reintegrated = data[5]
-    qdot_reintegrated = data[6]
-    time_vector = data[7]
+    q_per_phase = data[1]
+    qs = data[2]
+    qdots = data[3]
+    qddots = data[4]
+    time_parameters = data[5]
+    q_reintegrated = data[6]
+    qdot_reintegrated = data[7]
+    time_vector = data[8]
+    interpolated_states = data[9]
 
-
-if ACROBATICS == "831":
-    from TechOpt831 import prepare_ocp
-    sol.ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
-elif ACROBATICS == "42":
-    from TechOpt42 import prepare_ocp
-
-    sol.ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7,
-                WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA)
 
 b = bioviz.Viz(biorbd_model_path)
 b.load_movement(qs)
 b.exec()
-
-sol.graphs(show_bounds=True)
 
 
 # measure the value of the custom_trampoline_bed_in_peripheral_vision function
@@ -138,19 +112,19 @@ def custom_trampoline_bed_in_peripheral_vision(model, q):
 
     return val, first_condition, second_condition, third_condition
 
+if WITH_VISUAL_CRITERIA:
+    model = biorbd.Model(biorbd_model_path)
+    num_frames = qs.shape[1]
+    obj = np.zeros(num_frames)
+    first_condition = np.zeros(num_frames)
+    second_condition = np.zeros(num_frames)
+    third_condition = np.zeros(num_frames)
+    for i in range(num_frames):
+        obj[i], first_condition[i], second_condition[i], third_condition[i] = custom_trampoline_bed_in_peripheral_vision(model, qs[:, i])
 
-model = biorbd.Model(biorbd_model_path)
-num_frames = qs.shape[1]
-obj = np.zeros(num_frames)
-first_condition = np.zeros(num_frames)
-second_condition = np.zeros(num_frames)
-third_condition = np.zeros(num_frames)
-for i in range(num_frames):
-    obj[i], first_condition[i], second_condition[i], third_condition[i] = custom_trampoline_bed_in_peripheral_vision(model, qs[:, i])
-
-plt.figure()
-plt.plot(obj, 'k')
-plt.plot(first_condition * 220, 'r')
-plt.plot(second_condition * 220, 'g')
-plt.plot(third_condition * 220, 'b')
-plt.show()
+    plt.figure()
+    plt.plot(obj, 'k')
+    plt.plot(first_condition * 220, 'r')
+    plt.plot(second_condition * 220, 'g')
+    plt.plot(third_condition * 220, 'b')
+    plt.show()

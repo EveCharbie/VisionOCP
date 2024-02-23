@@ -5,6 +5,7 @@ external_forces 0
 
 gravity 0 0 -9.81
 
+
 segment Trampo_bed
 	meshfile Model_mesh/trampo_bed.stl
 	meshrt 0 0 0 xyz 0 0 -0.83
@@ -30,12 +31,17 @@ marker Trampo_corner_4
 	position 1.07 2.14 -0.83
 endmarker
 
-marker fixation
+marker fixation_front
 	parent Trampo_bed
 	position 0 -1.07 -0.83
 endmarker
 
-	
+marker fixation_center
+	parent Trampo_bed
+	position 0 0 -0.83
+endmarker
+
+
 segment Pelvis
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 0.0
 	translations xyz
@@ -74,6 +80,10 @@ endsegment
 segment Head
 	parent Thorax
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 0.322
+	rotations zx
+	rangesQ
+		-60*3.14/180 60*3.14/180
+		-70*3.14/180 3.14/8
 	com 0.0 0.0 0.1169371541218166
 	mass 3.9436452215486697
 	inertia
@@ -87,25 +97,17 @@ endsegment
 segment Eyes
 	parent Head
 	rt 0.0 0.0 0.0 xyz 0.0 -0.055 0.085
+	rotations zx
+	rangesQ
+		-3.14/8 3.14/8
+		-30*3.14/180 3.14/8
 	com 0.01 0.0 0.0
 	mass 0.0000001 
 	inertia
 		0.000001 0.0 0.0
 		0.0 0.000001 0.0
 		0.0 0.0 0.000001
-	meshfile Model_mesh/cone.stl
-	meshrt 0 0 0 xyz 0 -1.5 0
 endsegment
-
-marker eyes_vect_start
-	parent Eyes
-	position 0 0 0
-endmarker
-
-marker eyes_vect_end
-	parent Eyes
-	position 0 -1 0
-endmarker
 
 segment RightUpperArm
 	parent Thorax
@@ -126,6 +128,10 @@ endsegment
 segment RightForearm
 	parent RightUpperArm
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 -0.24350000000000002
+	rotations zx
+	rangesQ
+		-1.8 1.1
+		-2.65 0
 	com 0.0 0.0 -0.09478305833450895
 	mass 0.8754802725163806
 	inertia
@@ -147,11 +153,6 @@ segment RightHand
 	meshfile Model_mesh/main.stl
 endsegment
 
-	marker MidMainD
-		parent RightHand
-		position 0 0 -0.1
-	endmarker
-
 segment LeftUpperArm
 	parent Thorax
 	rt 0 -0.17 -0.1 xyz 0.18 0.0 0.25999999999999995
@@ -171,6 +172,10 @@ endsegment
 segment LeftForearm
 	parent LeftUpperArm
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 -0.24350000000000002
+	rotations zx
+	rangesQ
+		-1.1 1.8
+		-2.65 0
 	com 0.0 0.0 -0.09478305833450895
 	mass 0.8754802725163806
 	inertia
@@ -192,14 +197,13 @@ segment LeftHand
 	meshfile Model_mesh/main.stl
 endsegment
 
-	marker MidMainG
-		parent LeftHand
-		position 0 0 -0.1
-	endmarker
-
 segment Thighs
 	parent Pelvis
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 -0.08608065292407807
+	rotations xy
+	rangesQ
+		-2.4 0.3
+		-0.35 0.35
 	com 0.0 0.0 -0.17089938491274764
 	mass 16.759868032417362
 	inertia
@@ -221,16 +225,6 @@ segment Shanks
 	meshfile Model_mesh/jambe.stl
 	meshrt pi 0 0 xyz 0 0 0
 endsegment
-
-	marker CibleMainD
-		parent Shanks
-		position -0.1 0 -0.22
-	endmarker
-
-	marker CibleMainG
-		parent Shanks
-		position 0.1 0 -0.22
-	endmarker
 
 segment Feet
 	parent Shanks
