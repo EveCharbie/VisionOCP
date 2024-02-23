@@ -4,6 +4,7 @@ The goal of this program is to compare the athlete kinematics with the optimal k
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from matplotlib.patches import Rectangle
 import pickle
 import sys
@@ -11,6 +12,7 @@ sys.path.append("/home/charbie/Documents/Programmation/BiorbdOptim")
 import bioptim
 import biorbd
 from IPython import embed
+import os
 
 sys.path.append("/home/charbie/Documents/Programmation/biorbd-viz")
 import bioviz
@@ -31,244 +33,237 @@ model_42 = biorbd.Model(biorbd_model_path_42)
 biorbd_model_path_42_both = "models/SoMe_42_with_and_without_visual_criteria.bioMod"
 n_shooting_42 = (100, 40)
 
-# file_name_831 = "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-10-26-1040.pkl"  # Good 831<
-file_name_831 = "old/SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-11-01-1206-0p0_CVG.pkl"  # Good 831<
-# file_name_831_with_visual_criteria = "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2023-10-25-1426.pkl"  # Good 831< with visual criteria
-file_name_831_with_visual_criteria = "old/SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2023-11-02-1729-1p0_CVG.pkl"  # Good 831< with visual criteria
-# file_name_42 = "SoMe_42_without_mesh-(100_40)-2023-10-26-1518.pkl"  # Good 42/
-file_name_42 = "old/SoMe_42_without_mesh-(100_40)-2023-10-28-0825-0p0_CVG.pkl"  # Good 42/
-# file_name_42_with_visual_criteria = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-10-26-1533.pkl"   # Good 42/ with visual criteria
-file_name_42_with_visual_criteria = "old/SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-11-02-1810-1p0_CVG.pkl"   # Good 42/ with visual criteria
 
+# ---------------------------------------- Load optimal kinematics ---------------------------------------- #
+weights = [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+listdir = os.listdir("Solutions/")
+solution_file_names = [current_dir for current_dir in listdir if ".pkl" in current_dir and current_dir[:2] != "q_"]
 
-# ---------------------------------------- Load data ---------------------------------------- #
-
-with open("Solutions/" + file_name_42, "rb") as f:
-    data = pickle.load(f)
-    sol = data[0]
-    q_per_phase_42 = data[1]
-    qs_42 = data[2]
-    qdots = data[3]
-    qddots = data[4]
-    time_parameters = data[5]
-    q_reintegrated = data[6]
-    qdot_reintegrated = data[7]
-    time_vector_42 = data[8]
-    interpolated_states_42 = data[9]
-
-with open("Solutions/" + file_name_42_with_visual_criteria, "rb") as f:
-    data = pickle.load(f)
-    sol = data[0]
-    q_per_phase_42_with_visual_criteria = data[1]
-    qs_42_with_visual_criteria = data[2]
-    qdots = data[3]
-    qddots = data[4]
-    time_parameters = data[5]
-    q_reintegrated = data[6]
-    qdot_reintegrated = data[7]
-    time_vector_42_with_visual_criteria = data[8]
-    interpolated_states_42_with_visual_criteria = data[9]
-
-with open("Solutions/" + file_name_831, "rb") as f:
-    data = pickle.load(f)
-    sol = data[0]
-    q_per_phase_831 = data[1]
-    qs_831 = data[2]
-    qdots = data[3]
-    qddots = data[4]
-    time_parameters = data[5]
-    q_reintegrated = data[6]
-    qdot_reintegrated = data[7]
-    time_vector_831 = data[8]
-    interpolated_states_831 = data[9]
-
-with open("Solutions/" + file_name_831_with_visual_criteria, "rb") as f:
-    data = pickle.load(f)
-    sol = data[0]
-    q_per_phase_831_with_visual_criteria = data[1]
-    qs_831_with_visual_criteria = data[2]
-    qdots = data[3]
-    qddots = data[4]
-    time_parameters = data[5]
-    q_reintegrated = data[6]
-    qdot_reintegrated = data[7]
-    time_vector_831_with_visual_criteria = data[8]
-    interpolated_states_831_with_visual_criteria = data[9]
-
-
-# ---------------------------------------- Animate comparison ---------------------------------------- #
-
-# q_per_phase_42_combined = [np.vstack((q_per_phase_42_with_visual_criteria[i], q_per_phase_42[i])) for i in range(len(q_per_phase_42))]
-# qs_42_combined = np.vstack((qs_42_with_visual_criteria, qs_42))
-# b = bioviz.Kinogram(model_path=biorbd_model_path_42_both,
-#                    mesh_opacity=0.8,
-#                    show_global_center_of_mass=False,
-#                    show_gravity_vector=False,
-#                    show_segments_center_of_mass=False,
-#                    show_global_ref_frame=False,
-#                    show_local_ref_frame=False,
-#                    experimental_markers_color=(1, 1, 1),
-#                    background_color=(1.0, 1.0, 1.0),
-#                     )
-# b.load_movement(q_per_phase_42_combined)
-# b.set_camera_focus_point(0, 0, 2.5)
-# b.set_camera_zoom(0.25)
-# b.exec(frame_step=20,
-#        save_path="Kinograms/42_both.svg")
-
-# qs_42_combined_real_time = [np.vstack((interpolated_states_42_with_visual_criteria[i]["q"], interpolated_states_42[i]["q"])) for i in range(len(q_per_phase_42))]
-# b = bioviz.Viz(biorbd_model_path_42_both,
-#                mesh_opacity=0.8,
-#                show_global_center_of_mass=False,
-#                show_gravity_vector=False,
-#                show_segments_center_of_mass=False,
-#                show_global_ref_frame=False,
-#                show_local_ref_frame=False,
-#                experimental_markers_color=(1, 1, 1),
-#                background_color=(1.0, 1.0, 1.0),
-#                )
-# b.load_movement(qs_42_combined_real_time)
-# b.set_camera_zoom(0.25)
-# b.set_camera_focus_point(0, 0, 2.5)
-# b.exec()
-
-# qs_42_combined_array = np.hstack((q_per_phase_42_combined[0][:, :-1], q_per_phase_42_combined[1]))
-# qs_42_combined_array[15, :] -= 2
+# # Branch Multi-start, commit fd1886ca828af2fa56b93e8221a0840f88b2058d, May 4th 2023
+# for i_weight, weight in enumerate(weights):
 #
-# b = bioviz.Viz(biorbd_model_path_42_both,
-#                mesh_opacity=0.8,
-#                show_global_center_of_mass=False,
-#                show_gravity_vector=False,
-#                show_segments_center_of_mass=False,
-#                show_global_ref_frame=False,
-#                show_local_ref_frame=False,
-#                experimental_markers_color=(1, 1, 1),
-#                background_color=(1.0, 1.0, 1.0),
-#                )
-# b.load_movement(qs_42_combined_array)
-# b.set_camera_zoom(0.25)
-# b.set_camera_focus_point(0, 0, 1.5) ##
-# b.maximize()
-# b.update()
-# b.start_recording(f"comp_42.ogv")
-# for frame in range(qs_42_combined_array.shape[1] + 1):
-#     b.movement_slider[0].setValue(frame)
-#     b.add_frame()
-# b.stop_recording()
-# b.quit()
+#     for file_name in solution_file_names:
+#         if "42" in file_name and str(weight).replace('.', 'p') in file_name:
+#             file_name_42 = file_name
+#
+#     with open("Solutions/" + file_name_42, "rb") as f:
+#         data = pickle.load(f)
+#         sol = data[0]
+#         q_per_phase = data[1]
+#         qs = data[2]
+#         qdots = data[3]
+#         qddots = data[4]
+#         time_parameters = data[5]
+#         q_reintegrated = data[6]
+#         qdot_reintegrated = data[7]
+#         time_vector = data[8]
+#         interpolated_states = data[9]
+#
+#     data_without_sol = {"q_per_phase": q_per_phase,
+#                         "qs": qs,
+#                         "qdots": qdots,
+#                         "qddots": qddots,
+#                         "time_parameters": time_parameters,
+#                         "q_reintegrated": q_reintegrated,
+#                         "qdot_reintegrated": qdot_reintegrated,
+#                         "time_vector": time_vector,
+#                         "interpolated_states": interpolated_states}
+#
+#     with open("Solutions/q_" + file_name_42, "wb") as f:
+#         pickle.dump(data_without_sol, f)
 
-# Animate comparison
-# q_per_phase_831_combined = [np.vstack((q_per_phase_831_with_visual_criteria[i], q_per_phase_831[i])) for i in range(len(q_per_phase_831))]
-# qs_831_combined = np.vstack((qs_831_with_visual_criteria, qs_831))
-# b = bioviz.Kinogram(model_path=biorbd_model_path_831_both,
-#                    mesh_opacity=0.8,
-#                    show_global_center_of_mass=False,
-#                    show_gravity_vector=False,
-#                    show_segments_center_of_mass=False,
-#                    show_global_ref_frame=False,
-#                    show_local_ref_frame=False,
-#                    experimental_markers_color=(1, 1, 1),
-#                    background_color=(1.0, 1.0, 1.0),
-#                     )
-# b.load_movement(q_per_phase_831_combined)
-# b.set_camera_zoom(0.25)
-# b.set_camera_focus_point(0, 0, 2.5)
-# b.exec(frame_step=20,
-#        save_path="Kinograms/831_both.svg")
 
-# qs_831_combined_real_time = [np.vstack((interpolated_states_831_with_visual_criteria[i]["q"], interpolated_states_831[i]["q"])) for i in range(len(q_per_phase_831))]
-# b = bioviz.Viz(biorbd_model_path_831_both,
-#                mesh_opacity=0.8,
-#                show_global_center_of_mass=False,
-#                show_gravity_vector=False,
-#                show_segments_center_of_mass=False,
-#                show_global_ref_frame=False,
-#                show_local_ref_frame=False,
-#                experimental_markers_color=(1, 1, 1),
-#                background_color=(1.0, 1.0, 1.0),
-#                )
-# b.load_movement(qs_831_combined_real_time)
-# b.set_camera_zoom(0.25)
-# b.set_camera_focus_point(0, 0, 2.5)
-# b.exec()
+# # Branch Total_time_constraint, commit 7e3a4b17531e359138737714216eda41a3b316f7, October 26th 2023
+# for i_weight, weight in enumerate(weights):
+#
+#     if i_weight == 0:
+#         continue
+#     for file_name in solution_file_names:
+#         if "831" in file_name and str(weight).replace('.', 'p') in file_name:
+#             file_name_831 = file_name
+#
+#     with open("Solutions/" + file_name_831, "rb") as f:
+#         data = pickle.load(f)
+#         sol = data[0]
+#         q_per_phase = data[1]
+#         qs = data[2]
+#         qdots = data[3]
+#         qddots = data[4]
+#         time_parameters = data[5]
+#         q_reintegrated = data[6]
+#         qdot_reintegrated = data[7]
+#         time_vector = data[8]
+#         interpolated_states = data[9]
+#
+#     data_without_sol = {"q_per_phase": q_per_phase,
+#                         "qs": qs,
+#                         "qdots": qdots,
+#                         "qddots": qddots,
+#                         "time_parameters": time_parameters,
+#                         "q_reintegrated": q_reintegrated,
+#                         "qdot_reintegrated": qdot_reintegrated,
+#                         "time_vector": time_vector,
+#                         "interpolated_states": interpolated_states}
+#
+#     with open("Solutions/q_" + file_name_831, "wb") as f:
+#         pickle.dump(data_without_sol, f)
+
+
+# # Branch release_3_2, commit 17e3628b1e4fdf5aa09b47e30f13abae2e1ecae4, November 1st 2023
+# weight = 0.0
+# for file_name in solution_file_names:
+#     if "831" in file_name and str(weight).replace('.', 'p') in file_name:
+#         file_name_831 = file_name
+#
+# with open("Solutions/" + file_name_831, "rb") as f:
+#     data = pickle.load(f)
+#     sol = data[0]
+#     q_per_phase = data[1]
+#     qs = data[2]
+#     qdots = data[3]
+#     qddots = data[4]
+#     time_parameters = data[5]
+#     q_reintegrated = data[6]
+#     qdot_reintegrated = data[7]
+#     time_vector = data[8]
+#     interpolated_states = data[9]
+#
+# data_without_sol = {"q_per_phase": q_per_phase,
+#                     "qs": qs,
+#                     "qdots": qdots,
+#                     "qddots": qddots,
+#                     "time_parameters": time_parameters,
+#                     "q_reintegrated": q_reintegrated,
+#                     "qdot_reintegrated": qdot_reintegrated,
+#                     "time_vector": time_vector,
+#                     "interpolated_states": interpolated_states}
+#
+# with open("Solutions/q_" + file_name_831, "wb") as f:
+#     pickle.dump(data_without_sol, f)
 
 
 # ---------------------------------------- Plot comparison ---------------------------------------- #
+colors = [cm.magma(i/9) for i in range(9)]
 
 # 42 plots
-fig, axs = plt.subplots(1, 3, figsize=(15, 3))
-for i in range(3):
-    axs[i].plot(time_vector_42, qs_42[i+3, :], 'tab:blue')
-    axs[i].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[i+3, :], 'tab:red')
-plt.savefig("Graphs/compare_42_root.png", dpi=300)
-# plt.show()
+fig_root, axs_root = plt.subplots(1, 3, figsize=(15, 3))
+fig_joints, axs_joints = plt.subplots(2, 2, figsize=(10, 6))
+for i_weight, weight in enumerate(weights):
 
-fig, axs = plt.subplots(2, 2)
-# Right arm
-axs[0, 1].plot(time_vector_42, qs_42[6, :], 'tab:blue', label="OCP without vision")
-axs[0, 1].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[6+4, :], 'tab:red', label="OCP with vision")
-axs[0, 1].set_title("Change in elevation plane R")
+    for file_name in solution_file_names:
+        if "42" in file_name and str(weight).replace('.', 'p') in file_name:
+            file_name_42 = file_name
 
-axs[1, 1].plot(time_vector_42, qs_42[7, :], 'tab:blue')
-axs[1, 1].plot(time_vector_42_with_visual_criteria, qs_42_with_visual_criteria[7+4, :], 'tab:red')
-axs[1, 1].set_title("Elevation R")
+    with open("Solutions/q_" + file_name_42, "rb") as f:
+        data = pickle.load(f)
+        q_per_phase = data["q_per_phase"]
+        qs = data["qs"]
+        qdots = data["qdots"]
+        qddots = data["qddots"]
+        time_parameters = data["time_parameters"]
+        q_reintegrated = data["q_reintegrated"]
+        qdot_reintegrated = data["qdot_reintegrated"]
+        time_vector = data["time_vector"]
+        interpolated_states = data["interpolated_states"]
 
-# Left arm
-axs[0, 0].plot(time_vector_42, -qs_42[8, :], 'tab:blue')
-axs[0, 0].plot(time_vector_42_with_visual_criteria, -qs_42_with_visual_criteria[8+4, :], 'tab:red')
-axs[0, 0].set_title("Change in elevation plane L")
+    axs_root[0].plot(time_vector, qs[3, :], color=colors[i_weight], label=str(weight))
+    axs_root[1].plot(time_vector, qs[4, :], color=colors[i_weight])
+    axs_root[2].plot(time_vector, qs[5, :], color=colors[i_weight])
 
-axs[1, 0].plot(time_vector_42, -qs_42[9, :], 'tab:blue')
-axs[1, 0].plot(time_vector_42_with_visual_criteria, -qs_42_with_visual_criteria[9+4, :], 'tab:red')
-axs[1, 0].set_title("Elevation L")
+    if weight == 0.0:
+        right_arm_indices = [6, 7]
+        left_arm_indices = [8, 9]
+    else:
+        right_arm_indices = [10, 11]
+        left_arm_indices = [12, 13]
+
+    # Right arm
+    axs_joints[0, 1].plot(time_vector, qs[right_arm_indices[0], :], color=colors[i_weight], label=str(weight))
+    axs_joints[1, 1].plot(time_vector, qs[right_arm_indices[1], :], color=colors[i_weight])
+
+    # Left arm
+    axs_joints[0, 0].plot(time_vector, -qs[left_arm_indices[0], :], color=colors[i_weight])
+    axs_joints[1, 0].plot(time_vector, -qs[left_arm_indices[1], :], color=colors[i_weight])
+
 
 # show legend below figure
-axs[0, 1].legend(bbox_to_anchor=[0.8, -1.5], ncols=2, frameon=False)
-plt.subplots_adjust(hspace=0.35)
-plt.savefig("Graphs/compare_42_dofs.png", dpi=300)
-# plt.show()
+axs_root[0].legend(bbox_to_anchor=[3.7, 1.0], frameon=False)
+axs_joints[0, 1].legend(bbox_to_anchor=[1.1, 0.5], frameon=False)
+fig_joints.subplots_adjust(hspace=0.35, right=0.85)
+
+axs_joints[0, 1].set_title("Change in elevation plane R")
+axs_joints[1, 1].set_title("Elevation R")
+axs_joints[0, 0].set_title("Change in elevation plane L")
+axs_joints[1, 0].set_title("Elevation L")
+
+fig_root.savefig("Graphs/compare_42_root.png", dpi=300)
+fig_joints.savefig("Graphs/compare_42_dofs.png", dpi=300)
+plt.show()
+
 
 
 # 831 plots
-fig, axs = plt.subplots(1, 3, figsize=(15, 3))
-for i in range(3):
-    axs[i].plot(time_vector_831, qs_831[i+3, :], 'tab:blue')
-    axs[i].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[i+3, :], 'tab:red')
-plt.savefig("Graphs/compare_831_root.png", dpi=300)
-plt.show()
+fig_root, axs_root = plt.subplots(1, 3, figsize=(15, 3))
+fig_joints, axs_joints = plt.subplots(2, 3, figsize=(15, 6))
+for i_weight, weight in enumerate(weights):
 
-fig, axs = plt.subplots(2, 3)
-# Right arm
-axs[0, 1].plot(time_vector_831, qs_831[6, :], 'tab:blue', label="OCP without vision")
-axs[0, 1].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[6+4, :], 'tab:red', label="OCP with vision")
-axs[0, 1].set_title("Change in elevation plane R")
+    for file_name in solution_file_names:
+        if "831" in file_name and str(weight).replace('.', 'p') in file_name:
+            file_name_831 = file_name
 
-axs[1, 1].plot(time_vector_831, qs_831[7, :], 'tab:blue')
-axs[1, 1].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[7+4, :], 'tab:red')
-axs[1, 1].set_title("Elevation R")
+    with open("Solutions/q_" + file_name_831, "rb") as f:
+        data = pickle.load(f)
+        q_per_phase = data["q_per_phase"]
+        qs = data["qs"]
+        qdots = data["qdots"]
+        qddots = data["qddots"]
+        time_parameters = data["time_parameters"]
+        q_reintegrated = data["q_reintegrated"]
+        qdot_reintegrated = data["qdot_reintegrated"]
+        time_vector = data["time_vector"]
+        interpolated_states = data["interpolated_states"]
 
-# Left arm
-axs[0, 0].plot(time_vector_831, qs_831[10, :], 'tab:blue')
-axs[0, 0].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[10+4, :], 'tab:red')
-axs[0, 0].set_title("Change in elevation plane L")
 
-axs[1, 0].plot(time_vector_831, qs_831[11, :], 'tab:blue')
-axs[1, 0].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[11+4, :], 'tab:red')
-axs[1, 0].set_title("Elevation L")
+    axs_root[0].plot(time_vector, qs[3, :], color=colors[i_weight], label=str(weight))
+    axs_root[1].plot(time_vector, qs[4, :], color=colors[i_weight])
+    axs_root[2].plot(time_vector, qs[5, :], color=colors[i_weight])
 
-# Hips
-axs[0, 2].plot(time_vector_831, qs_831[12, :], 'tab:blue')
-axs[0, 2].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[12+4, :], 'tab:red')
-axs[0, 2].set_title("Flexion")
+    if weight == 0.0:
+        right_arm_indices = [6, 7]
+        left_arm_indices = [8, 9]
+        hips_indices = [12, 13]
+    else:
+        right_arm_indices = [10, 11]
+        left_arm_indices = [14, 15]
+        hips_indices = [18, 19]
 
-axs[1, 2].plot(time_vector_831, qs_831[13, :], 'tab:blue')
-axs[1, 2].plot(time_vector_831_with_visual_criteria, qs_831_with_visual_criteria[13+4, :], 'tab:red')
-axs[1, 2].set_title("Lateral flexion")
+    # Right arm
+    axs_joints[0, 1].plot(time_vector, qs[right_arm_indices[0], :], color=colors[i_weight], label=str(weight))
+    axs_joints[1, 1].plot(time_vector, qs[right_arm_indices[1], :], color=colors[i_weight])
+
+    # Left arm
+    axs_joints[0, 0].plot(time_vector, qs[left_arm_indices[0], :], color=colors[i_weight])
+    axs_joints[1, 0].plot(time_vector, qs[left_arm_indices[1], :], color=colors[i_weight])
+
+    # Hips
+    axs_joints[0, 2].plot(time_vector, qs[hips_indices[0], :], color=colors[i_weight])
+    axs_joints[1, 2].plot(time_vector, qs[hips_indices[1], :], color=colors[i_weight])
+
 
 # show legend below figure
-axs[0, 0].legend(bbox_to_anchor=[3.0, -1.5], ncols=2, frameon=False)
-plt.subplots_adjust(hspace=0.35)
-plt.savefig("Graphs/compare_831_dofs.png", dpi=300)
+axs_root[0].legend(bbox_to_anchor=[3.7, 1.0], frameon=False)
+axs_joints[0, 1].legend(bbox_to_anchor=[2.5, 0.5], frameon=False)
+fig_joints.subplots_adjust(hspace=0.35, right=0.9)
+
+axs_joints[0, 1].set_title("Change in elevation plane R")
+axs_joints[1, 1].set_title("Elevation R")
+axs_joints[0, 0].set_title("Change in elevation plane L")
+axs_joints[1, 0].set_title("Elevation L")
+axs_joints[0, 2].set_title("Flexion")
+axs_joints[1, 2].set_title("Lateral flexion")
+
+fig_root.savefig("Graphs/compare_831_root.png", dpi=300)
+fig_joints.savefig("Graphs/compare_831_dofs.png", dpi=300)
 plt.show()
 
 
@@ -712,5 +707,165 @@ plt.show()
 
 
 
+# file_name_831 = "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-10-26-1040.pkl"  # Good 831<
+# file_name_831 = "old/SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-11-01-1206-0p0_CVG.pkl"  # Good 831<
+# file_name_831_with_visual_criteria = "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2023-10-25-1426.pkl"  # Good 831< with visual criteria
+# file_name_831_with_visual_criteria = "old/SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2023-11-02-1729-1p0_CVG.pkl"  # Good 831< with visual criteria
+# file_name_42 = "SoMe_42_without_mesh-(100_40)-2023-10-26-1518.pkl"  # Good 42/
+# file_name_42 = "old/SoMe_42_without_mesh-(100_40)-2023-10-28-0825-0p0_CVG.pkl"  # Good 42/
+# file_name_42_with_visual_criteria = "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-10-26-1533.pkl"   # Good 42/ with visual criteria
+# file_name_42_with_visual_criteria = "old/SoMe_42_with_visual_criteria_without_mesh-(100_40)-2023-11-02-1810-1p0_CVG.pkl"   # Good 42/ with visual criteria
+
+#
+# # ---------------------------------------- Load data ---------------------------------------- #
+#
+# with open("Solutions/" + file_name_42, "rb") as f:
+#     data = pickle.load(f)
+#     sol = data[0]
+#     q_per_phase_42 = data[1]
+#     qs_42 = data[2]
+#     qdots = data[3]
+#     qddots = data[4]
+#     time_parameters = data[5]
+#     q_reintegrated = data[6]
+#     qdot_reintegrated = data[7]
+#     time_vector_42 = data[8]
+#     interpolated_states_42 = data[9]
+#
+# with open("Solutions/" + file_name_42_with_visual_criteria, "rb") as f:
+#     data = pickle.load(f)
+#     sol = data[0]
+#     q_per_phase_42_with_visual_criteria = data[1]
+#     qs_42_with_visual_criteria = data[2]
+#     qdots = data[3]
+#     qddots = data[4]
+#     time_parameters = data[5]
+#     q_reintegrated = data[6]
+#     qdot_reintegrated = data[7]
+#     time_vector_42_with_visual_criteria = data[8]
+#     interpolated_states_42_with_visual_criteria = data[9]
+#
+# with open("Solutions/" + file_name_831, "rb") as f:
+#     data = pickle.load(f)
+#     sol = data[0]
+#     q_per_phase_831 = data[1]
+#     qs_831 = data[2]
+#     qdots = data[3]
+#     qddots = data[4]
+#     time_parameters = data[5]
+#     q_reintegrated = data[6]
+#     qdot_reintegrated = data[7]
+#     time_vector_831 = data[8]
+#     interpolated_states_831 = data[9]
+#
+# with open("Solutions/" + file_name_831_with_visual_criteria, "rb") as f:
+#     data = pickle.load(f)
+#     sol = data[0]
+#     q_per_phase_831_with_visual_criteria = data[1]
+#     qs_831_with_visual_criteria = data[2]
+#     qdots = data[3]
+#     qddots = data[4]
+#     time_parameters = data[5]
+#     q_reintegrated = data[6]
+#     qdot_reintegrated = data[7]
+#     time_vector_831_with_visual_criteria = data[8]
+#     interpolated_states_831_with_visual_criteria = data[9]
+#
+
+# ---------------------------------------- Animate comparison ---------------------------------------- #
+
+# q_per_phase_42_combined = [np.vstack((q_per_phase_42_with_visual_criteria[i], q_per_phase_42[i])) for i in range(len(q_per_phase_42))]
+# qs_42_combined = np.vstack((qs_42_with_visual_criteria, qs_42))
+# b = bioviz.Kinogram(model_path=biorbd_model_path_42_both,
+#                    mesh_opacity=0.8,
+#                    show_global_center_of_mass=False,
+#                    show_gravity_vector=False,
+#                    show_segments_center_of_mass=False,
+#                    show_global_ref_frame=False,
+#                    show_local_ref_frame=False,
+#                    experimental_markers_color=(1, 1, 1),
+#                    background_color=(1.0, 1.0, 1.0),
+#                     )
+# b.load_movement(q_per_phase_42_combined)
+# b.set_camera_focus_point(0, 0, 2.5)
+# b.set_camera_zoom(0.25)
+# b.exec(frame_step=20,
+#        save_path="Kinograms/42_both.svg")
+
+# qs_42_combined_real_time = [np.vstack((interpolated_states_42_with_visual_criteria[i]["q"], interpolated_states_42[i]["q"])) for i in range(len(q_per_phase_42))]
+# b = bioviz.Viz(biorbd_model_path_42_both,
+#                mesh_opacity=0.8,
+#                show_global_center_of_mass=False,
+#                show_gravity_vector=False,
+#                show_segments_center_of_mass=False,
+#                show_global_ref_frame=False,
+#                show_local_ref_frame=False,
+#                experimental_markers_color=(1, 1, 1),
+#                background_color=(1.0, 1.0, 1.0),
+#                )
+# b.load_movement(qs_42_combined_real_time)
+# b.set_camera_zoom(0.25)
+# b.set_camera_focus_point(0, 0, 2.5)
+# b.exec()
+
+# qs_42_combined_array = np.hstack((q_per_phase_42_combined[0][:, :-1], q_per_phase_42_combined[1]))
+# qs_42_combined_array[15, :] -= 2
+#
+# b = bioviz.Viz(biorbd_model_path_42_both,
+#                mesh_opacity=0.8,
+#                show_global_center_of_mass=False,
+#                show_gravity_vector=False,
+#                show_segments_center_of_mass=False,
+#                show_global_ref_frame=False,
+#                show_local_ref_frame=False,
+#                experimental_markers_color=(1, 1, 1),
+#                background_color=(1.0, 1.0, 1.0),
+#                )
+# b.load_movement(qs_42_combined_array)
+# b.set_camera_zoom(0.25)
+# b.set_camera_focus_point(0, 0, 1.5) ##
+# b.maximize()
+# b.update()
+# b.start_recording(f"comp_42.ogv")
+# for frame in range(qs_42_combined_array.shape[1] + 1):
+#     b.movement_slider[0].setValue(frame)
+#     b.add_frame()
+# b.stop_recording()
+# b.quit()
+
+# Animate comparison
+# q_per_phase_831_combined = [np.vstack((q_per_phase_831_with_visual_criteria[i], q_per_phase_831[i])) for i in range(len(q_per_phase_831))]
+# qs_831_combined = np.vstack((qs_831_with_visual_criteria, qs_831))
+# b = bioviz.Kinogram(model_path=biorbd_model_path_831_both,
+#                    mesh_opacity=0.8,
+#                    show_global_center_of_mass=False,
+#                    show_gravity_vector=False,
+#                    show_segments_center_of_mass=False,
+#                    show_global_ref_frame=False,
+#                    show_local_ref_frame=False,
+#                    experimental_markers_color=(1, 1, 1),
+#                    background_color=(1.0, 1.0, 1.0),
+#                     )
+# b.load_movement(q_per_phase_831_combined)
+# b.set_camera_zoom(0.25)
+# b.set_camera_focus_point(0, 0, 2.5)
+# b.exec(frame_step=20,
+#        save_path="Kinograms/831_both.svg")
+
+# qs_831_combined_real_time = [np.vstack((interpolated_states_831_with_visual_criteria[i]["q"], interpolated_states_831[i]["q"])) for i in range(len(q_per_phase_831))]
+# b = bioviz.Viz(biorbd_model_path_831_both,
+#                mesh_opacity=0.8,
+#                show_global_center_of_mass=False,
+#                show_gravity_vector=False,
+#                show_segments_center_of_mass=False,
+#                show_global_ref_frame=False,
+#                show_local_ref_frame=False,
+#                experimental_markers_color=(1, 1, 1),
+#                background_color=(1.0, 1.0, 1.0),
+#                )
+# b.load_movement(qs_831_combined_real_time)
+# b.set_camera_zoom(0.25)
+# b.set_camera_focus_point(0, 0, 2.5)
+# b.exec()
 
 

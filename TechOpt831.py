@@ -496,7 +496,7 @@ def prepare_ocp(
     CoM_Q_init = q_bounds_0_min[:nb_q, START]
     CoM_Q_func = cas.Function("CoM_Q_func", [CoM_Q_sym], [biorbd_model[0].center_of_mass(CoM_Q_sym)])
     bassin_Q_func = cas.Function(
-        "bassin_Q_func", [CoM_Q_sym], [biorbd_model[0].homogeneous_matrices_in_global(CoM_Q_sym, 0).to_mx()]
+        "bassin_Q_func", [CoM_Q_sym], [biorbd_model[0].homogeneous_matrices_in_global(CoM_Q_sym, 0)]
     )
 
     r = np.array(CoM_Q_func(CoM_Q_init)).reshape(1, 3) - np.array(bassin_Q_func(CoM_Q_init))[-1, :3]
@@ -1069,7 +1069,7 @@ def main(WITH_VISUAL_CRITERIA, visual_weight):
     num_twists = 1
     ocp = prepare_ocp(biorbd_model_path, n_shooting=n_shooting, num_twists=num_twists, n_threads=7, WITH_VISUAL_CRITERIA=WITH_VISUAL_CRITERIA, visual_weight=visual_weight)
 
-    solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
+    solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
     solver.set_linear_solver("ma57")
     solver.set_maximum_iterations(3000)
     solver.set_convergence_tolerance(1e-6)
