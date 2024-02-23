@@ -2,6 +2,7 @@
 This code uses a genetic algorithm to find the optimal weights for the OCP (42/).
 """
 
+import os
 import pygmo as pg
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,6 +10,7 @@ import pickle
 import casadi as cas
 import biorbd
 from IPython import embed
+import psutil
 
 import sys
 sys.path.append("/home/mickaelbegon/Documents/Eve/BiorbdOptim")
@@ -441,38 +443,62 @@ class prepare_iocp:
         global i_inverse
         i_inverse += 1
 
-        ocp = prepare_ocp(weights, self.coefficients, self.biorbd_model_path)
-
-        solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
-        solver.set_linear_solver("ma57")
-        solver.set_maximum_iterations(10000)
-        solver.set_convergence_tolerance(1e-6)
-        sol = ocp.solve(solver)
-
-        print(
-            f"+++++++++++++++++++++++++++ Optimized the {i_inverse}th ocp in the inverse algo +++++++++++++++++++++++++++"
-        )
-        if sol.status == 0:
-
-            name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
-            qs, qdots, qddots, time_parameters = get_parameters_from_optim(sol)
-
-            markers_final = get_final_markers(self.biorbd_model_path, qs)
-            out_score = np.sum((self.markers_xsens - markers_final) ** 2)
-
-            del sol.ocp
-            with open(f"Solutions/IOCP/{name}-{i_inverse}.pkl", "wb") as f:
-                data = {"qs": qs,
-                        "qdots": qdots,
-                        "qddots": qddots,
-                        "time_parameters": time_parameters,
-                        "weights": weights,
-                        "coefficients": self.coefficients,
-                        "out_score": out_score}
-                pickle.dump(data, f)
-
+        name = self.biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
+        out_file_name = f"Solutions/IOCP/{name}-{i_inverse}.pkl"
+        if os.path.isfile(out_file_name):
+            with open(out_file_name, "rb") as f:
+                data = pickle.load(f)
+                qs = data["qs"]
+                qdots = data["qdots"]
+                qddots = data["qddots"]
+                time_parameters = data["time_parameters"]
+                weights = data["weights"]
+                out_score = data["out_score"]
         else:
-            out_score = 1000000
+
+            ocp = prepare_ocp(weights, self.coefficients, self.biorbd_model_path)
+
+            solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
+            solver.set_linear_solver("ma57")
+            solver.set_maximum_iterations(10000)
+            solver.set_convergence_tolerance(1e-6)
+            sol = ocp.solve(solver)
+
+            print(
+                f"+++++++++++++++++++++++++++ Optimized the {i_inverse}th ocp in the inverse algo +++++++++++++++++++++++++++"
+            )
+            if sol.status == 0:
+
+                qs, qdots, qddots, time_parameters = get_parameters_from_optim(sol)
+
+                markers_final = get_final_markers(self.biorbd_model_path, qs)
+                out_score = np.nansum((self.markers_xsens - markers_final) ** 2)
+
+                del sol.ocp
+                with open(out_file_name, "wb") as f:
+                    data = {"qs": qs,
+                            "qdots": qdots,
+                            "qddots": qddots,
+                            "time_parameters": time_parameters,
+                            "weights": weights,
+                            "coefficients": self.coefficients,
+                            "out_score": out_score}
+                    pickle.dump(data, f)
+
+            else:
+                out_score = 1000000
+
+            txt_ram_file = open('txt_ram_file.txt', 'a+')
+            txt_ram_file.write(f"Ram before : {psutil.virtual_memory().percent}\n")
+            txt_ram_file.write(f"{name}-{i_inverse}")
+            del ocp
+            del sol
+            txt_ram_file.write(f"Ram after : {psutil.virtual_memory().percent}\n")
+            txt_ram_file.close()
+
+            # If too much RAM is used, quit execution before the computer crashes
+            if psutil.virtual_memory().percent > 95:
+                sys.exit()
 
         return [out_score]
 
@@ -493,8 +519,13 @@ def get_parameters_from_optim(sol):
 
 def main():
 
-    SOLVE_PARETO_FLAG = False
+    SOLVE_PARETO_FLAG = False  # True
     global i_inverse
+
+    txt_ram_file = open('txt_ram_file.txt', 'w')
+    txt_ram_file.write(f"Beginning :) \n")
+    txt_ram_file.write(f"Ram initial : {psutil.virtual_memory().percent}\n")
+    txt_ram_file.close()
 
     move_filename = "a62d4691_0_0-45_796__42__0__eyetracking_metrics.pkl"
     biorbd_model_path = "models/SoMe_42_with_visual_criteria.bioMod"
@@ -553,8 +584,17 @@ def main():
                             "time_parameters": time_parameters,
                             "weights": weights_pareto,
                             "coefficients": [1 for _ in range(num_weights)],
-                            "out_score": out_score}
+                            "out_score": out_score,
+                            "out_cost": sol_pareto.cost}
                     pickle.dump(data, f)
+
+                txt_ram_file = open('txt_ram_file.txt', 'a+')
+                txt_ram_file.write(f"Ram before : {psutil.virtual_memory().percent}\n")
+                txt_ram_file.write(f"{name}-{i_inverse}")
+                del ocp_pareto
+                del sol_pareto
+                txt_ram_file.write(f"Ram after : {psutil.virtual_memory().percent}\n")
+                txt_ram_file.close()
 
         print("+++++++++++++++++++++++++++ coefficients generated +++++++++++++++++++++++++++")
         with open("coefficients_pareto.pkl", "wb") as f:
@@ -562,6 +602,20 @@ def main():
     else:
         with open("coefficients_pareto.pkl", "rb") as f:
             coefficients = pickle.load(f)
+        # coefficients = []
+        # name = biorbd_model_path.split("/")[-1].removesuffix(".bioMod")
+        # for i in range(num_weights):
+        #     i_inverse = f"pareto_{i}"
+        #     with open(f"Solutions/IOCP/{name}-{i_inverse}.pkl", "rb") as f:
+        #         data = {"qs": qs,
+        #                 "qdots": qdots,
+        #                 "qddots": qddots,
+        #                 "time_parameters": time_parameters,
+        #                 "weights": weights_pareto,
+        #                 "coefficients": [1 for _ in range(num_weights)],
+        #                 "out_score": out_score}
+        #         data = pickle.load(f)
+
 
     # Running IOCP
     i_inverse = 0
