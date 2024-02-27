@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 
-colors = ['#103778', '#0593A2', '#FF7A48', '#E3371E', '#E5003F']  # '#151F31'
+colors = ['#103778', '#0593A2', '#FF7A48', '#E3371E', '#E5003F']
+judges_colors = [cm.magma(0.3), cm.magma(0.6)]
 
 ### ------------- Choaches ratings -------------- ###
 
@@ -391,7 +393,7 @@ for i_trial, trial in enumerate(names_42_simulations):
         axs[0, 6].bar(i_trial * bar_width, ratings_judges[name][trial][0],
                                width=bar_width,
                                bottom=total,
-                               color=colors[i_name],
+                               color=judges_colors[i_name],
                                alpha=0.5)
         # axs[0, i_criteria].plot(np.array([i_trial * bar_width - bar_width/2,
         #                    i_trial * bar_width + bar_width/2]),
@@ -442,7 +444,7 @@ for i_trial, trial in enumerate(names_831_simulations):
         axs[1, 6].bar(i_trial * bar_width, ratings_judges[name][trial][0],
                                width=bar_width,
                                bottom=total,
-                               color=colors[i_name],
+                               color=judges_colors[i_name],
                                alpha=0.5)
         # axs[0, i_criteria].plot(np.array([i_trial * bar_width - bar_width/2,
         #                    i_trial * bar_width + bar_width/2]),
@@ -473,11 +475,11 @@ for i_criteria in range(7):
     axs[1, i_criteria].plot(np.array([7*bar_width-bar_width/2-0.05, 7*bar_width-bar_width/2+0.05]), np.array([min_total[i_criteria], min_total[i_criteria]]), color="k", alpha=0.5)
     axs[1, i_criteria].plot(np.array([7*bar_width-bar_width/2-0.05, 7*bar_width-bar_width/2+0.05]), np.array([max_total[i_criteria], max_total[i_criteria]]), color="k", alpha=0.5)
 
-axs[0, 0].set_ylabel("42/", fontsize=20)
-axs[1, 0].set_ylabel("831<", fontsize=20)
+axs[0, 0].set_ylabel("42/", fontsize=16)
+axs[1, 0].set_ylabel("831<", fontsize=16)
 for i_criteria in range(len(criteria)):
     axs[0, i_criteria].set_title(criteria[i_criteria])
-axs[0, 6].set_title("Judges ratings")
+axs[0, 6].set_title("Judges deductions")
 for i_trial in range(7):
     axs[0, i_trial].set_xticks(x)
     axs[0, i_trial].set_xticklabels(conditions_simulations, rotation=-90)

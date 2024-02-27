@@ -245,7 +245,7 @@ def track_vector_orientations_from_markers(model, q):
 
 # ---------------------------------------- Plot comparison ---------------------------------------- #
 colors = [cm.magma(i/9) for i in range(9)]
-fig_cost, axs_cost = plt.subplots(5, 2, figsize=(8, 16))
+fig_cost, axs_cost = plt.subplots(5, 2, figsize=(12, 16))
 
 # 42 plots
 fig_root, axs_root = plt.subplots(1, 3, figsize=(15, 3))
@@ -268,9 +268,9 @@ for i_weight, weight in enumerate(weights):
         time_vector = data["time_vector"]
         interpolated_states = data["interpolated_states"]
 
-    axs_root[0].plot(time_vector, qs[3, :], color=colors[i_weight], label=str(weight))
-    axs_root[1].plot(time_vector, qs[4, :], color=colors[i_weight])
-    axs_root[2].plot(time_vector, qs[5, :], color=colors[i_weight])
+    axs_root[0].plot(time_vector, qs[3, :] * 180/np.pi, color=colors[i_weight], label=str(weight))
+    axs_root[1].plot(time_vector, qs[4, :] * 180/np.pi, color=colors[i_weight])
+    axs_root[2].plot(time_vector, qs[5, :] * 180/np.pi, color=colors[i_weight])
 
     if weight == 0.0:
         right_arm_indices = [6, 7]
@@ -280,12 +280,12 @@ for i_weight, weight in enumerate(weights):
         left_arm_indices = [12, 13]
 
     # Right arm
-    axs_joints[0, 1].plot(time_vector, qs[right_arm_indices[0], :], color=colors[i_weight], label=str(weight))
-    axs_joints[1, 1].plot(time_vector, qs[right_arm_indices[1], :], color=colors[i_weight])
+    axs_joints[0, 1].plot(time_vector, qs[right_arm_indices[0], :] * 180/np.pi, color=colors[i_weight], label=str(weight))
+    axs_joints[1, 1].plot(time_vector, qs[right_arm_indices[1], :] * 180/np.pi, color=colors[i_weight])
 
     # Left arm
-    axs_joints[0, 0].plot(time_vector, -qs[left_arm_indices[0], :], color=colors[i_weight])
-    axs_joints[1, 0].plot(time_vector, -qs[left_arm_indices[1], :], color=colors[i_weight])
+    axs_joints[0, 0].plot(time_vector, -qs[left_arm_indices[0], :] * 180/np.pi, color=colors[i_weight])
+    axs_joints[1, 0].plot(time_vector, -qs[left_arm_indices[1], :] * 180/np.pi, color=colors[i_weight])
 
     # Cost function
     model = biorbd.Model(biorbd_model_path_42_with_visual_criteria)
@@ -295,6 +295,11 @@ for i_weight, weight in enumerate(weights):
         qs = np.zeros((14, qs_tempo.shape[1]))
         qs[:6, :] = qs_tempo[:6, :]
         qs[10:, :] = qs_tempo[6:, :]
+        qdots_tempo = np.zeros(qdots.shape)
+        qdots_tempo[:, :] = qdots[:, :]
+        qdots = np.zeros((14, qdots_tempo.shape[1]))
+        qdots[:6, :] = qdots_tempo[:6, :]
+        qdots[10:, :] = qdots_tempo[6:, :]
     peripheral = custom_trampoline_bed_in_peripheral_vision(model, qs)
     axs_cost[0, 0].plot(time_vector, peripheral, color=colors[i_weight], label=str(weight))
 
@@ -325,12 +330,12 @@ axs_joints[1, 1].set_title("Elevation R")
 axs_joints[0, 0].set_title("Change in elevation plane L")
 axs_joints[1, 0].set_title("Elevation L")
 
-axs_cost[0, 0].set_ylabel("Peripheral vision")
-axs_cost[1, 0].set_ylabel("Head velocity")
-axs_cost[2, 0].set_ylabel("Eyes angle velocity")
-axs_cost[3, 0].set_ylabel("Quiet eye")
-axs_cost[4, 0].set_ylabel("Head angle")
-axs_cost[4, 0].set_xlabel("Time [s]")
+axs_cost[0, 0].set_ylabel("Peripheral vision", fontsize=15)
+axs_cost[1, 0].set_ylabel("Head velocity", fontsize=15)
+axs_cost[2, 0].set_ylabel("Eyes angle velocity", fontsize=15)
+axs_cost[3, 0].set_ylabel("Quiet eye", fontsize=15)
+axs_cost[4, 0].set_ylabel("Head angle", fontsize=15)
+axs_cost[4, 0].set_xlabel("Time [s]", fontsize=15)
 
 fig_root.savefig("Graphs/compare_42_root.png", dpi=300)
 fig_joints.savefig("Graphs/compare_42_dofs.png", dpi=300)
@@ -359,9 +364,9 @@ for i_weight, weight in enumerate(weights):
         interpolated_states = data["interpolated_states"]
 
 
-    axs_root[0].plot(time_vector, qs[3, :], color=colors[i_weight], label=str(weight))
-    axs_root[1].plot(time_vector, qs[4, :], color=colors[i_weight])
-    axs_root[2].plot(time_vector, qs[5, :], color=colors[i_weight])
+    axs_root[0].plot(time_vector, qs[3, :] * 180/np.pi, color=colors[i_weight], label=str(weight))
+    axs_root[1].plot(time_vector, qs[4, :] * 180/np.pi, color=colors[i_weight])
+    axs_root[2].plot(time_vector, qs[5, :] * 180/np.pi, color=colors[i_weight])
 
     if weight == 0.0:
         right_arm_indices = [6, 7]
@@ -373,16 +378,16 @@ for i_weight, weight in enumerate(weights):
         hips_indices = [18, 19]
 
     # Right arm
-    axs_joints[0, 1].plot(time_vector, qs[right_arm_indices[0], :], color=colors[i_weight], label=str(weight))
-    axs_joints[1, 1].plot(time_vector, qs[right_arm_indices[1], :], color=colors[i_weight])
+    axs_joints[0, 1].plot(time_vector, qs[right_arm_indices[0], :] * 180/np.pi, color=colors[i_weight], label=str(weight))
+    axs_joints[1, 1].plot(time_vector, qs[right_arm_indices[1], :] * 180/np.pi, color=colors[i_weight])
 
     # Left arm
-    axs_joints[0, 0].plot(time_vector, qs[left_arm_indices[0], :], color=colors[i_weight])
-    axs_joints[1, 0].plot(time_vector, qs[left_arm_indices[1], :], color=colors[i_weight])
+    axs_joints[0, 0].plot(time_vector, -qs[left_arm_indices[0], :] * 180/np.pi, color=colors[i_weight])
+    axs_joints[1, 0].plot(time_vector, -qs[left_arm_indices[1], :] * 180/np.pi, color=colors[i_weight])
 
     # Hips
-    axs_joints[0, 2].plot(time_vector, qs[hips_indices[0], :], color=colors[i_weight])
-    axs_joints[1, 2].plot(time_vector, qs[hips_indices[1], :], color=colors[i_weight])
+    axs_joints[0, 2].plot(time_vector, -qs[hips_indices[0], :] * 180/np.pi, color=colors[i_weight])
+    axs_joints[1, 2].plot(time_vector, qs[hips_indices[1], :] * 180/np.pi, color=colors[i_weight])
 
     # Cost function
     model = biorbd.Model(biorbd_model_path_831_with_visual_criteria)
@@ -392,13 +397,23 @@ for i_weight, weight in enumerate(weights):
         qs = np.zeros((20, qs_tempo.shape[1]))
         qs[:6, :] = qs_tempo[:6, :]
         qs[10:, :] = qs_tempo[6:, :]
+        qdots_tempo = np.zeros(qdots.shape)
+        qdots_tempo[:, :] = qdots[:, :]
+        qdots = np.zeros((20, qdots_tempo.shape[1]))
+        qdots[:6, :] = qdots_tempo[:6, :]
+        qdots[10:, :] = qdots_tempo[6:, :]
     peripheral = custom_trampoline_bed_in_peripheral_vision(model, qs)
     axs_cost[0, 1].plot(time_vector, peripheral, color=colors[i_weight], label=str(weight))
 
     head_velocity = minimize_segment_velocity(model, qs, qdots)
-    axs_cost[1, 1].plot(time_vector, head_velocity[0, :], color=colors[i_weight], linestyle='-.', label='X')
-    axs_cost[1, 1].plot(time_vector, head_velocity[1, :], color=colors[i_weight], linestyle='--', label='Y')
-    axs_cost[1, 1].plot(time_vector, head_velocity[2, :], color=colors[i_weight], linestyle=':', label='Z')
+    if weight == 0.0:
+        axs_cost[1, 1].plot(time_vector, head_velocity[0, :], color=colors[i_weight], linestyle='-.', label='X')
+        axs_cost[1, 1].plot(time_vector, head_velocity[1, :], color=colors[i_weight], linestyle='--', label='Y')
+        axs_cost[1, 1].plot(time_vector, head_velocity[2, :], color=colors[i_weight], linestyle=':', label='Z')
+    else:
+        axs_cost[1, 1].plot(time_vector, head_velocity[0, :], color=colors[i_weight], linestyle='-.')
+        axs_cost[1, 1].plot(time_vector, head_velocity[1, :], color=colors[i_weight], linestyle='--')
+        axs_cost[1, 1].plot(time_vector, head_velocity[2, :], color=colors[i_weight], linestyle=':')
 
     eyes_rotations = qdots[8:10, :]
     axs_cost[2, 1].plot(time_vector, eyes_rotations[0, :], color=colors[i_weight], linestyle=':', label='Z')
@@ -424,7 +439,8 @@ axs_joints[1, 0].set_title("Elevation L")
 axs_joints[0, 2].set_title("Flexion")
 axs_joints[1, 2].set_title("Lateral flexion")
 
-axs_cost[4, 1].set_xlabel("Time [s]")
+axs_cost[4, 1].set_xlabel("Time [s]", fontsize=15)
+axs_cost[1, 1].legend(bbox_to_anchor=[1.02, 0.5], frameon=False)
 
 fig_root.savefig("Graphs/compare_831_root.png", dpi=300)
 fig_joints.savefig("Graphs/compare_831_dofs.png", dpi=300)
