@@ -245,7 +245,7 @@ def track_vector_orientations_from_markers(model, q):
 
 # ---------------------------------------- Plot comparison ---------------------------------------- #
 colors = [cm.magma(i/9) for i in range(9)]
-fig_cost, axs_cost = plt.subplots(5, 2, figsize=(12, 16))
+fig_cost, axs_cost = plt.subplots(6, 2, figsize=(10, 16))
 
 # 42 plots
 fig_root, axs_root = plt.subplots(1, 3, figsize=(15, 3))
@@ -300,6 +300,9 @@ for i_weight, weight in enumerate(weights):
         qdots = np.zeros((14, qdots_tempo.shape[1]))
         qdots[:6, :] = qdots_tempo[:6, :]
         qdots[10:, :] = qdots_tempo[6:, :]
+        for j in range(6):
+            axs_cost[j, 0].set_xlim(0, time_vector[-1])
+
     peripheral = custom_trampoline_bed_in_peripheral_vision(model, qs)
     axs_cost[0, 0].plot(time_vector, peripheral, color=colors[i_weight], label=str(weight))
 
@@ -308,17 +311,33 @@ for i_weight, weight in enumerate(weights):
     axs_cost[1, 0].plot(time_vector, head_velocity[1, :], color=colors[i_weight], linestyle='--', label='Y')
     axs_cost[1, 0].plot(time_vector, head_velocity[2, :], color=colors[i_weight], linestyle=':', label='Z')
 
-    eyes_rotations = qdots[8:10, :]
-    axs_cost[2, 0].plot(time_vector, eyes_rotations[0, :], color=colors[i_weight], linestyle=':', label='Z')
-    axs_cost[2, 0].plot(time_vector, eyes_rotations[1, :], color=colors[i_weight], linestyle='--', label='Y')
+    self_motion_detection = qdots[8:10, :]
+    axs_cost[2, 0].plot(time_vector, self_motion_detection[0, :], color=colors[i_weight], linestyle=':', label='Z')
+    axs_cost[2, 0].plot(time_vector, self_motion_detection[1, :], color=colors[i_weight], linestyle='--', label='Y')
 
     angle_quiet_eye = track_vector_orientations_from_markers(model, qs)
     axs_cost[3, 0].plot(time_vector, angle_quiet_eye, color=colors[i_weight])
 
-    head_rotations = qdots[6:8, :]
-    axs_cost[4, 0].plot(time_vector, head_rotations[0, :], color=colors[i_weight], linestyle=':', label='Z')
-    axs_cost[4, 0].plot(time_vector, head_rotations[1, :], color=colors[i_weight], linestyle='--', label='Y')
+    neck_rotations = qs[6:8, :]
+    axs_cost[4, 0].plot(time_vector, neck_rotations[0, :], color=colors[i_weight], linestyle=':', label='Z')
+    axs_cost[4, 0].plot(time_vector, neck_rotations[1, :], color=colors[i_weight], linestyle='--', label='Y')
 
+    eyes_rotations = qs[8:10, :]
+    axs_cost[5, 0].plot(time_vector, eyes_rotations[0, :], color=colors[i_weight], linestyle=':', label='Z')
+    axs_cost[5, 0].plot(time_vector, eyes_rotations[1, :], color=colors[i_weight], linestyle='--', label='Y')
+
+
+current_time = 0
+for i, time in enumerate(time_parameters[:-1]):
+    current_time += time
+    for j in range(6):
+        axs_cost[j, 0].plot([current_time, current_time], [-250, 250], '-k', alpha=0.3, linewidth=0.5)
+axs_cost[0, 0].set_ylim(0, 250)
+axs_cost[1, 0].set_ylim(-25, 25)
+axs_cost[2, 0].set_ylim(-15, 17)
+axs_cost[3, 0].set_ylim(-0.1, 3)
+axs_cost[4, 0].set_ylim(-1.3, 1.2)
+axs_cost[5, 0].set_ylim(-0.6, 0.6)
 
 # show legend below figure
 axs_root[0].legend(bbox_to_anchor=[3.7, 1.0], frameon=False)
@@ -330,12 +349,13 @@ axs_joints[1, 1].set_title("Elevation R")
 axs_joints[0, 0].set_title("Change in elevation plane L")
 axs_joints[1, 0].set_title("Elevation L")
 
-axs_cost[0, 0].set_ylabel("Peripheral vision", fontsize=15)
-axs_cost[1, 0].set_ylabel("Head velocity", fontsize=15)
-axs_cost[2, 0].set_ylabel("Eyes angle velocity", fontsize=15)
-axs_cost[3, 0].set_ylabel("Quiet eye", fontsize=15)
-axs_cost[4, 0].set_ylabel("Head angle", fontsize=15)
-axs_cost[4, 0].set_xlabel("Time [s]", fontsize=15)
+axs_cost[0, 0].set_ylabel("Peripheral vision \n", fontsize=13)
+axs_cost[1, 0].set_ylabel("Spotting\n", fontsize=13)
+axs_cost[2, 0].set_ylabel("Eyes velocity\n", fontsize=13)
+axs_cost[3, 0].set_ylabel("Trampo fixation\n", fontsize=13)
+axs_cost[4, 0].set_ylabel("Neck angles\n", fontsize=13)
+axs_cost[5, 0].set_ylabel("Eyes angles\n", fontsize=13)
+axs_cost[5, 0].set_xlabel("Time [s]", fontsize=15)
 
 fig_root.savefig("Graphs/compare_42_root.png", dpi=300)
 fig_joints.savefig("Graphs/compare_42_dofs.png", dpi=300)
@@ -402,6 +422,9 @@ for i_weight, weight in enumerate(weights):
         qdots = np.zeros((20, qdots_tempo.shape[1]))
         qdots[:6, :] = qdots_tempo[:6, :]
         qdots[10:, :] = qdots_tempo[6:, :]
+        for j in range(6):
+            axs_cost[j, 1].set_xlim(0, time_vector[-1])
+
     peripheral = custom_trampoline_bed_in_peripheral_vision(model, qs)
     axs_cost[0, 1].plot(time_vector, peripheral, color=colors[i_weight], label=str(weight))
 
@@ -415,17 +438,32 @@ for i_weight, weight in enumerate(weights):
         axs_cost[1, 1].plot(time_vector, head_velocity[1, :], color=colors[i_weight], linestyle='--')
         axs_cost[1, 1].plot(time_vector, head_velocity[2, :], color=colors[i_weight], linestyle=':')
 
-    eyes_rotations = qdots[8:10, :]
-    axs_cost[2, 1].plot(time_vector, eyes_rotations[0, :], color=colors[i_weight], linestyle=':', label='Z')
-    axs_cost[2, 1].plot(time_vector, eyes_rotations[1, :], color=colors[i_weight], linestyle='--', label='Y')
+    self_motion_detection = qdots[8:10, :]
+    axs_cost[2, 1].plot(time_vector, self_motion_detection[0, :], color=colors[i_weight], linestyle=':', label='Z')
+    axs_cost[2, 1].plot(time_vector, self_motion_detection[1, :], color=colors[i_weight], linestyle='--', label='Y')
 
     angle_quiet_eye = track_vector_orientations_from_markers(model, qs)
     axs_cost[3, 1].plot(time_vector, angle_quiet_eye, color=colors[i_weight])
 
-    head_rotations = qdots[6:8, :]
-    axs_cost[4, 1].plot(time_vector, head_rotations[0, :], color=colors[i_weight], linestyle=':', label='Z')
-    axs_cost[4, 1].plot(time_vector, head_rotations[1, :], color=colors[i_weight], linestyle='--', label='Y')
+    neck_rotations = qs[6:8, :]
+    axs_cost[4, 1].plot(time_vector, neck_rotations[0, :], color=colors[i_weight], linestyle=':', label='Z')
+    axs_cost[4, 1].plot(time_vector, neck_rotations[1, :], color=colors[i_weight], linestyle='--', label='Y')
 
+    eyes_rotations = qs[8:10, :]
+    axs_cost[5, 1].plot(time_vector, eyes_rotations[0, :], color=colors[i_weight], linestyle=':', label='Z')
+    axs_cost[5, 1].plot(time_vector, eyes_rotations[1, :], color=colors[i_weight], linestyle='--', label='Y')
+
+current_time = 0
+for i, time in enumerate(time_parameters[:-1]):
+    current_time += time
+    for j in range(6):
+        axs_cost[j, 1].plot([current_time, current_time], [-250, 250], '-k', alpha=0.3, linewidth=0.5)
+axs_cost[0, 1].set_ylim(0, 250)
+axs_cost[1, 1].set_ylim(-25, 25)
+axs_cost[2, 1].set_ylim(-15, 17)
+axs_cost[3, 1].set_ylim(-0.1, 3)
+axs_cost[4, 1].set_ylim(-1.3, 1.2)
+axs_cost[5, 1].set_ylim(-0.6, 0.6)
 
 # show legend below figure
 axs_root[0].legend(bbox_to_anchor=[3.7, 1.0], frameon=False)
@@ -439,8 +477,9 @@ axs_joints[1, 0].set_title("Elevation L")
 axs_joints[0, 2].set_title("Flexion")
 axs_joints[1, 2].set_title("Lateral flexion")
 
-axs_cost[4, 1].set_xlabel("Time [s]", fontsize=15)
+axs_cost[5, 1].set_xlabel("Time [s]", fontsize=15)
 axs_cost[1, 1].legend(bbox_to_anchor=[1.02, 0.5], frameon=False)
+fig_cost.subplots_adjust(wspace=0.12, right=0.9, left=0.05, top=0.95, bottom=0.05)
 
 fig_root.savefig("Graphs/compare_831_root.png", dpi=300)
 fig_joints.savefig("Graphs/compare_831_dofs.png", dpi=300)
