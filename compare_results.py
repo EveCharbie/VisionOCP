@@ -243,13 +243,29 @@ def track_vector_orientations_from_markers(model, q):
 
     return angle
 
+def hand_leg_distance(model, q):
+    marker_names = [model.markerNames()[i].to_string() for i in range(model.nbMarkers())]
+    right_hand = marker_names.index('MidMainD')
+    left_hand = marker_names.index('MidMainG')
+    right_leg = marker_names.index('CibleMainD')
+    left_leg = marker_names.index('CibleMainG')
+    right_hand_marker = model.markers(q)[right_hand].to_array()
+    left_hand_marker = model.markers(q)[left_hand].to_array()
+    right_leg_marker = model.markers(q)[right_leg].to_array()
+    left_leg_marker = model.markers(q)[left_leg].to_array()
+    distance = (right_hand_marker - right_leg_marker) ** 2 + (left_hand_marker - left_leg_marker) ** 2
+    return distance
+
+
 # ---------------------------------------- Plot comparison ---------------------------------------- #
 colors = [cm.magma(i/9) for i in range(9)]
 fig_cost, axs_cost = plt.subplots(6, 2, figsize=(10, 16))
 
 # 42 plots
-fig_root, axs_root = plt.subplots(1, 3, figsize=(15, 3))
+detailed_cost_function_42 = {"qddot_joints": {}, "qddot_joints_derivative": {}, "time": {}, "shoulders_dof": {}, "final_tilt": {}, "peripheral": {}, "spotting": {}, "self_motion_detection": {}, "trampo_fixation": {}, "neck": {}, "eyes": {}}
+fig_root, axs_root = plt.subplots(2, 3, figsize=(15, 6))
 fig_joints, axs_joints = plt.subplots(2, 2, figsize=(10, 6))
+fig_somersault_twist, axs_somersault_twist = plt.subplots(1, 1, figsize=(5, 3))
 for i_weight, weight in enumerate(weights):
 
     for file_name in solution_file_names:
@@ -268,9 +284,13 @@ for i_weight, weight in enumerate(weights):
         time_vector = data["time_vector"]
         interpolated_states = data["interpolated_states"]
 
-    axs_root[0].plot(time_vector, qs[3, :] * 180/np.pi, color=colors[i_weight], label=str(weight))
-    axs_root[1].plot(time_vector, qs[4, :] * 180/np.pi, color=colors[i_weight])
-    axs_root[2].plot(time_vector, qs[5, :] * 180/np.pi, color=colors[i_weight])
+    axs_root[0, 0].plot(time_vector, qs[3, :] * 180/np.pi, color=colors[i_weight], label=str(weight))
+    axs_root[0, 1].plot(time_vector, qs[4, :] * 180/np.pi, color=colors[i_weight])
+    axs_root[0, 2].plot(time_vector, qs[5, :] * 180/np.pi, color=colors[i_weight])
+    axs_root[1, 0].plot(time_vector, qdots[3, :] * 180/np.pi, color=colors[i_weight], label=str(weight))
+    axs_root[1, 1].plot(time_vector, qdots[4, :] * 180/np.pi, color=colors[i_weight])
+    axs_root[1, 2].plot(time_vector, qdots[5, :] * 180/np.pi, color=colors[i_weight])
+    axs_somersault_twist.plot(qs[3, :] * 180/np.pi, qs[5, :] * 180/np.pi, color=colors[i_weight])
 
     if weight == 0.0:
         right_arm_indices = [6, 7]
@@ -288,6 +308,7 @@ for i_weight, weight in enumerate(weights):
     axs_joints[1, 0].plot(time_vector, -qs[left_arm_indices[1], :] * 180/np.pi, color=colors[i_weight])
 
     # Cost function
+    dt_lagrange = time_vector[1:] - time_vector[:-1]
     model = biorbd.Model(biorbd_model_path_42_with_visual_criteria)
     if weight == 0:
         qs_tempo = np.zeros(qs.shape)
@@ -305,42 +326,53 @@ for i_weight, weight in enumerate(weights):
 
     peripheral = custom_trampoline_bed_in_peripheral_vision(model, qs)
     axs_cost[0, 0].plot(time_vector, peripheral, color=colors[i_weight], label=str(weight))
+    detailed_cost_function_42["peripheral"][str(weight)] = peripheral[:-1]**2 * dt_lagrange
 
-    head_velocity = minimize_segment_velocity(model, qs, qdots)
-    axs_cost[1, 0].plot(time_vector, head_velocity[0, :], color=colors[i_weight], linestyle='-.', label='X')
-    axs_cost[1, 0].plot(time_vector, head_velocity[1, :], color=colors[i_weight], linestyle='--', label='Y')
-    axs_cost[1, 0].plot(time_vector, head_velocity[2, :], color=colors[i_weight], linestyle=':', label='Z')
+    head_velocity = minimize_segment_velocity(model, qs, qdots) * 180/np.pi
+    head_velocity_norm = head_velocity[0, :]**2 + head_velocity[1, :]**2 + head_velocity[2, :]**2
+    axs_cost[1, 0].plot(time_vector, head_velocity_norm, color=colors[i_weight])
+    detailed_cost_function_42["spotting"][str(weight)] = head_velocity_norm[:-1] * dt_lagrange
 
-    self_motion_detection = qdots[8:10, :]
-    axs_cost[2, 0].plot(time_vector, self_motion_detection[0, :], color=colors[i_weight], linestyle=':', label='Z')
-    axs_cost[2, 0].plot(time_vector, self_motion_detection[1, :], color=colors[i_weight], linestyle='--', label='Y')
+    self_motion_detection = qdots[8:10, :] * 180/np.pi
+    self_motion_detection_norm = self_motion_detection[0, :]**2 + self_motion_detection[1, :]**2
+    axs_cost[2, 0].plot(time_vector, self_motion_detection_norm, color=colors[i_weight])
+    detailed_cost_function_42["self_motion_detection"][str(weight)] = self_motion_detection_norm[:-1] * dt_lagrange
 
-    angle_quiet_eye = track_vector_orientations_from_markers(model, qs)
+    angle_quiet_eye = track_vector_orientations_from_markers(model, qs) * 180/np.pi
     axs_cost[3, 0].plot(time_vector, angle_quiet_eye, color=colors[i_weight])
+    detailed_cost_function_42["trampo_fixation"][str(weight)] = angle_quiet_eye[:-1]**2 * dt_lagrange
 
-    neck_rotations = qs[6:8, :]
-    axs_cost[4, 0].plot(time_vector, neck_rotations[0, :], color=colors[i_weight], linestyle=':', label='Z')
-    axs_cost[4, 0].plot(time_vector, neck_rotations[1, :], color=colors[i_weight], linestyle='--', label='Y')
+    neck_rotations = qs[6:8, :] * 180/np.pi
+    neck_rotations_norm = neck_rotations[0, :]**2 + neck_rotations[1, :]**2
+    axs_cost[4, 0].plot(time_vector, neck_rotations_norm, color=colors[i_weight])
+    detailed_cost_function_42["neck"][str(weight)] = neck_rotations_norm[:-1] * dt_lagrange
 
-    eyes_rotations = qs[8:10, :]
-    axs_cost[5, 0].plot(time_vector, eyes_rotations[0, :], color=colors[i_weight], linestyle=':', label='Z')
-    axs_cost[5, 0].plot(time_vector, eyes_rotations[1, :], color=colors[i_weight], linestyle='--', label='Y')
+    eyes_rotations = qs[8:10, :] * 180/np.pi
+    eyes_rotations_norm = eyes_rotations[0, :]**2 + eyes_rotations[1, :]**2
+    axs_cost[5, 0].plot(time_vector, eyes_rotations_norm, color=colors[i_weight])
+    detailed_cost_function_42["eyes"][str(weight)] = eyes_rotations_norm[:-1] * dt_lagrange
 
+    # Kinematic costs
+    detailed_cost_function_42["qddot_joints"][str(weight)] = np.sum(qddots[:, :-1]**2, axis=0) * dt_lagrange
+    detailed_cost_function_42["qddot_joints_derivative"][str(weight)] = np.sum((qddots[:, 1:-1] - qddots[:, :-2])**2, axis=0) * dt_lagrange[-1]
+    detailed_cost_function_42["time"][str(weight)] = time_vector[-1]
+    detailed_cost_function_42["shoulders_dof"][str(weight)] = (qs[11, :-1]**2 + qs[13, :-1]**2) * dt_lagrange
+    detailed_cost_function_42["final_tilt"][str(weight)] = qs[5, -1]**2
 
 current_time = 0
 for i, time in enumerate(time_parameters[:-1]):
     current_time += time
     for j in range(6):
-        axs_cost[j, 0].plot([current_time, current_time], [-250, 250], '-k', alpha=0.3, linewidth=0.5)
-axs_cost[0, 0].set_ylim(0, 250)
-axs_cost[1, 0].set_ylim(-25, 25)
-axs_cost[2, 0].set_ylim(-15, 17)
-axs_cost[3, 0].set_ylim(-0.1, 3)
-axs_cost[4, 0].set_ylim(-1.3, 1.2)
-axs_cost[5, 0].set_ylim(-0.6, 0.6)
+        axs_cost[j, 0].plot([current_time, current_time], [-250, 1e+8], '-k', alpha=0.3, linewidth=0.5)
+axs_cost[0, 0].set_ylim(-10, 250)
+axs_cost[1, 1].set_ylim(-100, 4e+6)
+axs_cost[2, 1].set_ylim(-100, 8e+8)
+axs_cost[3, 0].set_ylim(-10, 200)
+axs_cost[4, 1].set_ylim(-100, 10000)
+axs_cost[5, 0].set_ylim(-10, 1500)
 
 # show legend below figure
-axs_root[0].legend(bbox_to_anchor=[3.7, 1.0], frameon=False)
+axs_root[0, 0].legend(bbox_to_anchor=[3.7, 1.0], frameon=False)
 axs_joints[0, 1].legend(bbox_to_anchor=[1.1, 0.5], frameon=False)
 fig_joints.subplots_adjust(hspace=0.35, right=0.85)
 
@@ -357,14 +389,40 @@ axs_cost[4, 0].set_ylabel("Neck angles\n", fontsize=13)
 axs_cost[5, 0].set_ylabel("Eyes angles\n", fontsize=13)
 axs_cost[5, 0].set_xlabel("Time [s]", fontsize=15)
 
+axs_somersault_twist = plt.gca()
+axs_somersault_twist.set_xlim(axs_somersault_twist.get_xlim()[::-1])
+axs_somersault_twist.set_xlabel("Somersault [°]", fontsize=15)
+axs_somersault_twist.set_ylabel("Twist [°]", fontsize=15)
+fig_somersault_twist.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.2)
+
 fig_root.savefig("Graphs/compare_42_root.png", dpi=300)
 fig_joints.savefig("Graphs/compare_42_dofs.png", dpi=300)
+fig_somersault_twist.savefig("Graphs/compare_42_somersault_twist.png", dpi=300)
 
 
 
 # 831 plots
-fig_root, axs_root = plt.subplots(1, 3, figsize=(15, 3))
+detailed_cost_function_831 = {"qddot_joints": {},
+                          "qddot_joints_derivative": {},
+                          "time": {},
+                          "shoulders_dof": {},
+                          "final_tilt": {},
+                          "peripheral": {},
+                          "spotting": {},
+                          "self_motion_detection": {},
+                          "trampo_fixation": {},
+                          "neck": {},
+                          "eyes": {},
+                          "superimpose_markers": {},
+                          "elbow_dof": {},
+                          "arm_dof": {},
+                          "Xrot_legs_dof": {},
+                          "wobbling": {},
+                          }
+
+fig_root, axs_root = plt.subplots(2, 3, figsize=(15, 6))
 fig_joints, axs_joints = plt.subplots(2, 3, figsize=(15, 6))
+fig_somersault_twist, axs_somersault_twist = plt.subplots(1, 1, figsize=(5, 3))
 for i_weight, weight in enumerate(weights):
 
     for file_name in solution_file_names:
@@ -384,9 +442,13 @@ for i_weight, weight in enumerate(weights):
         interpolated_states = data["interpolated_states"]
 
 
-    axs_root[0].plot(time_vector, qs[3, :] * 180/np.pi, color=colors[i_weight], label=str(weight))
-    axs_root[1].plot(time_vector, qs[4, :] * 180/np.pi, color=colors[i_weight])
-    axs_root[2].plot(time_vector, qs[5, :] * 180/np.pi, color=colors[i_weight])
+    axs_root[0, 0].plot(time_vector, qs[3, :] * 180/np.pi, color=colors[i_weight], label=str(weight))
+    axs_root[0, 1].plot(time_vector, qs[4, :] * 180/np.pi, color=colors[i_weight])
+    axs_root[0, 2].plot(time_vector, qs[5, :] * 180/np.pi, color=colors[i_weight])
+    axs_root[1, 0].plot(time_vector, qdots[3, :] * 180/np.pi, color=colors[i_weight], label=str(weight))
+    axs_root[1, 1].plot(time_vector, qdots[4, :] * 180/np.pi, color=colors[i_weight])
+    axs_root[1, 2].plot(time_vector, qdots[5, :] * 180/np.pi, color=colors[i_weight])
+    axs_somersault_twist.plot(qs[3, :] * 180/np.pi, qs[5, :] * 180/np.pi, color=colors[i_weight])
 
     if weight == 0.0:
         right_arm_indices = [6, 7]
@@ -410,6 +472,7 @@ for i_weight, weight in enumerate(weights):
     axs_joints[1, 2].plot(time_vector, qs[hips_indices[1], :] * 180/np.pi, color=colors[i_weight])
 
     # Cost function
+    dt_lagrange = time_vector[1:] - time_vector[:-1]
     model = biorbd.Model(biorbd_model_path_831_with_visual_criteria)
     if weight == 0:
         qs_tempo = np.zeros(qs.shape)
@@ -427,46 +490,78 @@ for i_weight, weight in enumerate(weights):
 
     peripheral = custom_trampoline_bed_in_peripheral_vision(model, qs)
     axs_cost[0, 1].plot(time_vector, peripheral, color=colors[i_weight], label=str(weight))
+    detailed_cost_function_831["peripheral"][str(weight)] = peripheral[:-1]**2 * dt_lagrange
 
-    head_velocity = minimize_segment_velocity(model, qs, qdots)
-    if weight == 0.0:
-        axs_cost[1, 1].plot(time_vector, head_velocity[0, :], color=colors[i_weight], linestyle='-.', label='X')
-        axs_cost[1, 1].plot(time_vector, head_velocity[1, :], color=colors[i_weight], linestyle='--', label='Y')
-        axs_cost[1, 1].plot(time_vector, head_velocity[2, :], color=colors[i_weight], linestyle=':', label='Z')
-    else:
-        axs_cost[1, 1].plot(time_vector, head_velocity[0, :], color=colors[i_weight], linestyle='-.')
-        axs_cost[1, 1].plot(time_vector, head_velocity[1, :], color=colors[i_weight], linestyle='--')
-        axs_cost[1, 1].plot(time_vector, head_velocity[2, :], color=colors[i_weight], linestyle=':')
+    head_velocity = minimize_segment_velocity(model, qs, qdots) * 180/np.pi
+    head_velocity_norm = head_velocity[0, :]**2 + head_velocity[1, :]**2 + head_velocity[2, :]**2
+    axs_cost[1, 1].plot(time_vector, head_velocity_norm, color=colors[i_weight])
+    detailed_cost_function_831["spotting"][str(weight)] = head_velocity_norm[:-1] * dt_lagrange
 
-    self_motion_detection = qdots[8:10, :]
-    axs_cost[2, 1].plot(time_vector, self_motion_detection[0, :], color=colors[i_weight], linestyle=':', label='Z')
-    axs_cost[2, 1].plot(time_vector, self_motion_detection[1, :], color=colors[i_weight], linestyle='--', label='Y')
+    self_motion_detection = qdots[8:10, :] * 180/np.pi
+    self_motion_detection_norm = self_motion_detection[0, :]**2 + self_motion_detection[1, :]**2
+    axs_cost[2, 1].plot(time_vector, self_motion_detection_norm, color=colors[i_weight])
+    detailed_cost_function_831["self_motion_detection"][str(weight)] = self_motion_detection_norm[:-1] * dt_lagrange
 
-    angle_quiet_eye = track_vector_orientations_from_markers(model, qs)
+    angle_quiet_eye = track_vector_orientations_from_markers(model, qs) * 180/np.pi
     axs_cost[3, 1].plot(time_vector, angle_quiet_eye, color=colors[i_weight])
+    detailed_cost_function_831["trampo_fixation"][str(weight)] = angle_quiet_eye[:-1]**2 * dt_lagrange
 
-    neck_rotations = qs[6:8, :]
-    axs_cost[4, 1].plot(time_vector, neck_rotations[0, :], color=colors[i_weight], linestyle=':', label='Z')
-    axs_cost[4, 1].plot(time_vector, neck_rotations[1, :], color=colors[i_weight], linestyle='--', label='Y')
+    neck_rotations = qs[6:8, :] * 180/np.pi
+    neck_rotations_norm = neck_rotations[0, :]**2 + neck_rotations[1, :]**2
+    axs_cost[4, 1].plot(time_vector, neck_rotations_norm, color=colors[i_weight])
+    detailed_cost_function_831["neck"][str(weight)] = neck_rotations_norm[:-1] * dt_lagrange
 
-    eyes_rotations = qs[8:10, :]
-    axs_cost[5, 1].plot(time_vector, eyes_rotations[0, :], color=colors[i_weight], linestyle=':', label='Z')
-    axs_cost[5, 1].plot(time_vector, eyes_rotations[1, :], color=colors[i_weight], linestyle='--', label='Y')
+    eyes_rotations = qs[8:10, :] * 180/np.pi
+    eyes_rotations_norm = eyes_rotations[0, :]**2 + eyes_rotations[1, :]**2
+    axs_cost[5, 1].plot(time_vector, eyes_rotations_norm, color=colors[i_weight])
+    detailed_cost_function_831["eyes"][str(weight)] = eyes_rotations_norm[:-1] * dt_lagrange
+
+    # Kinematic costs
+    ZrotHead = 6
+    XrotHead = 7
+    ZrotEyes = 8
+    XrotEyes = 9
+    ZrotRightUpperArm = 10
+    YrotRightUpperArm = 11
+    ZrotRightLowerArm = 12
+    XrotRightLowerArm = 13
+    ZrotLeftUpperArm = 14
+    YrotLeftUpperArm = 15
+    ZrotLeftLowerArm = 16
+    XrotLeftLowerArm = 17
+    XrotLegs = 18
+    YrotLegs = 19
+    arm_dofs = [ZrotRightUpperArm, YrotRightUpperArm, ZrotRightLowerArm, XrotRightLowerArm, ZrotLeftUpperArm, YrotLeftUpperArm, ZrotLeftLowerArm, XrotLeftLowerArm]
+    shoulder_dofs = [ZrotRightUpperArm, YrotRightUpperArm, ZrotLeftUpperArm, YrotLeftUpperArm]
+    elbow_dofs = [ZrotRightLowerArm, XrotRightLowerArm, ZrotLeftLowerArm, XrotLeftLowerArm]
+
+    detailed_cost_function_831["qddot_joints"][str(weight)] = np.sum(qddots[:, :-1]**2, axis=0) * dt_lagrange
+    detailed_cost_function_831["qddot_joints_derivative"][str(weight)] = np.sum((qddots[:, 1:-1] - qddots[:, :-2])**2, axis=0) * dt_lagrange[-1]
+    detailed_cost_function_831["time"][str(weight)] = time_vector[-1]
+    detailed_cost_function_831["superimpose_markers"][str(weight)] = hand_leg_distance(model_831_with_visual_criteria, qs[:, -1])
+    detailed_cost_function_831["elbow_dof"][str(weight)] = np.sum(qs[elbow_dofs, :-1]**2, axis=0) * dt_lagrange
+    detailed_cost_function_831["arm_dof"][str(weight)] = np.sum(qs[arm_dofs, :-1]**2) * dt_lagrange
+    detailed_cost_function_831["shoulders_dof"][str(weight)] = np.sum(qs[shoulder_dofs, :-1]**2, axis=0) * dt_lagrange
+    detailed_cost_function_831["Xrot_legs_dof"][str(weight)] = qs[XrotLegs, :-1]**2 * dt_lagrange
+    detailed_cost_function_831["wobbling"][str(weight)] = qs[5, :-1]**2 * dt_lagrange
+    detailed_cost_function_831["final_tilt"][str(weight)] = qs[5, -1]**2
+
+
 
 current_time = 0
 for i, time in enumerate(time_parameters[:-1]):
     current_time += time
     for j in range(6):
-        axs_cost[j, 1].plot([current_time, current_time], [-250, 250], '-k', alpha=0.3, linewidth=0.5)
-axs_cost[0, 1].set_ylim(0, 250)
-axs_cost[1, 1].set_ylim(-25, 25)
-axs_cost[2, 1].set_ylim(-15, 17)
-axs_cost[3, 1].set_ylim(-0.1, 3)
-axs_cost[4, 1].set_ylim(-1.3, 1.2)
-axs_cost[5, 1].set_ylim(-0.6, 0.6)
+        axs_cost[j, 1].plot([current_time, current_time], [-250, 1e+8], '-k', alpha=0.3, linewidth=0.5)
+axs_cost[0, 1].set_ylim(-10, 250)
+axs_cost[1, 1].set_ylim(-100, 4e+6)
+axs_cost[2, 1].set_ylim(-100, 8e+8)
+axs_cost[3, 0].set_ylim(-10, 200)
+axs_cost[4, 1].set_ylim(-100, 10000)
+axs_cost[5, 0].set_ylim(-10, 1500)
 
 # show legend below figure
-axs_root[0].legend(bbox_to_anchor=[3.7, 1.0], frameon=False)
+axs_root[0, 0].legend(bbox_to_anchor=[3.7, 1.0], frameon=False)
 axs_joints[0, 1].legend(bbox_to_anchor=[2.5, 0.5], frameon=False)
 fig_joints.subplots_adjust(hspace=0.35, right=0.9)
 
@@ -478,14 +573,124 @@ axs_joints[0, 2].set_title("Flexion")
 axs_joints[1, 2].set_title("Lateral flexion")
 
 axs_cost[5, 1].set_xlabel("Time [s]", fontsize=15)
-axs_cost[1, 1].legend(bbox_to_anchor=[1.02, 0.5], frameon=False)
-fig_cost.subplots_adjust(wspace=0.12, right=0.9, left=0.05, top=0.95, bottom=0.05)
+fig_cost.tight_layout()
+
+axs_somersault_twist = plt.gca()
+axs_somersault_twist.set_xlim(axs_somersault_twist.get_xlim()[::-1])
+axs_somersault_twist.set_xlabel("Somersault [°]", fontsize=15)
+axs_somersault_twist.set_ylabel("Twist [°]", fontsize=15)
+fig_somersault_twist.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.2)
 
 fig_root.savefig("Graphs/compare_831_root.png", dpi=300)
 fig_joints.savefig("Graphs/compare_831_dofs.png", dpi=300)
+fig_somersault_twist.savefig("Graphs/compare_831_somersault_twist.png", dpi=300)
 fig_cost.savefig("Graphs/compare_cost.png", dpi=300)
 plt.show()
 
+
+viridis_colors = cm.get_cmap("viridis")
+phases_42 = [range(0, 100), range(100, 140)]
+fig_cost_bar_plot, axs_cost_bar_plot = plt.subplots(1, 2, figsize=(15, 6))
+fig_cost_bar_plot_weighted, axs_cost_bar_plot_weighted = plt.subplots(1, 2, figsize=(15, 6))
+sum_cost = {key: {weight: 0 for weight in detailed_cost_function_42[key].keys()} for key in detailed_cost_function_42.keys()}
+sum_cost_weighted = {key: {weight: 0 for weight in detailed_cost_function_42[key].keys()} for key in detailed_cost_function_42.keys()}
+for i_obj, obj in enumerate(detailed_cost_function_42.keys()):
+    for i_weight, weight in enumerate(detailed_cost_function_42[obj].keys()):
+        weights_42 = {"qddot_joints": [1, 1],
+                      "qddot_joints_derivative": [1, 1],
+                      "time": [0.00001, 0.00001],
+                      "shoulders_dof": [50000, 0],
+                      "final_tilt": [0, 1000],
+                      "peripheral": [100 * float(weight), 0],
+                      "spotting": [0, 10 * float(weight)],
+                      "self_motion_detection": [1 * float(weight), 0],
+                      "trampo_fixation": [1 * float(weight), 1000 * float(weight)],
+                      "neck": [100 * float(weight), 100 * float(weight)],
+                      "eyes": [10 * float(weight), 10 * float(weight)]}
+
+        for i_phase in range(2):
+            cost_this_time = detailed_cost_function_42[obj][weight]
+            if isinstance(cost_this_time, float):
+                sum_cost_this_time = cost_this_time
+            elif phases_42[i_phase][-1] > len(cost_this_time) -1:
+                sum_cost_this_time = np.sum(cost_this_time[phases_42[i_phase][0]:])
+            else:
+                sum_cost_this_time = np.sum(cost_this_time[phases_42[i_phase]])
+            sum_cost_this_time = 0 if weights_42[obj][i_phase] == 0 else sum_cost_this_time
+            sum_cost_this_time_weighted = sum_cost_this_time * weights_42[obj][i_phase]
+            axs_cost_bar_plot[0].bar(i_weight, sum_cost_this_time, bottom=sum_cost[obj][weight], color=viridis_colors(i_obj/15))
+            axs_cost_bar_plot_weighted[0].bar(i_weight, sum_cost_this_time_weighted, bottom=sum_cost_weighted[obj][weight], color=viridis_colors(i_obj/15))
+            sum_cost[obj][weight] += sum_cost_this_time
+            sum_cost_weighted[obj][weight] += sum_cost_this_time_weighted
+
+
+phases_831 = [range(0, 40), range(40, 80), range(80, 120), range(120, 160), range(160, 200), range(200, 240)]
+sum_cost = {key: {weight: 0 for weight in detailed_cost_function_831[key].keys()} for key in detailed_cost_function_831.keys()}
+sum_cost_weighted = {key: {weight: 0 for weight in detailed_cost_function_831[key].keys()} for key in detailed_cost_function_831.keys()}
+for i_obj, obj in enumerate(detailed_cost_function_831.keys()):
+    for i_weight, weight in enumerate(detailed_cost_function_831[obj].keys()):
+        weights_831 = {"qddot_joints": [1, 1, 1, 1, 1, 1],
+                       "qddot_joints_derivative": [1, 1, 1, 1, 1, 1],
+                       "time": [1, 100, -0.01, 100, -0.01, -0.01],
+                       "shoulders_dof": [0, 0, 50000, 0, 0, 0],
+                       "final_tilt": [0, 0, 0, 0, 0, 1000],
+                       "peripheral": [100 * float(weight), 0, 0, 100 * float(weight), 100 * float(weight), 100 * float(weight)],
+                       "spotting": [10 * float(weight), 0, 0, 0, 0, 10 * float(weight)],
+                       "self_motion_detection": [1 * float(weight), 1 * float(weight), 1 * float(weight), 1 * float(weight), 1 * float(weight), 1 * float(weight)],
+                       "trampo_fixation": [1 * float(weight), 0, 0, 0, 0, 1000 * float(weight)],
+                       "neck": [100, 100, 100, 100, 100, 100],
+                       "eyes": [10, 10, 10, 10, 10, 10],
+                       "superimpose_markers": [0, 1, 0, 0, 0, 0],
+                       "elbow_dof": [50000, 0, 0, 0, 0, 50000],
+                       "arm_dof": [0, 0, 0, 0, 50000, 0],
+                       "Xrot_legs_dof": [0, 0, 0, 50000, 50000, 50000],
+                       "wobbling": [0, 0, 100, 0, 0, 0],
+                       }
+
+        for i_phase in range(6):
+            cost_this_time = detailed_cost_function_831[obj][weight]
+            if isinstance(cost_this_time, float):
+                sum_cost_this_time = cost_this_time
+            elif phases_831[i_phase][-1] > len(cost_this_time) -1:
+                sum_cost_this_time = np.sum(cost_this_time[phases_831[i_phase][0]:])
+            else:
+                sum_cost_this_time = np.sum(cost_this_time[phases_831[i_phase]])
+            sum_cost_this_time = 0 if weights_831[obj][i_phase] == 0 else sum_cost_this_time
+            sum_cost_this_time_weighted = sum_cost_this_time * weights_831[obj][i_phase]
+            if i_weight == 0 and i_phase == 0:
+                axs_cost_bar_plot[1].bar(i_weight, sum_cost_this_time, bottom=sum_cost[obj][weight], color=viridis_colors(i_obj/15), label=obj)
+                axs_cost_bar_plot_weighted[1].bar(i_weight, sum_cost_this_time_weighted,
+                                                  bottom=sum_cost_weighted[obj][weight],
+                                                  color=viridis_colors(i_obj / 15), label=obj)
+            else:
+                axs_cost_bar_plot[1].bar(i_weight, sum_cost_this_time, bottom=sum_cost[obj][weight], color=viridis_colors(i_obj/15))
+                axs_cost_bar_plot_weighted[1].bar(i_weight, sum_cost_this_time_weighted, bottom=sum_cost_weighted[obj][weight], color=viridis_colors(i_obj/15))
+            sum_cost[obj][weight] += sum_cost_this_time
+            sum_cost_weighted[obj][weight] += sum_cost_this_time_weighted
+
+axs_cost_bar_plot[0].set_xticks(list(range(9)))
+axs_cost_bar_plot[0].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
+axs_cost_bar_plot[1].set_xticks(list(range(9)))
+axs_cost_bar_plot[1].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
+axs_cost_bar_plot[1].legend(bbox_to_anchor=[1.5, 1], frameon=False)
+axs_cost_bar_plot[0].set_title("42")
+axs_cost_bar_plot[1].set_title("831")
+axs_cost_bar_plot[0].set_ylabel("Cost")
+
+axs_cost_bar_plot_weighted[0].set_xticks(list(range(9)))
+axs_cost_bar_plot_weighted[0].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
+axs_cost_bar_plot_weighted[1].set_xticks(list(range(9)))
+axs_cost_bar_plot_weighted[1].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
+axs_cost_bar_plot_weighted[1].legend(bbox_to_anchor=[1.8, 1], frameon=False)
+axs_cost_bar_plot_weighted[0].set_title("42")
+axs_cost_bar_plot_weighted[1].set_title("831")
+axs_cost_bar_plot_weighted[0].set_ylabel("Cost")
+
+fig_cost_bar_plot.subplots_adjust(left=0.1, right=0.7, top=0.9, bottom=0.1)
+fig_cost_bar_plot_weighted.subplots_adjust(left=0.1, right=0.7, top=0.9, bottom=0.1)
+fig_cost_bar_plot.savefig("Graphs/detailed_cost.png", dpi=300)
+fig_cost_bar_plot_weighted.savefig("Graphs/detailed_cost_weighted.png", dpi=300)
+plt.show()
 
 print('ici')
 
