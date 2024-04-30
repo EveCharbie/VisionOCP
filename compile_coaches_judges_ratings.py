@@ -130,7 +130,7 @@ names_831_simulations = ["SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-0p0_CVG
                          ]
 
 # Set up the bar width and positions
-conditions_simulations = ['without vision', '0.25', '0.5', '1.0', '1.75', '2.0']
+conditions_simulations = ['0.0', '0.25', '0.5', '1.0', '1.75', '2.0']
 conditions_reel = ["", "", "", "", "", ""]
 
 criteria = ["This techniques \nis efficient \nfor aerial \ntwist creation",
@@ -143,233 +143,53 @@ criteria = ["This techniques \nis efficient \nfor aerial \ntwist creation",
 
 ### ------------- Judges ratings -------------- ###
 
-ratings_judges = {"Stephan": {"caccfb24_0_0-48_286__42__1": [0.1],  # A
-                       "a62d4691_0_0-45_796__42__0": [0.2],  # B
-                       "a62d4691_0_0-45_796__42__1": [0.2],  # C
-                       "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-0p0_CVG": [0.1],  # D
-                       "c2a19850_0_0-113_083__831__0": [0.4],  # E
-                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2p0_CVG": [0.1],  # F
-                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p5_CVG": [0.1],  # G
-                       "87972c15_0_0-105_114__831__1": [0.4],  # H
-                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p0_CVG": [0.1],  # I
-                       "a62d4691_0_0-45_796__42__3": [0.1],  # J
-                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p75_CVG": [0.2],  # K
-                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p5_CVG": [0.1],  # L
-                       "a62d4691_0_0-45_796__42__2": [0.2],  # M
-                       "87972c15_0_0-105_114__831__2": [0.4],  # N
-                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2p0_CVG": [0.2],  # O
-                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p0_CVG": [0.1],  # P
-                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p75_CVG": [0.2],  # Q
-                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p25_CVG": [0.1],  # R
-                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p25_CVG": [0.1],  # S
-                       "87972c15_0_0-105_114__831__0": [0.4],  # T
-                       "SoMe_42_without_mesh-(100_40)-0p0_CVG": [0.3],  # U
+ratings_judges = {"Stephan": {"caccfb24_0_0-48_286__42__1": [-0.1],  # A
+                       "a62d4691_0_0-45_796__42__0": [-0.2],  # B
+                       "a62d4691_0_0-45_796__42__1": [-0.2],  # C
+                       "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-0p0_CVG": [-0.1],  # D
+                       "c2a19850_0_0-113_083__831__0": [-0.4],  # E
+                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2p0_CVG": [-0.1],  # F
+                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p5_CVG": [-0.1],  # G
+                       "87972c15_0_0-105_114__831__1": [-0.4],  # H
+                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p0_CVG": [-0.1],  # I
+                       "a62d4691_0_0-45_796__42__3": [-0.1],  # J
+                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p75_CVG": [-0.2],  # K
+                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p5_CVG": [-0.1],  # L
+                       "a62d4691_0_0-45_796__42__2": [-0.2],  # M
+                       "87972c15_0_0-105_114__831__2": [-0.4],  # N
+                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2p0_CVG": [-0.2],  # O
+                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p0_CVG": [-0.1],  # P
+                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p75_CVG": [-0.2],  # Q
+                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p25_CVG": [-0.1],  # R
+                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p25_CVG": [-0.1],  # S
+                       "87972c15_0_0-105_114__831__0": [-0.4],  # T
+                       "SoMe_42_without_mesh-(100_40)-0p0_CVG": [-0.3],  # U
                        },
-            "Julie": {"SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p25_CVG": [0.1],  # A
-                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p75_CVG": [0.1],  # B
-                      "87972c15_0_0-105_114__831__1": [0.4],  # C
-                      "SoMe_42_without_mesh-(100_40)-0p0_CVG": [0.1],  # D
-                      "87972c15_0_0-105_114__831__2": [0.4],  # E
-                      "a62d4691_0_0-45_796__42__2": [0.2],  # F
-                      "c2a19850_0_0-113_083__831__0": [0.5],  # G
-                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2p0_CVG": [0.1],  # H
-                      "a62d4691_0_0-45_796__42__1": [0.3],  # I
-                      "a62d4691_0_0-45_796__42__0": [0.3],  # J
-                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p5_CVG": [0.1],  # K
-                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p0_CVG": [0.1],  # L
-                      "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-0p0_CVG": [0.2],  # M
-                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p5_CVG": [0.1],  # N
-                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2p0_CVG": [0.2],  # O
-                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p25_CVG": [0.1],  # P
-                      "87972c15_0_0-105_114__831__0": [0.5],  # Q
-                      "caccfb24_0_0-48_286__42__1": [0.3],  # R
-                      "a62d4691_0_0-45_796__42__3": [0.3],  # S
-                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p75_CVG": [0.1],  # T
-                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p0_CVG": [0.2],  # U
+            "Julie": {"SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p25_CVG": [-0.1],  # A
+                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p75_CVG": [-0.1],  # B
+                      "87972c15_0_0-105_114__831__1": [-0.4],  # C
+                      "SoMe_42_without_mesh-(100_40)-0p0_CVG": [-0.1],  # D
+                      "87972c15_0_0-105_114__831__2": [-0.4],  # E
+                      "a62d4691_0_0-45_796__42__2": [-0.2],  # F
+                      "c2a19850_0_0-113_083__831__0": [-0.5],  # G
+                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2p0_CVG": [-0.1],  # H
+                      "a62d4691_0_0-45_796__42__1": [-0.3],  # I
+                      "a62d4691_0_0-45_796__42__0": [-0.3],  # J
+                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p5_CVG": [-0.1],  # K
+                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p0_CVG": [-0.1],  # L
+                      "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-0p0_CVG": [-0.2],  # M
+                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p5_CVG": [-0.1],  # N
+                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2p0_CVG": [-0.2],  # O
+                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p25_CVG": [-0.1],  # P
+                      "87972c15_0_0-105_114__831__0": [-0.5],  # Q
+                      "caccfb24_0_0-48_286__42__1": [-0.3],  # R
+                      "a62d4691_0_0-45_796__42__3": [-0.3],  # S
+                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p75_CVG": [-0.1],  # T
+                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p0_CVG": [-0.2],  # U
                 },
            }
 
-# ############################################################################################################ V1
-#
-# fig, axs = plt.subplots(4, 1, figsize=(15, 10))
-# bar_width = 0.15
-# x = [i * 7 * bar_width + 2.5 * bar_width for i in range(6)]
-#
-# # Create a bar plot for simulated 42/
-# for i_trial, trial in enumerate(names_42_simulations):
-#     for i_criteria in range(len(criteria)):
-#         total = 0
-#         for i_name, name in enumerate(ratings_coaches):
-#             axs[0].bar(i_criteria * bar_width + i_trial * 7 * bar_width, ratings_coaches[name][trial][i_criteria],
-#                     width=bar_width,
-#                     bottom=total,
-#                     color=colors[i_criteria],
-#                     alpha=0.5)
-#             axs[0].plot(np.array([i_criteria * bar_width + i_trial * 7 * bar_width - bar_width/2,
-#                                i_criteria * bar_width + i_trial * 7 * bar_width + bar_width/2]),
-#                      np.array([total+ratings_coaches[name][trial][i_criteria], total+ratings_coaches[name][trial][i_criteria]]),
-#                     color=colors[i_criteria])
-#             total += ratings_coaches[name][trial][i_criteria]
-# axs[0].set_xticks(x)
-# axs[0].set_xticklabels(conditions_simulations)
-# axs[0].set_xlim(-bar_width, 7 * bar_width*6)
-# axs[0].set_ylim(0, 20)
-#
-# # Create a bar plot for real 42/
-# for i_trial, trial in enumerate(names_42_real):
-#     for i_criteria in range(len(criteria)):
-#         total = 0
-#         for i_name, name in enumerate(ratings_coaches):
-#             axs[1].bar(i_criteria * bar_width + i_trial * 7 * bar_width, ratings_coaches[name][trial][i_criteria],
-#                     width=bar_width,
-#                     bottom=total,
-#                     color=colors[i_criteria],
-#                     alpha=0.5)
-#             axs[1].plot(np.array([i_criteria * bar_width + i_trial * 7 * bar_width - bar_width/2,
-#                                i_criteria * bar_width + i_trial * 7 * bar_width + bar_width/2]),
-#                      np.array([total+ratings_coaches[name][trial][i_criteria], total+ratings_coaches[name][trial][i_criteria]]),
-#                     color=colors[i_criteria])
-#             total += ratingratings_coachess[name][trial][i_criteria]
-# axs[1].set_xticks(x)
-# axs[1].set_xticklabels(conditions_reel)
-# axs[1].set_xlim(-bar_width, 7 * bar_width*6)
-# axs[1].set_ylim(0, 20)
-#
-# # Create a bar plot for simulated 831<
-# for i_trial, trial in enumerate(names_831_simulations):
-#     for i_criteria in range(len(criteria)):
-#         total = 0
-#         for i_name, name in enumerate(ratings_coaches):
-#             axs[2].bar(i_criteria * bar_width + i_trial * 7 * bar_width, ratings_coaches[name][trial][i_criteria],
-#                     width=bar_width,
-#                     bottom=total,
-#                     color=colors[i_criteria],
-#                     alpha=0.5)
-#             axs[2].plot(np.array([i_criteria * bar_width + i_trial * 7 * bar_width - bar_width/2,
-#                                i_criteria * bar_width + i_trial * 7 * bar_width + bar_width/2]),
-#                      np.array([total+ratings_coaches[name][trial][i_criteria], total+ratings_coaches[name][trial][i_criteria]]),
-#                     color=colors[i_criteria])
-#             total += ratings_coaches[name][trial][i_criteria]
-# axs[2].set_xticks(x)
-# axs[2].set_xticklabels(conditions_simulations)
-# axs[2].set_xlim(-bar_width, 7 * bar_width*6)
-# axs[2].set_ylim(0, 20)
-#
-# # Create a bar plot for real 831<
-# for i_trial, trial in enumerate(names_831_real):
-#     for i_criteria in range(len(criteria)):
-#         total = 0
-#         for i_name, name in enumerate(ratings_coaches):
-#             axs[3].bar(i_criteria * bar_width + i_trial * 7 * bar_width, ratings_coaches[name][trial][i_criteria],
-#                     width=bar_width,
-#                     bottom=total,
-#                     color=colors[i_criteria],
-#                     alpha=0.5)
-#             axs[3].plot(np.array([i_criteria * bar_width + i_trial * 7 * bar_width - bar_width/2,
-#                                i_criteria * bar_width + i_trial * 7 * bar_width + bar_width/2]),
-#                      np.array([total+ratings_coaches[name][trial][i_criteria], total+ratings_coaches[name][trial][i_criteria]]),
-#                     color=colors[i_criteria])
-#             total += ratings_coaches[name][trial][i_criteria]
-# axs[3].set_xticks(x)
-# axs[3].set_xticklabels(conditions_reel)
-# axs[3].set_xlim(-bar_width, 7 * bar_width*6)
-# axs[3].set_ylim(0, 20)
-#
-# for i_criteria in range(len(criteria)):
-#     axs[0].plot(-1, -1, color=colors[i_criteria], label=criteria[i_criteria])
-# axs[0].legend(bbox_to_anchor=(0.5, 2.25), loc='upper center')
-#
-# plt.subplots_adjust(top=0.80, bottom=0.05, left=0.05, right=0.95)
-# plt.savefig('coaches_ratings.png', dpi=300)
-# plt.show()
-#
-#
-# fig, axs = plt.subplots(4, 1, figsize=(15, 10))
-# bar_width = 0.15
-# x = [i * bar_width + 2.5 * bar_width for i in range(6)]
-#
-# # Create a bar plot for simulated 42/
-# for i_trial, trial in enumerate(names_42_simulations):
-#     total = 0
-#     for i_name, name in enumerate(ratings_judges):
-#         axs[0].bar(i_trial * 7 * bar_width, ratings_judges[name][trial][0],
-#                 width=bar_width,
-#                 bottom=total,
-#                 color=colors[2],
-#                 alpha=0.5)
-#         axs[0].plot(np.array([i_trial * 7 * bar_width - bar_width/2,
-#                            i_trial * 7 * bar_width + bar_width/2]),
-#                  np.array([total+ratings_judges[name][trial][0], total+ratings_judges[name][trial][0]]),
-#                 color=colors[2])
-#         total += ratings_judges[name][trial][0]
-# axs[0].set_xticks(x)
-# axs[0].set_xticklabels(conditions_simulations)
-# axs[0].set_xlim(-bar_width, 7 * bar_width*6)
-# axs[0].set_ylim(0, 1)
-#
-# # Create a bar plot for real 42/
-# for i_trial, trial in enumerate(names_42_real):
-#     total = 0
-#     for i_name, name in enumerate(ratings_judges):
-#         axs[1].bar(i_trial * 7 * bar_width, ratings_judges[name][trial][0],
-#                 width=bar_width,
-#                 bottom=total,
-#                 color=colors[2],
-#                 alpha=0.5)
-#         axs[1].plot(np.array([i_trial * 7 * bar_width - bar_width/2,
-#                            i_trial * 7 * bar_width + bar_width/2]),
-#                  np.array([total+ratings_judges[name][trial][0], total+ratings_judges[name][trial][0]]),
-#                 color=colors[2])
-#         total += ratings_judgesname][trial][0]
-# axs[1].set_xticks(x)
-# axs[1].set_xticklabels(conditions_reel)
-# axs[1].set_xlim(-bar_width, 7 * bar_width*6)
-# axs[1].set_ylim(0, 1)
-#
-# # Create a bar plot for simulated 831<
-# for i_trial, trial in enumerate(names_831_simulations):
-#     total = 0
-#     for i_name, name in enumerate(ratings_judges):
-#         axs[2].bar(i_trial * 7 * bar_width, ratings_judges[name][trial][0],
-#                 width=bar_width,
-#                 bottom=total,
-#                 color=colors[2],
-#                 alpha=0.5)
-#         axs[2].plot(np.array([i_trial * 7 * bar_width - bar_width/2,
-#                            i_trial * 7 * bar_width + bar_width/2]),
-#                  np.array([total+ratings_judges[name][trial][0], total+ratings_judges[name][trial][0]]),
-#                 color=colors[2])
-#         total += ratings_judges[name][trial][0]
-# axs[2].set_xticks(x)
-# axs[2].set_xticklabels(conditions_simulations)
-# axs[2].set_xlim(-bar_width, 7 * bar_width*6)
-# axs[2].set_ylim(0, 1)
-#
-# # Create a bar plot for real 831<
-# for i_trial, trial in enumerate(names_831_real):
-#     total = 0
-#     for i_name, name in enumerate(ratings_judges):
-#         axs[3].bar(i_trial * 7 * bar_width, ratings_judges[name][trial][0],
-#                 width=bar_width,
-#                 bottom=total,
-#                 color=colors[2],
-#                 alpha=0.5)
-#         axs[3].plot(np.array([i_trial * 7 * bar_width - bar_width/2,
-#                            i_trial * 7 * bar_width + bar_width/2]),
-#                  np.array([total+ratings_judges[name][trial][0], total+ratings_judges[name][trial][0]]),
-#                 color=colors[2])
-#         total += ratings_judges[name][trial][0]
-# axs[3].set_xticks(x)
-# axs[3].set_xticklabels(conditions_reel)
-# axs[3].set_xlim(-bar_width, 7 * bar_width*6)
-# axs[3].set_ylim(0, 1)
-#
-# plt.savefig('judges_ratings.png', dpi=300)
-# plt.show()
-
-############################################################################################################ V2
-
-fig, axs = plt.subplots(2, 7, figsize=(15, 8))
+fig, axs = plt.subplots(7, 2, figsize=(8, 15))
 bar_width = 0.15
 x = [i * bar_width for i in range(6)]
 
@@ -378,27 +198,19 @@ for i_trial, trial in enumerate(names_42_simulations):
     for i_criteria in range(len(criteria)):
         total = 0
         for i_name, name in enumerate(ratings_coaches):
-            axs[0, i_criteria].bar(i_trial * bar_width, ratings_coaches[name][trial][i_criteria],
+            axs[i_criteria, 0].bar(i_trial * bar_width, ratings_coaches[name][trial][i_criteria],
                     width=bar_width,
                     bottom=total,
                     color=colors[i_name],
                     alpha=0.5)
-            # axs[0, i_criteria].plot(np.array([i_trial * bar_width - bar_width/2,
-            #                    i_trial * bar_width + bar_width/2]),
-            #          np.array([total+ratings_coaches[name][trial][i_criteria], total+ratings_coaches[name][trial][i_criteria]]),
-            #         color=colors[i_name])
             total += ratings_coaches[name][trial][i_criteria]
     total = 0
     for i_name, name in enumerate(ratings_judges):
-        axs[0, 6].bar(i_trial * bar_width, ratings_judges[name][trial][0],
+        axs[6, 0].bar(i_trial * bar_width, ratings_judges[name][trial][0],
                                width=bar_width,
                                bottom=total,
                                color=judges_colors[i_name],
                                alpha=0.5)
-        # axs[0, i_criteria].plot(np.array([i_trial * bar_width - bar_width/2,
-        #                    i_trial * bar_width + bar_width/2]),
-        #          np.array([total+ratings_coaches[name][trial][i_criteria], total+ratings_coaches[name][trial][i_criteria]]),
-        #         color=colors[i_name])
         total += ratings_judges[name][trial][0]
 
 # Create a reference bar for real 42/
@@ -418,38 +230,30 @@ min_total = np.min(np.asarray(total_per_criteria), axis=1)
 max_total = np.max(np.asarray(total_per_criteria), axis=1)
 
 for i_criteria in range(7):
-    axs[0, i_criteria].plot(7*bar_width-bar_width/2, mean_total[i_criteria], marker="s", color="k")
-    axs[0, i_criteria].plot(np.array([-bar_width/2, 7*bar_width]), np.array([mean_total[i_criteria], mean_total[i_criteria]]), color="k")
-    axs[0, i_criteria].plot(np.array([7*bar_width-bar_width/2, 7*bar_width-bar_width/2]), np.array([min_total[i_criteria], max_total[i_criteria]]), color="k", alpha=0.5)
-    axs[0, i_criteria].plot(np.array([7*bar_width-bar_width/2-0.05, 7*bar_width-bar_width/2+0.05]), np.array([min_total[i_criteria], min_total[i_criteria]]), color="k", alpha=0.5)
-    axs[0, i_criteria].plot(np.array([7*bar_width-bar_width/2-0.05, 7*bar_width-bar_width/2+0.05]), np.array([max_total[i_criteria], max_total[i_criteria]]), color="k", alpha=0.5)
+    axs[i_criteria, 0].plot(7*bar_width-bar_width/2, mean_total[i_criteria], marker="s", color="k")
+    axs[i_criteria, 0].plot(np.array([-bar_width/2, 7*bar_width]), np.array([mean_total[i_criteria], mean_total[i_criteria]]), color="k")
+    axs[i_criteria, 0].plot(np.array([7*bar_width-bar_width/2, 7*bar_width-bar_width/2]), np.array([min_total[i_criteria], max_total[i_criteria]]), color="k", alpha=0.5)
+    axs[i_criteria, 0].plot(np.array([7*bar_width-bar_width/2-0.05, 7*bar_width-bar_width/2+0.05]), np.array([min_total[i_criteria], min_total[i_criteria]]), color="k", alpha=0.5)
+    axs[i_criteria, 0].plot(np.array([7*bar_width-bar_width/2-0.05, 7*bar_width-bar_width/2+0.05]), np.array([max_total[i_criteria], max_total[i_criteria]]), color="k", alpha=0.5)
 
 # Create a bar plot for simulated 831<
 for i_trial, trial in enumerate(names_831_simulations):
     for i_criteria in range(len(criteria)):
         total = 0
         for i_name, name in enumerate(ratings_coaches):
-            axs[1, i_criteria].bar(i_trial * bar_width, ratings_coaches[name][trial][i_criteria],
+            axs[i_criteria, 1].bar(i_trial * bar_width, ratings_coaches[name][trial][i_criteria],
                     width=bar_width,
                     bottom=total,
                     color=colors[i_name],
                     alpha=0.5)
-            # axs[1, i_criteria].plot(np.array([i_criteria * bar_width + i_trial * 7 * bar_width - bar_width/2,
-            #                    i_criteria * bar_width + i_trial * 7 * bar_width + bar_width/2]),
-            #          np.array([total+ratings_coaches[name][trial][i_criteria], total+ratings_coaches[name][trial][i_criteria]]),
-            #         color=colors[i_criteria])
             total += ratings_coaches[name][trial][i_criteria]
     total = 0
     for i_name, name in enumerate(ratings_judges):
-        axs[1, 6].bar(i_trial * bar_width, ratings_judges[name][trial][0],
+        axs[6, 1].bar(i_trial * bar_width, ratings_judges[name][trial][0],
                                width=bar_width,
                                bottom=total,
                                color=judges_colors[i_name],
                                alpha=0.5)
-        # axs[0, i_criteria].plot(np.array([i_trial * bar_width - bar_width/2,
-        #                    i_trial * bar_width + bar_width/2]),
-        #          np.array([total+ratings_coaches[name][trial][i_criteria], total+ratings_coaches[name][trial][i_criteria]]),
-        #         color=colors[i_name])
         total += ratings_judges[name][trial][0]
 
 # Create a reference bar for real 831<
@@ -469,24 +273,21 @@ min_total = np.min(np.asarray(total_per_criteria), axis=1)
 max_total = np.max(np.asarray(total_per_criteria), axis=1)
 
 for i_criteria in range(7):
-    axs[1, i_criteria].plot(7*bar_width-bar_width/2, mean_total[i_criteria], marker="s", color="k")
-    axs[1, i_criteria].plot(np.array([-bar_width/2, 7*bar_width]), np.array([mean_total[i_criteria], mean_total[i_criteria]]), color="k")
-    axs[1, i_criteria].plot(np.array([7*bar_width-bar_width/2, 7*bar_width-bar_width/2]), np.array([min_total[i_criteria], max_total[i_criteria]]), color="k", alpha=0.5)
-    axs[1, i_criteria].plot(np.array([7*bar_width-bar_width/2-0.05, 7*bar_width-bar_width/2+0.05]), np.array([min_total[i_criteria], min_total[i_criteria]]), color="k", alpha=0.5)
-    axs[1, i_criteria].plot(np.array([7*bar_width-bar_width/2-0.05, 7*bar_width-bar_width/2+0.05]), np.array([max_total[i_criteria], max_total[i_criteria]]), color="k", alpha=0.5)
+    axs[i_criteria, 1].plot(7*bar_width-bar_width/2, mean_total[i_criteria], marker="s", color="k")
+    axs[i_criteria, 1].plot(np.array([-bar_width/2, 7*bar_width]), np.array([mean_total[i_criteria], mean_total[i_criteria]]), color="k")
+    axs[i_criteria, 1].plot(np.array([7*bar_width-bar_width/2, 7*bar_width-bar_width/2]), np.array([min_total[i_criteria], max_total[i_criteria]]), color="k", alpha=0.5)
+    axs[i_criteria, 1].plot(np.array([7*bar_width-bar_width/2-0.05, 7*bar_width-bar_width/2+0.05]), np.array([min_total[i_criteria], min_total[i_criteria]]), color="k", alpha=0.5)
+    axs[i_criteria, 1].plot(np.array([7*bar_width-bar_width/2-0.05, 7*bar_width-bar_width/2+0.05]), np.array([max_total[i_criteria], max_total[i_criteria]]), color="k", alpha=0.5)
 
-axs[0, 0].set_ylabel("42/", fontsize=16)
-axs[1, 0].set_ylabel("831<", fontsize=16)
-for i_criteria in range(len(criteria)):
-    axs[0, i_criteria].set_title(criteria[i_criteria])
-axs[0, 6].set_title("Judges deductions")
+axs[0, 0].set_title("42/", fontsize=16)
+axs[0, 1].set_title("831<", fontsize=16)
 for i_trial in range(7):
-    axs[0, i_trial].set_xticks(x)
-    axs[0, i_trial].set_xticklabels(conditions_simulations, rotation=-90)
-    axs[1, i_trial].set_xticks(x)
-    axs[1, i_trial].set_xticklabels(conditions_simulations, rotation=-90)
+    axs[i_trial, 0].set_xticks(x)
+    axs[i_trial, 0].set_xticklabels(conditions_simulations)
+    axs[i_trial, 0].set_xticks(x)
+    axs[i_trial, 0].set_xticklabels(conditions_simulations)
 
 plt.tight_layout()
-plt.savefig('coaches_ratings.png', dpi=300)
+plt.savefig('Graphs/coaches_ratings.png', dpi=300)
 plt.show()
 
