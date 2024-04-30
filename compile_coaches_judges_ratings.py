@@ -189,11 +189,58 @@ ratings_judges = {"Stephan": {"caccfb24_0_0-48_286__42__1": [-0.1],  # A
                 },
            }
 
+# detailed_ratings_judges = {"Stephan": {"caccfb24_0_0-48_286__42__1": {"arm": 0, "legs": 0, ...},  # A TODO#############
+#                        "a62d4691_0_0-45_796__42__0": [-0.2],  # B
+#                        "a62d4691_0_0-45_796__42__1": [-0.2],  # C
+#                        "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-0p0_CVG": [-0.1],  # D
+#                        "c2a19850_0_0-113_083__831__0": [-0.4],  # E
+#                        "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2p0_CVG": [-0.1],  # F
+#                        "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p5_CVG": [-0.1],  # G
+#                        "87972c15_0_0-105_114__831__1": [-0.4],  # H
+#                        "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p0_CVG": [-0.1],  # I
+#                        "a62d4691_0_0-45_796__42__3": [-0.1],  # J
+#                        "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p75_CVG": [-0.2],  # K
+#                        "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p5_CVG": [-0.1],  # L
+#                        "a62d4691_0_0-45_796__42__2": [-0.2],  # M
+#                        "87972c15_0_0-105_114__831__2": [-0.4],  # N
+#                        "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2p0_CVG": [-0.2],  # O
+#                        "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p0_CVG": [-0.1],  # P
+#                        "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p75_CVG": [-0.2],  # Q
+#                        "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p25_CVG": [-0.1],  # R
+#                        "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p25_CVG": [-0.1],  # S
+#                        "87972c15_0_0-105_114__831__0": [-0.4],  # T
+#                        "SoMe_42_without_mesh-(100_40)-0p0_CVG": [-0.3],  # U
+#                        },
+#             "Julie": {"SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p25_CVG": [-0.1],  # A
+#                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p75_CVG": [-0.1],  # B
+#                       "87972c15_0_0-105_114__831__1": [-0.4],  # C
+#                       "SoMe_42_without_mesh-(100_40)-0p0_CVG": [-0.1],  # D
+#                       "87972c15_0_0-105_114__831__2": [-0.4],  # E
+#                       "a62d4691_0_0-45_796__42__2": [-0.2],  # F
+#                       "c2a19850_0_0-113_083__831__0": [-0.5],  # G
+#                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2p0_CVG": [-0.1],  # H
+#                       "a62d4691_0_0-45_796__42__1": [-0.3],  # I
+#                       "a62d4691_0_0-45_796__42__0": [-0.3],  # J
+#                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p5_CVG": [-0.1],  # K
+#                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p0_CVG": [-0.1],  # L
+#                       "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-0p0_CVG": [-0.2],  # M
+#                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p5_CVG": [-0.1],  # N
+#                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2p0_CVG": [-0.2],  # O
+#                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p25_CVG": [-0.1],  # P
+#                       "87972c15_0_0-105_114__831__0": [-0.5],  # Q
+#                       "caccfb24_0_0-48_286__42__1": [-0.3],  # R
+#                       "a62d4691_0_0-45_796__42__3": [-0.3],  # S
+#                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p75_CVG": [-0.1],  # T
+#                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p0_CVG": [-0.2],  # U
+#                 },
+#            }
+
 fig, axs = plt.subplots(7, 2, figsize=(8, 15))
 bar_width = 0.15
 x = [i * bar_width for i in range(6)]
 
 # Create a bar plot for simulated 42/
+total_per_criteria = np.zeros((len(names_42_simulations), len(criteria)))
 for i_trial, trial in enumerate(names_42_simulations):
     for i_criteria in range(len(criteria)):
         total = 0
@@ -204,6 +251,7 @@ for i_trial, trial in enumerate(names_42_simulations):
                     color=colors[i_name],
                     alpha=0.5)
             total += ratings_coaches[name][trial][i_criteria]
+        total_per_criteria[i_trial, i_criteria] = total
     total = 0
     for i_name, name in enumerate(ratings_judges):
         axs[6, 0].bar(i_trial * bar_width, ratings_judges[name][trial][0],
@@ -212,6 +260,7 @@ for i_trial, trial in enumerate(names_42_simulations):
                                color=judges_colors[i_name],
                                alpha=0.5)
         total += ratings_judges[name][trial][0]
+print("42 total scores: ", np.mean(total_per_criteria, axis=0))
 
 # Create a reference bar for real 42/
 total_per_criteria = [[] for i in range(7)]
@@ -237,6 +286,7 @@ for i_criteria in range(7):
     axs[i_criteria, 0].plot(np.array([7*bar_width-bar_width/2-0.05, 7*bar_width-bar_width/2+0.05]), np.array([max_total[i_criteria], max_total[i_criteria]]), color="k", alpha=0.5)
 
 # Create a bar plot for simulated 831<
+total_per_criteria = np.zeros((len(names_831_simulations), len(criteria)))
 for i_trial, trial in enumerate(names_831_simulations):
     for i_criteria in range(len(criteria)):
         total = 0
@@ -247,6 +297,7 @@ for i_trial, trial in enumerate(names_831_simulations):
                     color=colors[i_name],
                     alpha=0.5)
             total += ratings_coaches[name][trial][i_criteria]
+        total_per_criteria[i_trial, i_criteria] = total
     total = 0
     for i_name, name in enumerate(ratings_judges):
         axs[6, 1].bar(i_trial * bar_width, ratings_judges[name][trial][0],
@@ -255,6 +306,7 @@ for i_trial, trial in enumerate(names_831_simulations):
                                color=judges_colors[i_name],
                                alpha=0.5)
         total += ratings_judges[name][trial][0]
+print("831 total scores: ", np.mean(total_per_criteria, axis=0))
 
 # Create a reference bar for real 831<
 total_per_criteria = [[] for i in range(7)]

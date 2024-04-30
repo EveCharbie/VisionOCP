@@ -35,7 +35,7 @@ n_shooting_42 = (100, 40)
 
 
 # ---------------------------------------- Load optimal kinematics ---------------------------------------- #
-weights = [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+weights = [0.0, 0.25, 0.5, 1.0, 1.75, 2.0]  # [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
 listdir = os.listdir("Solutions/")
 solution_file_names = [current_dir for current_dir in listdir if ".pkl" in current_dir and current_dir[:2] != "q_"]
 
@@ -258,7 +258,7 @@ def hand_leg_distance(model, q):
 
 
 # ---------------------------------------- Plot comparison ---------------------------------------- #
-colors = [cm.magma(i/9) for i in range(9)]
+colors = [cm.magma(i/(len(weights)-1)) for i in range(len(weights))]
 fig_cost, axs_cost = plt.subplots(6, 2, figsize=(10, 16))
 
 # 42 plots
@@ -365,10 +365,10 @@ for i, time in enumerate(time_parameters[:-1]):
     for j in range(6):
         axs_cost[j, 0].plot([current_time, current_time], [-250, 1e+8], '-k', alpha=0.3, linewidth=0.5)
 axs_cost[0, 0].set_ylim(-10, 250)
-axs_cost[1, 1].set_ylim(-100, 4e+6)
-axs_cost[2, 1].set_ylim(-100, 8e+8)
+axs_cost[1, 0].set_ylim(-100, 3.5e+6)
+axs_cost[2, 0].set_ylim(-100, 8e+7)
 axs_cost[3, 0].set_ylim(-10, 200)
-axs_cost[4, 1].set_ylim(-100, 10000)
+axs_cost[4, 0].set_ylim(-100, 10000)
 axs_cost[5, 0].set_ylim(-10, 1500)
 
 # show legend below figure
@@ -554,11 +554,11 @@ for i, time in enumerate(time_parameters[:-1]):
     for j in range(6):
         axs_cost[j, 1].plot([current_time, current_time], [-250, 1e+8], '-k', alpha=0.3, linewidth=0.5)
 axs_cost[0, 1].set_ylim(-10, 250)
-axs_cost[1, 1].set_ylim(-100, 4e+6)
-axs_cost[2, 1].set_ylim(-100, 8e+8)
-axs_cost[3, 0].set_ylim(-10, 200)
+axs_cost[1, 1].set_ylim(-100, 3.5e+6)
+axs_cost[2, 1].set_ylim(-100, 8e+7)
+axs_cost[3, 1].set_ylim(-10, 200)
 axs_cost[4, 1].set_ylim(-100, 10000)
-axs_cost[5, 0].set_ylim(-10, 1500)
+axs_cost[5, 1].set_ylim(-10, 1500)
 
 # show legend below figure
 axs_root[0, 0].legend(bbox_to_anchor=[3.7, 1.0], frameon=False)
@@ -590,8 +590,8 @@ plt.show()
 
 viridis_colors = cm.get_cmap("viridis")
 phases_42 = [range(0, 100), range(100, 140)]
-fig_cost_bar_plot, axs_cost_bar_plot = plt.subplots(1, 2, figsize=(15, 6))
-fig_cost_bar_plot_weighted, axs_cost_bar_plot_weighted = plt.subplots(1, 2, figsize=(15, 6))
+fig_cost_bar_plot, axs_cost_bar_plot = plt.subplots(2, 2, figsize=(15, 9))
+fig_cost_bar_plot_weighted, axs_cost_bar_plot_weighted = plt.subplots(2, 2, figsize=(15, 9))
 sum_cost = {key: {weight: 0 for weight in detailed_cost_function_42[key].keys()} for key in detailed_cost_function_42.keys()}
 sum_cost_weighted = {key: {weight: 0 for weight in detailed_cost_function_42[key].keys()} for key in detailed_cost_function_42.keys()}
 for i_obj, obj in enumerate(detailed_cost_function_42.keys()):
@@ -618,10 +618,13 @@ for i_obj, obj in enumerate(detailed_cost_function_42.keys()):
                 sum_cost_this_time = np.sum(cost_this_time[phases_42[i_phase]])
             sum_cost_this_time = 0 if weights_42[obj][i_phase] == 0 else sum_cost_this_time
             sum_cost_this_time_weighted = sum_cost_this_time * weights_42[obj][i_phase]
-            axs_cost_bar_plot[0].bar(i_weight, sum_cost_this_time, bottom=sum_cost[obj][weight], color=viridis_colors(i_obj/15))
-            axs_cost_bar_plot_weighted[0].bar(i_weight, sum_cost_this_time_weighted, bottom=sum_cost_weighted[obj][weight], color=viridis_colors(i_obj/15))
+            axs_cost_bar_plot[0, 0].bar(i_weight, sum_cost_this_time, bottom=sum_cost[obj][weight], color=viridis_colors(i_obj/15))
+            axs_cost_bar_plot_weighted[0, 0].bar(i_weight, sum_cost_this_time_weighted, bottom=sum_cost_weighted[obj][weight], color=viridis_colors(i_obj/15))
             sum_cost[obj][weight] += sum_cost_this_time
             sum_cost_weighted[obj][weight] += sum_cost_this_time_weighted
+
+            axs_cost_bar_plot[1, 0].bar(i_obj + 0.1 * i_weight, sum_cost_this_time, width=0.08, color=colors[i_weight])
+            axs_cost_bar_plot_weighted[1, 0].bar(i_obj + 0.1 * i_weight, sum_cost_this_time_weighted, width=0.08, color=colors[i_weight])
 
 
 phases_831 = [range(0, 40), range(40, 80), range(80, 120), range(120, 160), range(160, 200), range(200, 240)]
@@ -658,33 +661,56 @@ for i_obj, obj in enumerate(detailed_cost_function_831.keys()):
             sum_cost_this_time = 0 if weights_831[obj][i_phase] == 0 else sum_cost_this_time
             sum_cost_this_time_weighted = sum_cost_this_time * weights_831[obj][i_phase]
             if i_weight == 0 and i_phase == 0:
-                axs_cost_bar_plot[1].bar(i_weight, sum_cost_this_time, bottom=sum_cost[obj][weight], color=viridis_colors(i_obj/15), label=obj)
-                axs_cost_bar_plot_weighted[1].bar(i_weight, sum_cost_this_time_weighted,
+                axs_cost_bar_plot[0, 1].bar(i_weight, sum_cost_this_time, bottom=sum_cost[obj][weight], color=viridis_colors(i_obj/15), label=obj)
+                axs_cost_bar_plot_weighted[0, 1].bar(i_weight, sum_cost_this_time_weighted,
                                                   bottom=sum_cost_weighted[obj][weight],
                                                   color=viridis_colors(i_obj / 15), label=obj)
             else:
-                axs_cost_bar_plot[1].bar(i_weight, sum_cost_this_time, bottom=sum_cost[obj][weight], color=viridis_colors(i_obj/15))
-                axs_cost_bar_plot_weighted[1].bar(i_weight, sum_cost_this_time_weighted, bottom=sum_cost_weighted[obj][weight], color=viridis_colors(i_obj/15))
+                axs_cost_bar_plot[0, 1].bar(i_weight, sum_cost_this_time, bottom=sum_cost[obj][weight], color=viridis_colors(i_obj/15))
+                axs_cost_bar_plot_weighted[0, 1].bar(i_weight, sum_cost_this_time_weighted, bottom=sum_cost_weighted[obj][weight], color=viridis_colors(i_obj/15))
+
             sum_cost[obj][weight] += sum_cost_this_time
             sum_cost_weighted[obj][weight] += sum_cost_this_time_weighted
 
-axs_cost_bar_plot[0].set_xticks(list(range(9)))
-axs_cost_bar_plot[0].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
-axs_cost_bar_plot[1].set_xticks(list(range(9)))
-axs_cost_bar_plot[1].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
-axs_cost_bar_plot[1].legend(bbox_to_anchor=[1.5, 1], frameon=False)
-axs_cost_bar_plot[0].set_title("42")
-axs_cost_bar_plot[1].set_title("831")
-axs_cost_bar_plot[0].set_ylabel("Cost")
+            if i_obj == 0 and i_phase == 0:
+                axs_cost_bar_plot[1, 1].bar(i_obj + 0.1 * i_weight, sum_cost_this_time, width=0.08,
+                                            color=colors[i_weight], label=weight)
+                axs_cost_bar_plot_weighted[1, 1].bar(i_obj + 0.1 * i_weight, sum_cost_this_time_weighted, width=0.08,
+                                                     color=colors[i_weight], label=weight)
+            else:
+                axs_cost_bar_plot[1, 1].bar(i_obj + 0.1 * i_weight, sum_cost_this_time, width=0.08,
+                                            color=colors[i_weight])
+                axs_cost_bar_plot_weighted[1, 1].bar(i_obj + 0.1 * i_weight, sum_cost_this_time_weighted, width=0.08,
+                                                     color=colors[i_weight])
 
-axs_cost_bar_plot_weighted[0].set_xticks(list(range(9)))
-axs_cost_bar_plot_weighted[0].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
-axs_cost_bar_plot_weighted[1].set_xticks(list(range(9)))
-axs_cost_bar_plot_weighted[1].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
-axs_cost_bar_plot_weighted[1].legend(bbox_to_anchor=[1.8, 1], frameon=False)
-axs_cost_bar_plot_weighted[0].set_title("42")
-axs_cost_bar_plot_weighted[1].set_title("831")
-axs_cost_bar_plot_weighted[0].set_ylabel("Cost")
+
+axs_cost_bar_plot[0, 0].set_xticks(list(range(len(weights))))
+axs_cost_bar_plot[0, 0].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
+axs_cost_bar_plot[0, 1].set_xticks(list(range(len(weights))))
+axs_cost_bar_plot[0, 1].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
+axs_cost_bar_plot[0, 1].legend(bbox_to_anchor=[1.5, 1], frameon=False)
+axs_cost_bar_plot[0, 0].set_title("42")
+axs_cost_bar_plot[0, 1].set_title("831")
+axs_cost_bar_plot[0, 0].set_ylabel("Cost")
+axs_cost_bar_plot[1, 0].set_xticks([])
+axs_cost_bar_plot[1, 1].set_xticks([])
+axs_cost_bar_plot[1, 0].set_yscale('log')
+axs_cost_bar_plot[1, 1].set_yscale('log')
+axs_cost_bar_plot[1, 1].legend(bbox_to_anchor=[1.5, 1], frameon=False)
+
+axs_cost_bar_plot_weighted[0, 0].set_xticks(list(range(len(weights))))
+axs_cost_bar_plot_weighted[0, 0].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
+axs_cost_bar_plot_weighted[0, 1].set_xticks(list(range(len(weights))))
+axs_cost_bar_plot_weighted[0, 1].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
+axs_cost_bar_plot_weighted[0, 1].legend(bbox_to_anchor=[1.8, 1], frameon=False)
+axs_cost_bar_plot_weighted[0, 0].set_title("42")
+axs_cost_bar_plot_weighted[0, 1].set_title("831")
+axs_cost_bar_plot_weighted[0, 0].set_ylabel("Cost")
+axs_cost_bar_plot_weighted[1, 0].set_xticks([])
+axs_cost_bar_plot_weighted[1, 1].set_xticks([])
+axs_cost_bar_plot_weighted[1, 0].set_yscale('log')
+axs_cost_bar_plot_weighted[1, 1].set_yscale('log')
+axs_cost_bar_plot_weighted[1, 1].legend(bbox_to_anchor=[1.5, 1], frameon=False)
 
 fig_cost_bar_plot.subplots_adjust(left=0.1, right=0.7, top=0.9, bottom=0.1)
 fig_cost_bar_plot_weighted.subplots_adjust(left=0.1, right=0.7, top=0.9, bottom=0.1)
