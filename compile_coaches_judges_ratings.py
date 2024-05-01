@@ -333,11 +333,17 @@ for i_criteria in range(7):
 
 axs[0, 0].set_title("42/", fontsize=16)
 axs[0, 1].set_title("831<", fontsize=16)
-for i_trial in range(7):
-    axs[i_trial, 0].set_xticks(x)
-    axs[i_trial, 0].set_xticklabels(conditions_simulations)
-    axs[i_trial, 0].set_xticks(x)
-    axs[i_trial, 0].set_xticklabels(conditions_simulations)
+for i_criteria in range(7):
+    axs[i_criteria, 0].set_xticks(x)
+    axs[i_criteria, 0].set_xticklabels(conditions_simulations)
+    axs[i_criteria, 1].set_xticks(x)
+    axs[i_criteria, 1].set_xticklabels(conditions_simulations)
+    if i_criteria == 6:
+        axs[i_criteria, 0].set_ylabel("Judges deductions", fontsize=12, labelpad=60)
+        axs[i_criteria, 0].yaxis.label.set(rotation='horizontal', ha='center', va='center')
+    else:
+        axs[i_criteria, 0].set_ylabel(criteria[i_criteria], fontsize=12, labelpad=60)
+        axs[i_criteria, 0].yaxis.label.set(rotation='horizontal', ha='center', va='center')
 
 plt.tight_layout()
 plt.savefig('Graphs/coaches_ratings.png', dpi=300)

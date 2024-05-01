@@ -258,8 +258,8 @@ def hand_leg_distance(model, q):
 
 
 # ---------------------------------------- Plot comparison ---------------------------------------- #
-colors = [cm.magma(i/(len(weights)-1)) for i in range(len(weights))]
-fig_cost, axs_cost = plt.subplots(6, 2, figsize=(10, 16))
+colors = [cm.magma(i/(len(weights))) for i in range(len(weights))]
+fig_cost, axs_cost = plt.subplots(6, 2, figsize=(12, 16))
 
 # 42 plots
 detailed_cost_function_42 = {"qddot_joints": {}, "qddot_joints_derivative": {}, "time": {}, "shoulders_dof": {}, "final_tilt": {}, "peripheral": {}, "spotting": {}, "self_motion_detection": {}, "trampo_fixation": {}, "neck": {}, "eyes": {}}
@@ -363,13 +363,13 @@ current_time = 0
 for i, time in enumerate(time_parameters[:-1]):
     current_time += time
     for j in range(6):
-        axs_cost[j, 0].plot([current_time, current_time], [-250, 1e+8], '-k', alpha=0.3, linewidth=0.5)
+        axs_cost[j, 0].plot([current_time, current_time], [-1e8, 1e+8], '-k', alpha=0.3, linewidth=0.5)
 axs_cost[0, 0].set_ylim(-10, 250)
-axs_cost[1, 0].set_ylim(-100, 3.5e+6)
-axs_cost[2, 0].set_ylim(-100, 8e+7)
+axs_cost[1, 0].set_ylim(-1000, 0.6e+6)
+axs_cost[2, 0].set_ylim(-100000, 700000)
 axs_cost[3, 0].set_ylim(-10, 200)
-axs_cost[4, 0].set_ylim(-100, 10000)
-axs_cost[5, 0].set_ylim(-10, 1500)
+axs_cost[4, 0].set_ylim(-500, 10000)
+axs_cost[5, 0].set_ylim(-50, 1500)
 
 # show legend below figure
 axs_root[0, 0].legend(bbox_to_anchor=[3.7, 1.0], frameon=False)
@@ -686,12 +686,15 @@ for i_obj, obj in enumerate(detailed_cost_function_831.keys()):
 
 axs_cost_bar_plot[0, 0].set_xticks(list(range(len(weights))))
 axs_cost_bar_plot[0, 0].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
+axs_cost_bar_plot[0, 0].ticklabel_format(style='plain', axis='y')
 axs_cost_bar_plot[0, 1].set_xticks(list(range(len(weights))))
 axs_cost_bar_plot[0, 1].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
-axs_cost_bar_plot[0, 1].legend(bbox_to_anchor=[1.5, 1], frameon=False)
+axs_cost_bar_plot[0, 1].legend(bbox_to_anchor=[1.8, 1], frameon=False)
+axs_cost_bar_plot[0, 1].ticklabel_format(style='plain', axis='y')
 axs_cost_bar_plot[0, 0].set_title("42")
 axs_cost_bar_plot[0, 1].set_title("831")
 axs_cost_bar_plot[0, 0].set_ylabel("Cost")
+axs_cost_bar_plot[0, 0].set_ylim(0, 200000)
 axs_cost_bar_plot[1, 0].set_xticks([])
 axs_cost_bar_plot[1, 1].set_xticks([])
 axs_cost_bar_plot[1, 0].set_yscale('log')
@@ -700,12 +703,16 @@ axs_cost_bar_plot[1, 1].legend(bbox_to_anchor=[1.5, 1], frameon=False)
 
 axs_cost_bar_plot_weighted[0, 0].set_xticks(list(range(len(weights))))
 axs_cost_bar_plot_weighted[0, 0].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
+axs_cost_bar_plot_weighted[0, 0].ticklabel_format(style='plain', axis='y')
 axs_cost_bar_plot_weighted[0, 1].set_xticks(list(range(len(weights))))
 axs_cost_bar_plot_weighted[0, 1].set_xticklabels([key for key in detailed_cost_function_42["peripheral"].keys()])
 axs_cost_bar_plot_weighted[0, 1].legend(bbox_to_anchor=[1.8, 1], frameon=False)
+axs_cost_bar_plot_weighted[0, 1].ticklabel_format(style='plain', axis='y')
 axs_cost_bar_plot_weighted[0, 0].set_title("42")
 axs_cost_bar_plot_weighted[0, 1].set_title("831")
 axs_cost_bar_plot_weighted[0, 0].set_ylabel("Cost")
+axs_cost_bar_plot_weighted[0, 0].set_ylim(0, 2e+6)
+axs_cost_bar_plot_weighted[0, 1].set_ylim(0, 4e+7)
 axs_cost_bar_plot_weighted[1, 0].set_xticks([])
 axs_cost_bar_plot_weighted[1, 1].set_xticks([])
 axs_cost_bar_plot_weighted[1, 0].set_yscale('log')
