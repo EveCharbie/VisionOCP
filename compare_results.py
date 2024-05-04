@@ -415,7 +415,6 @@ detailed_cost_function_831 = {"qddot_joints": {},
                           "eyes": {},
                           "superimpose_markers": {},
                           "elbow_dof": {},
-                          "arm_dof": {},
                           "Xrot_legs_dof": {},
                           "wobbling": {},
                           }
@@ -531,7 +530,6 @@ for i_weight, weight in enumerate(weights):
     XrotLeftLowerArm = 17
     XrotLegs = 18
     YrotLegs = 19
-    arm_dofs = [ZrotRightUpperArm, YrotRightUpperArm, ZrotRightLowerArm, XrotRightLowerArm, ZrotLeftUpperArm, YrotLeftUpperArm, ZrotLeftLowerArm, XrotLeftLowerArm]
     shoulder_dofs = [ZrotRightUpperArm, YrotRightUpperArm, ZrotLeftUpperArm, YrotLeftUpperArm]
     elbow_dofs = [ZrotRightLowerArm, XrotRightLowerArm, ZrotLeftLowerArm, XrotLeftLowerArm]
 
@@ -540,7 +538,6 @@ for i_weight, weight in enumerate(weights):
     detailed_cost_function_831["time"][str(weight)] = time_vector[-1]
     detailed_cost_function_831["superimpose_markers"][str(weight)] = hand_leg_distance(model_831_with_visual_criteria, qs[:, -1])
     detailed_cost_function_831["elbow_dof"][str(weight)] = np.sum(qs[elbow_dofs, :-1]**2, axis=0) * dt_lagrange
-    detailed_cost_function_831["arm_dof"][str(weight)] = np.sum(qs[arm_dofs, :-1]**2) * dt_lagrange
     detailed_cost_function_831["shoulders_dof"][str(weight)] = np.sum(qs[shoulder_dofs, :-1]**2, axis=0) * dt_lagrange
     detailed_cost_function_831["Xrot_legs_dof"][str(weight)] = qs[XrotLegs, :-1]**2 * dt_lagrange
     detailed_cost_function_831["wobbling"][str(weight)] = qs[5, :-1]**2 * dt_lagrange
@@ -552,13 +549,14 @@ current_time = 0
 for i, time in enumerate(time_parameters[:-1]):
     current_time += time
     for j in range(6):
-        axs_cost[j, 1].plot([current_time, current_time], [-250, 1e+8], '-k', alpha=0.3, linewidth=0.5)
+        axs_cost[j, 1].plot([current_time, current_time], [-1e8, 1e+8], '-k', alpha=0.3, linewidth=0.5)
 axs_cost[0, 1].set_ylim(-10, 250)
-axs_cost[1, 1].set_ylim(-100, 3.5e+6)
-axs_cost[2, 1].set_ylim(-100, 8e+7)
+axs_cost[1, 1].set_ylim(-1000, 3.5e+6)
+axs_cost[1, 1].ticklabel_format(style='plain')
+axs_cost[2, 1].set_ylim(-100000, 750000)
 axs_cost[3, 1].set_ylim(-10, 200)
-axs_cost[4, 1].set_ylim(-100, 10000)
-axs_cost[5, 1].set_ylim(-10, 1500)
+axs_cost[4, 1].set_ylim(-500, 10000)
+axs_cost[5, 1].set_ylim(-50, 1500)
 
 # show legend below figure
 axs_root[0, 0].legend(bbox_to_anchor=[3.7, 1.0], frameon=False)
@@ -585,7 +583,6 @@ fig_root.savefig("Graphs/compare_831_root.png", dpi=300)
 fig_joints.savefig("Graphs/compare_831_dofs.png", dpi=300)
 fig_somersault_twist.savefig("Graphs/compare_831_somersault_twist.png", dpi=300)
 fig_cost.savefig("Graphs/compare_cost.png", dpi=300)
-plt.show()
 
 
 viridis_colors = cm.get_cmap("viridis")
@@ -635,7 +632,7 @@ for i_obj, obj in enumerate(detailed_cost_function_831.keys()):
         weights_831 = {"qddot_joints": [1, 1, 1, 1, 1, 1],
                        "qddot_joints_derivative": [1, 1, 1, 1, 1, 1],
                        "time": [1, 100, -0.01, 100, -0.01, -0.01],
-                       "shoulders_dof": [0, 0, 50000, 0, 0, 0],
+                       "shoulders_dof": [0, 0, 50000, 0, 50000, 0],
                        "final_tilt": [0, 0, 0, 0, 0, 1000],
                        "peripheral": [100 * float(weight), 0, 0, 100 * float(weight), 100 * float(weight), 100 * float(weight)],
                        "spotting": [10 * float(weight), 0, 0, 0, 0, 10 * float(weight)],
@@ -644,8 +641,7 @@ for i_obj, obj in enumerate(detailed_cost_function_831.keys()):
                        "neck": [100, 100, 100, 100, 100, 100],
                        "eyes": [10, 10, 10, 10, 10, 10],
                        "superimpose_markers": [0, 1, 0, 0, 0, 0],
-                       "elbow_dof": [50000, 0, 0, 0, 0, 50000],
-                       "arm_dof": [0, 0, 0, 0, 50000, 0],
+                       "elbow_dof": [50000, 0, 0, 0, 50000, 50000],
                        "Xrot_legs_dof": [0, 0, 0, 50000, 50000, 50000],
                        "wobbling": [0, 0, 100, 0, 0, 0],
                        }
@@ -712,7 +708,7 @@ axs_cost_bar_plot_weighted[0, 0].set_title("42")
 axs_cost_bar_plot_weighted[0, 1].set_title("831")
 axs_cost_bar_plot_weighted[0, 0].set_ylabel("Cost")
 axs_cost_bar_plot_weighted[0, 0].set_ylim(0, 2e+6)
-axs_cost_bar_plot_weighted[0, 1].set_ylim(0, 4e+7)
+axs_cost_bar_plot_weighted[0, 1].set_ylim(0, 7000000)
 axs_cost_bar_plot_weighted[1, 0].set_xticks([])
 axs_cost_bar_plot_weighted[1, 1].set_xticks([])
 axs_cost_bar_plot_weighted[1, 0].set_yscale('log')

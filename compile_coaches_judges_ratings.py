@@ -189,51 +189,51 @@ ratings_judges = {"Stephan": {"caccfb24_0_0-48_286__42__1": [-0.1],  # A
                 },
            }
 
-# detailed_ratings_judges = {"Stephan": {"caccfb24_0_0-48_286__42__1": {"arm": 0, "legs": 0, ...},  # A TODO#############
-#                        "a62d4691_0_0-45_796__42__0": [-0.2],  # B
-#                        "a62d4691_0_0-45_796__42__1": [-0.2],  # C
-#                        "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-0p0_CVG": [-0.1],  # D
-#                        "c2a19850_0_0-113_083__831__0": [-0.4],  # E
-#                        "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2p0_CVG": [-0.1],  # F
-#                        "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p5_CVG": [-0.1],  # G
-#                        "87972c15_0_0-105_114__831__1": [-0.4],  # H
-#                        "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p0_CVG": [-0.1],  # I
-#                        "a62d4691_0_0-45_796__42__3": [-0.1],  # J
-#                        "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p75_CVG": [-0.2],  # K
-#                        "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p5_CVG": [-0.1],  # L
-#                        "a62d4691_0_0-45_796__42__2": [-0.2],  # M
-#                        "87972c15_0_0-105_114__831__2": [-0.4],  # N
-#                        "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2p0_CVG": [-0.2],  # O
-#                        "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p0_CVG": [-0.1],  # P
-#                        "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p75_CVG": [-0.2],  # Q
-#                        "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p25_CVG": [-0.1],  # R
-#                        "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p25_CVG": [-0.1],  # S
-#                        "87972c15_0_0-105_114__831__0": [-0.4],  # T
-#                        "SoMe_42_without_mesh-(100_40)-0p0_CVG": [-0.3],  # U
-#                        },
-#             "Julie": {"SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p25_CVG": [-0.1],  # A
-#                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p75_CVG": [-0.1],  # B
-#                       "87972c15_0_0-105_114__831__1": [-0.4],  # C
-#                       "SoMe_42_without_mesh-(100_40)-0p0_CVG": [-0.1],  # D
-#                       "87972c15_0_0-105_114__831__2": [-0.4],  # E
-#                       "a62d4691_0_0-45_796__42__2": [-0.2],  # F
-#                       "c2a19850_0_0-113_083__831__0": [-0.5],  # G
-#                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2p0_CVG": [-0.1],  # H
-#                       "a62d4691_0_0-45_796__42__1": [-0.3],  # I
-#                       "a62d4691_0_0-45_796__42__0": [-0.3],  # J
-#                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p5_CVG": [-0.1],  # K
-#                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p0_CVG": [-0.1],  # L
-#                       "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-0p0_CVG": [-0.2],  # M
-#                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p5_CVG": [-0.1],  # N
-#                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2p0_CVG": [-0.2],  # O
-#                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p25_CVG": [-0.1],  # P
-#                       "87972c15_0_0-105_114__831__0": [-0.5],  # Q
-#                       "caccfb24_0_0-48_286__42__1": [-0.3],  # R
-#                       "a62d4691_0_0-45_796__42__3": [-0.3],  # S
-#                       "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p75_CVG": [-0.1],  # T
-#                       "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p0_CVG": [-0.2],  # U
-#                 },
-#            }
+detailed_ratings_judges = {"Stephan": {"caccfb24_0_0-48_286__42__1": {"arm": -0.1, "legs": 0, "body": 0, "kickout": -0.1},  # A
+                                      "a62d4691_0_0-45_796__42__0": {"arm": 0, "legs": 0, "body": 0, "kickout": -0.2},  # B
+                                      "a62d4691_0_0-45_796__42__1": {"arm": -0.1, "legs": 0, "body": 0, "kickout": -0.1},  # C
+                                      "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-0p0_CVG": {"arm": -0.1, "legs": 0, "body": 0, "kickout": -0.1},  # D
+                                      "c2a19850_0_0-113_083__831__0": {"arm": 0, "legs": 0, "body": -0.2, "kickout": -0.2},  # E
+                                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2p0_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": 0},  # F
+                                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p5_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": 0},  # G
+                                      "87972c15_0_0-105_114__831__1": {"arm": 0, "legs": -0.1, "body": -0.2, "kickout": -0.2}, # H
+                                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p0_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": 0},  # I
+                                      "a62d4691_0_0-45_796__42__3": {"arm": 0, "legs": 0, "body": 0, "kickout": -0.1},  # J
+                                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p75_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": 0},  # K
+                                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p5_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": 0},  # L
+                                      "a62d4691_0_0-45_796__42__2": {"arm": 0, "legs": 0, "body": 0, "kickout": -0.2},  # M
+                                      "87972c15_0_0-105_114__831__2": {"arm": 0, "legs": 0, "body": -0.2, "kickout": -0.2},  # N
+                                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2p0_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": 0},  # O
+                                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p0_CVG": {"arm": -0.1, "legs": 0, "body": 0, "kickout": 0},  # P
+                                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p75_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": 0},  # Q
+                                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p25_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": 0},  # R
+                                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p25_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": 0},  # S
+                                      "87972c15_0_0-105_114__831__0": {"arm": -0.1, "legs": 0, "body": -0.2, "kickout": -0.1},  # T
+                                      "SoMe_42_without_mesh-(100_40)-0p0_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": 0},  # U
+                       },
+            "Julie": {"SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p25_CVG": {"arm": 0, "legs": -0.1, "body": -0.1, "kickout": 0},  # A
+                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p75_CVG": {"arm": 0, "legs": -0.1, "body": 0, "kickout": 0},  # B
+                      "87972c15_0_0-105_114__831__1": {"arm": -0.1, "legs": -0.2, "body": -0.3, "kickout": -0.2},  # C
+                      "SoMe_42_without_mesh-(100_40)-0p0_CVG": {"arm": 0, "legs": -0.1, "body": 0, "kickout": 0},  # D
+                      "87972c15_0_0-105_114__831__2": {"arm": -0.1, "legs": -0.2, "body": -0.2, "kickout": -0.2},  # E
+                      "a62d4691_0_0-45_796__42__2": {"arm": 0, "legs": -0.1, "body": -0.1, "kickout": -0.1},  # F
+                      "c2a19850_0_0-113_083__831__0": {"arm": -0.1, "legs": -0.2, "body": -0.2, "kickout": -0.1},  # G
+                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-2p0_CVG": {"arm": -0.1, "legs": -0.1, "body": -0.1, "kickout": -0.1},  # H
+                      "a62d4691_0_0-45_796__42__1": {"arm": 0, "legs": -0.2, "body": -0.2, "kickout": -0.1},  # I
+                      "a62d4691_0_0-45_796__42__0": {"arm": -0.1, "legs": -0.2, "body": -0.1, "kickout": -0.1},  # J
+                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p5_CVG": {"arm": -0.1, "legs": -0.1, "body": -0.1, "kickout": 0},  # K
+                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p0_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": 0},  # L
+                      "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-0p0_CVG": {"arm": 0, "legs": -0.1, "body": 0, "kickout": 0},  # M
+                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-0p5_CVG": {"arm": -0.1, "legs": -0.1, "body": -0.1, "kickout": 0},  # N
+                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-2p0_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": -0.1},  # O
+                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-0p25_CVG": {"arm": -0.1, "legs": -0.1, "body": -0.1, "kickout": 0},  # P
+                      "87972c15_0_0-105_114__831__0": {"arm": -0.1, "legs": -0.2, "body": -0.2, "kickout": -0.2},  # Q
+                      "caccfb24_0_0-48_286__42__1": {"arm": -0.1, "legs": -0.2, "body": -0.2, "kickout": -0.1},  # R
+                      "a62d4691_0_0-45_796__42__3": {"arm": -0.1, "legs": -0.2, "body": -0.1, "kickout": -0.1},  # S
+                      "SoMe_42_with_visual_criteria_without_mesh-(100_40)-1p75_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": 0},  # T
+                      "SoMe_with_visual_criteria_without_mesh_831-(40_40_40_40_40_40)-1p0_CVG": {"arm": -0.1, "legs": -0.1, "body": 0, "kickout": 0},  # U
+                },
+           }
 
 fig, axs = plt.subplots(7, 2, figsize=(8, 15))
 bar_width = 0.15
@@ -349,3 +349,72 @@ plt.tight_layout()
 plt.savefig('Graphs/coaches_ratings.png', dpi=300)
 plt.show()
 
+
+# Simulated 42/ detailed ratings
+criteria_colors = cm.get_cmap('magma')
+spacing = 0.6
+fig_detailed, axs_detailed = plt.subplots(2, 1, figsize=(6, 8))
+for i_trial, trial in enumerate(names_42_simulations):
+    for i_criteria, criteria in enumerate(detailed_ratings_judges["Julie"][trial]):
+        total = 0
+        for i_name, name in enumerate(detailed_ratings_judges):
+                axs_detailed[0].bar(i_trial * spacing + i_criteria * bar_width, detailed_ratings_judges[name][trial][criteria],
+                        width=bar_width*0.8,
+                        bottom=total,
+                        color=criteria_colors(i_criteria/4))
+                total += detailed_ratings_judges[name][trial][criteria]
+
+
+# Real 42/ detailed ratings
+total_per_criteria = [[] for i in range(4)]
+for i_trial, trial in enumerate(names_42_real):
+    for i_criteria, criteria in enumerate(detailed_ratings_judges["Julie"][trial]):
+        total = 0
+        for i_name, name in enumerate(detailed_ratings_judges):
+            total += detailed_ratings_judges[name][trial][criteria]
+        total_per_criteria[i_criteria] += [total]
+mean_total = np.mean(np.asarray(total_per_criteria), axis=1)
+
+for i_criteria in range(4):
+    axs_detailed[0].bar((len(names_42_simulations)+1)* spacing + i_criteria * bar_width, mean_total[i_criteria],
+                        width=bar_width*0.8, color=criteria_colors(i_criteria/4), alpha=0.6)
+
+
+# Simulated 831< detailed ratings
+for i_trial, trial in enumerate(names_831_simulations):
+    for i_criteria, criteria in enumerate(detailed_ratings_judges["Julie"][trial]):
+        total = 0
+        for i_name, name in enumerate(detailed_ratings_judges):
+                axs_detailed[1].bar(i_trial * spacing + i_criteria * bar_width, detailed_ratings_judges[name][trial][criteria],
+                        width=bar_width*0.8,
+                        bottom=total,
+                        color=criteria_colors(i_criteria/4))
+                total += detailed_ratings_judges[name][trial][criteria]
+
+
+# Real 831< detailed ratings
+total_per_criteria = [[] for i in range(4)]
+for i_trial, trial in enumerate(names_831_real):
+    for i_criteria, criteria in enumerate(detailed_ratings_judges["Julie"][trial]):
+        total = 0
+        for i_name, name in enumerate(detailed_ratings_judges):
+            total += detailed_ratings_judges[name][trial][criteria]
+        total_per_criteria[i_criteria] += [total]
+mean_total = np.mean(np.asarray(total_per_criteria), axis=1)
+
+for i_criteria in range(4):
+    axs_detailed[1].bar((len(names_831_simulations)+1) * spacing + i_criteria * bar_width, mean_total[i_criteria],
+                        width=bar_width*0.8, color=criteria_colors(i_criteria/4), alpha=0.6)
+
+for i_criteria, criteria in enumerate(["Arms", "Legs", "Body", "Kick-out"]):
+    axs_detailed[0].bar(0, 0, width=0, color=criteria_colors(i_criteria/4), label=criteria)
+
+axs_detailed[0].set_yticks([0.0, -0.1, -0.2])
+axs_detailed[0].set_yticklabels(["0.0", "-0.1", "-0.2"])
+axs_detailed[1].set_yticks([0.0, -0.1, -0.2, -0.3, -0.4])
+axs_detailed[1].set_yticklabels(["0.0", "-0.1", "-0.2", "-0.3", "-0.4"])
+axs_detailed[0].legend(bbox_to_anchor=(1.025, 0.5), loc='center left', frameon=False)
+fig_detailed.subplots_adjust(right=0.8)
+
+plt.savefig('Graphs/judges_detailed_ratings.png', dpi=300)
+plt.show()
