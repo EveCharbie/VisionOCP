@@ -263,6 +263,7 @@ fig_cost, axs_cost = plt.subplots(6, 2, figsize=(12, 16))
 
 # 42 plots
 detailed_cost_function_42 = {"qddot_joints": {}, "qddot_joints_derivative": {}, "time": {}, "shoulders_dof": {}, "final_tilt": {}, "peripheral": {}, "spotting": {}, "self_motion_detection": {}, "trampo_fixation": {}, "neck": {}, "eyes": {}}
+detailed_cost_function_42_weighted = {"qddot_joints": {}, "qddot_joints_derivative": {}, "time": {}, "shoulders_dof": {}, "final_tilt": {}, "peripheral": {}, "spotting": {}, "self_motion_detection": {}, "trampo_fixation": {}, "neck": {}, "eyes": {}}
 fig_root, axs_root = plt.subplots(2, 3, figsize=(15, 6))
 fig_joints, axs_joints = plt.subplots(2, 2, figsize=(10, 6))
 fig_somersault_twist, axs_somersault_twist = plt.subplots(1, 1, figsize=(5, 3))
@@ -418,6 +419,22 @@ detailed_cost_function_831 = {"qddot_joints": {},
                           "Xrot_legs_dof": {},
                           "wobbling": {},
                           }
+detailed_cost_function_831_weighted = {"qddot_joints": {},
+                            "qddot_joints_derivative": {},
+                            "time": {},
+                            "shoulders_dof": {},
+                            "final_tilt": {},
+                            "peripheral": {},
+                            "spotting": {},
+                            "self_motion_detection": {},
+                            "trampo_fixation": {},
+                            "neck": {},
+                            "eyes": {},
+                            "superimpose_markers": {},
+                            "elbow_dof": {},
+                            "Xrot_legs_dof": {},
+                            "wobbling": {},
+                            }
 
 fig_root, axs_root = plt.subplots(2, 3, figsize=(15, 6))
 fig_joints, axs_joints = plt.subplots(2, 3, figsize=(15, 6))
@@ -543,8 +560,6 @@ for i_weight, weight in enumerate(weights):
     detailed_cost_function_831["wobbling"][str(weight)] = qs[5, :-1]**2 * dt_lagrange
     detailed_cost_function_831["final_tilt"][str(weight)] = qs[5, -1]**2
 
-
-
 current_time = 0
 for i, time in enumerate(time_parameters[:-1]):
     current_time += time
@@ -584,27 +599,28 @@ fig_joints.savefig("Graphs/compare_831_dofs.png", dpi=300)
 fig_somersault_twist.savefig("Graphs/compare_831_somersault_twist.png", dpi=300)
 fig_cost.savefig("Graphs/compare_cost.png", dpi=300)
 
-
+weights_42 = {"qddot_joints": [1, 1],
+              "qddot_joints_derivative": [1, 1],
+              "time": [0.00001, 0.00001],
+              "shoulders_dof": [50000, 0],
+              "final_tilt": [0, 1000],
+              "peripheral": [100, 0],
+              "spotting": [0, 10],
+              "self_motion_detection": [1, 0],
+              "trampo_fixation": [1, 1000],
+              "neck": [100, 100],
+              "eyes": [10, 10]}
+visual_objective_list = ["peripheral", "spotting", "self_motion_detection", "trampo_fixation", "neck", "eyes"]
 viridis_colors = cm.get_cmap("viridis")
 phases_42 = [range(0, 100), range(100, 140)]
 fig_cost_bar_plot, axs_cost_bar_plot = plt.subplots(2, 2, figsize=(15, 9))
 fig_cost_bar_plot_weighted, axs_cost_bar_plot_weighted = plt.subplots(2, 2, figsize=(15, 9))
-sum_cost = {key: {weight: 0 for weight in detailed_cost_function_42[key].keys()} for key in detailed_cost_function_42.keys()}
-sum_cost_weighted = {key: {weight: 0 for weight in detailed_cost_function_42[key].keys()} for key in detailed_cost_function_42.keys()}
+
+sum_cost = {weight: 0 for weight in detailed_cost_function_42["qddot_joints"].keys()}
+sum_cost_alpha = 0
+sum_cost_weighted = {weight: 0 for weight in detailed_cost_function_42["qddot_joints"].keys()}
 for i_obj, obj in enumerate(detailed_cost_function_42.keys()):
     for i_weight, weight in enumerate(detailed_cost_function_42[obj].keys()):
-        weights_42 = {"qddot_joints": [1, 1],
-                      "qddot_joints_derivative": [1, 1],
-                      "time": [0.00001, 0.00001],
-                      "shoulders_dof": [50000, 0],
-                      "final_tilt": [0, 1000],
-                      "peripheral": [100 * float(weight), 0],
-                      "spotting": [0, 10 * float(weight)],
-                      "self_motion_detection": [1 * float(weight), 0],
-                      "trampo_fixation": [1 * float(weight), 1000 * float(weight)],
-                      "neck": [100 * float(weight), 100 * float(weight)],
-                      "eyes": [10 * float(weight), 10 * float(weight)]}
-
         for i_phase in range(2):
             cost_this_time = detailed_cost_function_42[obj][weight]
             if isinstance(cost_this_time, float):
@@ -613,39 +629,51 @@ for i_obj, obj in enumerate(detailed_cost_function_42.keys()):
                 sum_cost_this_time = np.sum(cost_this_time[phases_42[i_phase][0]:])
             else:
                 sum_cost_this_time = np.sum(cost_this_time[phases_42[i_phase]])
-            sum_cost_this_time = 0 if weights_42[obj][i_phase] == 0 else sum_cost_this_time
-            sum_cost_this_time_weighted = sum_cost_this_time * weights_42[obj][i_phase]
-            axs_cost_bar_plot[0, 0].bar(i_weight, sum_cost_this_time, bottom=sum_cost[obj][weight], color=viridis_colors(i_obj/15))
-            axs_cost_bar_plot_weighted[0, 0].bar(i_weight, sum_cost_this_time_weighted, bottom=sum_cost_weighted[obj][weight], color=viridis_colors(i_obj/15))
-            sum_cost[obj][weight] += sum_cost_this_time
-            sum_cost_weighted[obj][weight] += sum_cost_this_time_weighted
 
-            axs_cost_bar_plot[1, 0].bar(i_obj + 0.1 * i_weight, sum_cost_this_time, width=0.08, color=colors[i_weight])
-            axs_cost_bar_plot_weighted[1, 0].bar(i_obj + 0.1 * i_weight, sum_cost_this_time_weighted, width=0.08, color=colors[i_weight])
+            alpha = 1
+            sum_cost_alpha = sum_cost_this_time
+            if float(weight) == 0.0 and obj in visual_objective_list:
+                sum_cost_alpha = sum_cost_this_time
+                sum_cost_this_time = 0
+                alpha = 0.3
+
+            global_visual_weight = float(weight) if obj in visual_objective_list else 1
+
+            sum_cost_this_time_weighted = sum_cost_this_time * weights_42[obj][i_phase] * global_visual_weight
+            detailed_cost_function_42_weighted[obj][weight] = sum_cost_this_time * weights_42[obj][i_phase] * global_visual_weight
+
+            axs_cost_bar_plot[0, 0].bar(i_weight, sum_cost_alpha, bottom=sum_cost[weight], color=viridis_colors(i_obj/15), alpha=alpha)
+            axs_cost_bar_plot_weighted[0, 0].bar(i_weight, sum_cost_this_time_weighted, bottom=sum_cost_weighted[weight], color=viridis_colors(i_obj/15))
+
+            sum_cost[weight] += sum_cost_alpha
+            sum_cost_weighted[weight] += sum_cost_this_time_weighted
+
+        axs_cost_bar_plot[1, 0].bar(i_obj + 0.1 * i_weight, sum_cost[weight], width=0.08, color=colors[i_weight], alpha=alpha)
+        axs_cost_bar_plot_weighted[1, 0].bar(i_obj + 0.1 * i_weight, sum_cost_weighted[weight], width=0.08, color=colors[i_weight])
 
 
+weights_831 = {"qddot_joints": [1, 1, 1, 1, 1, 1],
+               "qddot_joints_derivative": [1, 1, 1, 1, 1, 1],
+               "time": [1, 100, -0.01, 100, -0.01, -0.01],
+               "shoulders_dof": [0, 0, 50000, 0, 50000, 0],
+               "final_tilt": [0, 0, 0, 0, 0, 1000],
+               "peripheral": [100, 0, 0, 100, 100, 100],
+               "spotting": [10, 0, 0, 0, 0, 10],
+               "self_motion_detection": [1, 1, 1, 1, 1, 1],
+               "trampo_fixation": [1, 0, 0, 0, 0, 1000],
+               "neck": [100, 100, 100, 100, 100, 100],
+               "eyes": [10, 10, 10, 10, 10, 10],
+               "superimpose_markers": [0, 1, 0, 0, 0, 0],
+               "elbow_dof": [50000, 0, 0, 0, 50000, 50000],
+               "Xrot_legs_dof": [0, 0, 0, 50000, 50000, 50000],
+               "wobbling": [0, 0, 100, 0, 0, 0],
+               }
 phases_831 = [range(0, 40), range(40, 80), range(80, 120), range(120, 160), range(160, 200), range(200, 240)]
-sum_cost = {key: {weight: 0 for weight in detailed_cost_function_831[key].keys()} for key in detailed_cost_function_831.keys()}
-sum_cost_weighted = {key: {weight: 0 for weight in detailed_cost_function_831[key].keys()} for key in detailed_cost_function_831.keys()}
+sum_cost = {weight: 0 for weight in detailed_cost_function_831["qddot_joints"].keys()}
+sum_cost_alpha = 0
+sum_cost_weighted = {weight: 0 for weight in detailed_cost_function_831["qddot_joints"].keys()}
 for i_obj, obj in enumerate(detailed_cost_function_831.keys()):
     for i_weight, weight in enumerate(detailed_cost_function_831[obj].keys()):
-        weights_831 = {"qddot_joints": [1, 1, 1, 1, 1, 1],
-                       "qddot_joints_derivative": [1, 1, 1, 1, 1, 1],
-                       "time": [1, 100, -0.01, 100, -0.01, -0.01],
-                       "shoulders_dof": [0, 0, 50000, 0, 50000, 0],
-                       "final_tilt": [0, 0, 0, 0, 0, 1000],
-                       "peripheral": [100 * float(weight), 0, 0, 100 * float(weight), 100 * float(weight), 100 * float(weight)],
-                       "spotting": [10 * float(weight), 0, 0, 0, 0, 10 * float(weight)],
-                       "self_motion_detection": [1 * float(weight), 1 * float(weight), 1 * float(weight), 1 * float(weight), 1 * float(weight), 1 * float(weight)],
-                       "trampo_fixation": [1 * float(weight), 0, 0, 0, 0, 1000 * float(weight)],
-                       "neck": [100, 100, 100, 100, 100, 100],
-                       "eyes": [10, 10, 10, 10, 10, 10],
-                       "superimpose_markers": [0, 1, 0, 0, 0, 0],
-                       "elbow_dof": [50000, 0, 0, 0, 50000, 50000],
-                       "Xrot_legs_dof": [0, 0, 0, 50000, 50000, 50000],
-                       "wobbling": [0, 0, 100, 0, 0, 0],
-                       }
-
         for i_phase in range(6):
             cost_this_time = detailed_cost_function_831[obj][weight]
             if isinstance(cost_this_time, float):
@@ -654,30 +682,42 @@ for i_obj, obj in enumerate(detailed_cost_function_831.keys()):
                 sum_cost_this_time = np.sum(cost_this_time[phases_831[i_phase][0]:])
             else:
                 sum_cost_this_time = np.sum(cost_this_time[phases_831[i_phase]])
-            sum_cost_this_time = 0 if weights_831[obj][i_phase] == 0 else sum_cost_this_time
-            sum_cost_this_time_weighted = sum_cost_this_time * weights_831[obj][i_phase]
+
+            alpha = 1
+            sum_cost_alpha = sum_cost_this_time
+            if float(weight) == 0.0 and obj in visual_objective_list:
+                sum_cost_alpha = sum_cost_this_time
+                sum_cost_this_time = 0
+                alpha = 0.3
+
+            global_visual_weight = float(weight) if obj in visual_objective_list else 1
+
+            sum_cost_this_time_weighted = sum_cost_this_time * weights_831[obj][i_phase] * global_visual_weight
+            detailed_cost_function_831_weighted[obj][weight] = sum_cost_this_time * weights_831[obj][i_phase] * global_visual_weight
             if i_weight == 0 and i_phase == 0:
-                axs_cost_bar_plot[0, 1].bar(i_weight, sum_cost_this_time, bottom=sum_cost[obj][weight], color=viridis_colors(i_obj/15), label=obj)
+                axs_cost_bar_plot[0, 1].bar(i_weight, sum_cost_alpha, bottom=sum_cost[weight],
+                                            color=viridis_colors(i_obj/15), alpha=alpha, label=obj)
                 axs_cost_bar_plot_weighted[0, 1].bar(i_weight, sum_cost_this_time_weighted,
-                                                  bottom=sum_cost_weighted[obj][weight],
+                                                  bottom=sum_cost_weighted[weight],
                                                   color=viridis_colors(i_obj / 15), label=obj)
             else:
-                axs_cost_bar_plot[0, 1].bar(i_weight, sum_cost_this_time, bottom=sum_cost[obj][weight], color=viridis_colors(i_obj/15))
-                axs_cost_bar_plot_weighted[0, 1].bar(i_weight, sum_cost_this_time_weighted, bottom=sum_cost_weighted[obj][weight], color=viridis_colors(i_obj/15))
+                axs_cost_bar_plot[0, 1].bar(i_weight, sum_cost_alpha, bottom=sum_cost[weight],
+                                            color=viridis_colors(i_obj/15), alpha=alpha)
+                axs_cost_bar_plot_weighted[0, 1].bar(i_weight, sum_cost_this_time_weighted, bottom=sum_cost_weighted[weight], color=viridis_colors(i_obj/15))
 
-            sum_cost[obj][weight] += sum_cost_this_time
-            sum_cost_weighted[obj][weight] += sum_cost_this_time_weighted
+            sum_cost[weight] += sum_cost_alpha
+            sum_cost_weighted[weight] += sum_cost_this_time_weighted
 
-            if i_obj == 0 and i_phase == 0:
-                axs_cost_bar_plot[1, 1].bar(i_obj + 0.1 * i_weight, sum_cost_this_time, width=0.08,
-                                            color=colors[i_weight], label=weight)
-                axs_cost_bar_plot_weighted[1, 1].bar(i_obj + 0.1 * i_weight, sum_cost_this_time_weighted, width=0.08,
-                                                     color=colors[i_weight], label=weight)
-            else:
-                axs_cost_bar_plot[1, 1].bar(i_obj + 0.1 * i_weight, sum_cost_this_time, width=0.08,
-                                            color=colors[i_weight])
-                axs_cost_bar_plot_weighted[1, 1].bar(i_obj + 0.1 * i_weight, sum_cost_this_time_weighted, width=0.08,
-                                                     color=colors[i_weight])
+        if i_obj == 5 and i_phase == 0:
+            axs_cost_bar_plot[1, 1].bar(i_obj + 0.1 * i_weight, sum_cost[weight], width=0.08,
+                                        color=colors[i_weight], alpha=alpha, label=weight)
+            axs_cost_bar_plot_weighted[1, 1].bar(i_obj + 0.1 * i_weight, sum_cost_this_time_weighted, width=0.08,
+                                                 color=colors[i_weight], label=weight)
+        else:
+            axs_cost_bar_plot[1, 1].bar(i_obj + 0.1 * i_weight, sum_cost[weight], width=0.08,
+                                        color=colors[i_weight], alpha=alpha)
+            axs_cost_bar_plot_weighted[1, 1].bar(i_obj + 0.1 * i_weight, sum_cost_weighted[weight], width=0.08,
+                                                 color=colors[i_weight])
 
 
 axs_cost_bar_plot[0, 0].set_xticks(list(range(len(weights))))
@@ -690,7 +730,7 @@ axs_cost_bar_plot[0, 1].ticklabel_format(style='plain', axis='y')
 axs_cost_bar_plot[0, 0].set_title("42")
 axs_cost_bar_plot[0, 1].set_title("831")
 axs_cost_bar_plot[0, 0].set_ylabel("Cost")
-axs_cost_bar_plot[0, 0].set_ylim(0, 200000)
+# axs_cost_bar_plot[0, 1].set_ylim(0, 1000000)
 axs_cost_bar_plot[1, 0].set_xticks([])
 axs_cost_bar_plot[1, 1].set_xticks([])
 axs_cost_bar_plot[1, 0].set_yscale('log')
@@ -707,8 +747,8 @@ axs_cost_bar_plot_weighted[0, 1].ticklabel_format(style='plain', axis='y')
 axs_cost_bar_plot_weighted[0, 0].set_title("42")
 axs_cost_bar_plot_weighted[0, 1].set_title("831")
 axs_cost_bar_plot_weighted[0, 0].set_ylabel("Cost")
-axs_cost_bar_plot_weighted[0, 0].set_ylim(0, 2e+6)
-axs_cost_bar_plot_weighted[0, 1].set_ylim(0, 7000000)
+# axs_cost_bar_plot_weighted[0, 0].set_ylim(0, 2e+6)
+# axs_cost_bar_plot_weighted[0, 1].set_ylim(0, 10000000)
 axs_cost_bar_plot_weighted[1, 0].set_xticks([])
 axs_cost_bar_plot_weighted[1, 1].set_xticks([])
 axs_cost_bar_plot_weighted[1, 0].set_yscale('log')
@@ -721,7 +761,60 @@ fig_cost_bar_plot.savefig("Graphs/detailed_cost.png", dpi=300)
 fig_cost_bar_plot_weighted.savefig("Graphs/detailed_cost_weighted.png", dpi=300)
 plt.show()
 
-print('ici')
+for i_weight, weight in enumerate(weights):
+    sorted_keys_42 = []
+    sorted_values_42 = []
+    for i_key, key in enumerate(detailed_cost_function_42_weighted.keys()):
+        if len(sorted_keys_42) == 0:
+            sorted_keys_42.append(key)
+            sorted_values_42.append(detailed_cost_function_42_weighted[key][str(weight)])
+        elif len(sorted_keys_42) == 1:
+            if detailed_cost_function_42_weighted[key][str(weight)] > sorted_values_42[0]:
+                sorted_keys_42.insert(0, key)
+                sorted_values_42.insert(0, detailed_cost_function_42_weighted[key][str(weight)])
+            else:
+                sorted_keys_42.append(key)
+                sorted_values_42.append(detailed_cost_function_42_weighted[key][str(weight)])
+        else:
+            for i_sorted_key, sorted_key in enumerate(sorted_keys_42):
+                if detailed_cost_function_42_weighted[key][str(weight)] > sorted_values_42[i_sorted_key]:
+                    sorted_keys_42.insert(i_sorted_key, key)
+                    sorted_values_42.insert(i_sorted_key, detailed_cost_function_42_weighted[key][str(weight)])
+                    break
+                if i_sorted_key == len(sorted_keys_42) - 1:
+                    sorted_keys_42.append(key)
+                    sorted_values_42.append(detailed_cost_function_42_weighted[key][str(weight)])
+                    break
+    print(f"{weight} 42 sorted obj weighted: ", sorted_keys_42)
+    print(f"{weight} 42 sorted values weighted: ", sorted_values_42)
+
+for i_weight, weight in enumerate(weights):
+    sorted_keys_831 = []
+    sorted_values_831 = []
+    for i_key, key in enumerate(detailed_cost_function_831_weighted.keys()):
+        if len(sorted_keys_831) == 0:
+            sorted_keys_831.append(key)
+            sorted_values_831.append(detailed_cost_function_831_weighted[key][str(weight)])
+        elif len(sorted_keys_831) == 1:
+            if detailed_cost_function_831_weighted[key][str(weight)] > sorted_values_831[0]:
+                sorted_keys_831.insert(0, key)
+                sorted_values_831.insert(0, detailed_cost_function_831_weighted[key][str(weight)])
+            else:
+                sorted_keys_831.append(key)
+                sorted_values_831.append(detailed_cost_function_831_weighted[key][str(weight)])
+        else:
+            for i_sorted_key, sorted_key in enumerate(sorted_keys_831):
+                if detailed_cost_function_831_weighted[key][str(weight)] > sorted_values_831[i_sorted_key]:
+                    sorted_keys_831.insert(i_sorted_key, key)
+                    sorted_values_831.insert(i_sorted_key, detailed_cost_function_831_weighted[key][str(weight)])
+                    break
+                if i_sorted_key == len(sorted_keys_831) - 1:
+                    sorted_keys_831.append(key)
+                    sorted_values_831.append(detailed_cost_function_831_weighted[key][str(weight)])
+                    break
+
+    print(f"{weight} 831 sorted obj weighted: ", sorted_keys_831)
+    print(f"{weight} 831 sorted values weighted: ", sorted_values_831)
 
 # file_name_831 = "SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-10-26-1040.pkl"  # Good 831<
 # file_name_831 = "old/SoMe_without_mesh_831-(40_40_40_40_40_40)-2023-11-01-1206-0p0_CVG.pkl"  # Good 831<
