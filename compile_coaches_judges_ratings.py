@@ -137,7 +137,7 @@ criteria = ["This techniques \nis efficient \nfor aerial \ntwist creation",
             "This technique \nis safe for \nan athlete \nto try",
             "Overall, \nthis technique \nseems realistic",
             "This technique \nis aesthetic",
-            "This technique \nallow the athlete \nto get appropriate \nvisual information",
+            "This technique \nallows the athlete \nto get appropriate \nvisual information",
             "I would recommend \nmy athletes \nto use this \ntechnique"]
 
 
@@ -344,6 +344,15 @@ for i_criteria in range(7):
     else:
         axs[i_criteria, 0].set_ylabel(criteria[i_criteria], fontsize=12, labelpad=60)
         axs[i_criteria, 0].yaxis.label.set(rotation='horizontal', ha='center', va='center')
+
+    if i_criteria == 6:
+        axs[i_criteria, 0].set_ylim(-1, 0)
+        axs[i_criteria, 1].set_ylim(-1, 0)
+    else:
+        axs[i_criteria, 0].set_ylim(0, 20)
+        axs[i_criteria, 1].set_ylim(0, 20)
+        axs[i_criteria, 0].set_xlabel("Global visual weight")
+        axs[i_criteria, 1].set_xlabel("Global visual weight")
 
 plt.tight_layout()
 plt.savefig('Graphs/coaches_ratings.png', dpi=300)
