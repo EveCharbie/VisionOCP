@@ -147,10 +147,13 @@ joint_labels = [
 
 
 # Load the data
-move_path = ["/home/charbie/disk/Eye-tracking/Results_831/SoMe/831</", "/home/charbie/disk/Eye-tracking/Results_831/SoMe/42/"]
+move_paths = ["/home/charbie/disk/Eye-tracking/Results_831/SoMe/831</", "/home/charbie/disk/Eye-tracking/Results_831/SoMe/42/"]
 save_path = "/home/charbie/Documents/Programmation/VisionOCP/Xsens_recons/"
 
-for move_path in move_path:
+Generate_videos_FLAG = False
+twist_AngMom_42 = []
+twist_AngMom_831 = []
+for move_idx, move_path in enumerate(move_paths):
     for filename in os.listdir(move_path):
         if filename[-24:] == "_eyetracking_metrics.pkl":
             move_filename = move_path + filename
@@ -209,48 +212,61 @@ for move_path in move_path:
                 trans[:, i] = trans[:, i] - CoM
             DoFs[:3, :] = trans
 
+            # get the twisting angular momentum at take-off
+            qdot = (DoFs[:, 1:] - DoFs[:, :-1]) / (time_vector_pupil_per_move[1:] - time_vector_pupil_per_move[:-1])
+            twist_AngMom_this_frame = np.zeros((10, ))
+            for i_frame in range(10):
+                twist_AngMom_this_frame[i_frame] = model.angularMomentum(DoFs[:, i_frame], qdot[:, i_frame]).to_array()[2]
+            if move_idx == 0:  # 42/
+                twist_AngMom_42.append(np.mean(twist_AngMom_this_frame))
+            else:  # 831/
+                twist_AngMom_831.append(np.mean(twist_AngMom_this_frame))
+
             # real-time video
-            fps = 60
-            n_frames = round(duration * fps)
-            time_vector = np.linspace(0, duration, n_frames)
-            interpolated_DoFs = np.zeros((num_dofs, n_frames))
-            for i in range(DoFs.shape[0]):
-                interp = scipy.interpolate.interp1d(time_vector_pupil_per_move, DoFs[i, :])
-                interpolated_DoFs[i, :] = interp(time_vector)
+            if Generate_videos_FLAG:
+                fps = 60
+                n_frames = round(duration * fps)
+                time_vector = np.linspace(0, duration, n_frames)
+                interpolated_DoFs = np.zeros((num_dofs, n_frames))
+                for i in range(DoFs.shape[0]):
+                    interp = scipy.interpolate.interp1d(time_vector_pupil_per_move, DoFs[i, :])
+                    interpolated_DoFs[i, :] = interp(time_vector)
 
-            with open(save_path + filename[:-25] + "_DoFs.pkl", "wb") as f:
-                pickle.dump({"DoFs": DoFs, "interpolated_DoFs": interpolated_DoFs}, f)
+                with open(save_path + filename[:-25] + "_DoFs.pkl", "wb") as f:
+                    pickle.dump({"DoFs": DoFs, "interpolated_DoFs": interpolated_DoFs}, f)
 
-            print(f"Videos/official/{filename[:-25]}.ogv")
-            model_type = ["with_cone", "without_cone"]
-            biorbe_model_paths = ["models/SoMe_Xsens_Model_rotated.bioMod", "models/SoMe_Xsens_Model_rotated_without_cone.bioMod"]
-            for i in range(2):
-                b = bioviz.Viz(biorbe_model_paths[i],
-                               mesh_opacity=0.8,
-                               show_global_center_of_mass=False,
-                               show_gravity_vector=False,
-                               show_segments_center_of_mass=False,
-                               show_global_ref_frame=False,
-                               show_local_ref_frame=False,
-                               experimental_markers_color=(1, 1, 1),
-                               background_color=(1.0, 1.0, 1.0),
-                               )
-                b.set_camera_zoom(0.25)
-                b.set_camera_focus_point(0, 0, 2.5)
-                b.maximize()
-                b.update()
-                b.load_movement(interpolated_DoFs)
+                print(f"Videos/official/{filename[:-25]}.ogv")
+                model_type = ["with_cone", "without_cone"]
+                biorbe_model_paths = ["models/SoMe_Xsens_Model_rotated.bioMod", "models/SoMe_Xsens_Model_rotated_without_cone.bioMod"]
+                for i in range(2):
+                    b = bioviz.Viz(biorbe_model_paths[i],
+                                   mesh_opacity=0.8,
+                                   show_global_center_of_mass=False,
+                                   show_gravity_vector=False,
+                                   show_segments_center_of_mass=False,
+                                   show_global_ref_frame=False,
+                                   show_local_ref_frame=False,
+                                   experimental_markers_color=(1, 1, 1),
+                                   background_color=(1.0, 1.0, 1.0),
+                                   )
+                    b.set_camera_zoom(0.25)
+                    b.set_camera_focus_point(0, 0, 2.5)
+                    b.maximize()
+                    b.update()
+                    b.load_movement(interpolated_DoFs)
 
-                b.set_camera_zoom(0.25)
-                b.set_camera_focus_point(0, 0, 2.5)
-                b.maximize()
-                b.update()
+                    b.set_camera_zoom(0.25)
+                    b.set_camera_focus_point(0, 0, 2.5)
+                    b.maximize()
+                    b.update()
 
-                b.start_recording(f"Videos/official/{filename[:-25]}_{model_type[i]}.ogv")
-                for frame in range(interpolated_DoFs.shape[1] + 1):
-                    b.movement_slider[0].setValue(frame)
-                    b.add_frame()
-                b.stop_recording()
-                b.quit()
+                    b.start_recording(f"Videos/official/{filename[:-25]}_{model_type[i]}.ogv")
+                    for frame in range(interpolated_DoFs.shape[1] + 1):
+                        b.movement_slider[0].setValue(frame)
+                        b.add_frame()
+                    b.stop_recording()
+                    b.quit()
 
 
+print("mean twist angular momentum 42/ : ", np.array(twist_AngMom_42).mean())
+print("mean twist angular momentum 831 : ", np.array(twist_AngMom_831).mean())
