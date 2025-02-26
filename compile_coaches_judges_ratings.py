@@ -261,6 +261,8 @@ for i_trial, trial in enumerate(names_42_simulations):
                                alpha=0.5)
         total += ratings_judges[name][trial][0]
 print("42 total scores: ", np.mean(total_per_criteria, axis=0))
+for i, weight in enumerate(conditions_simulations):
+    print(f"{weight} total score: {np.sum(total_per_criteria[i, :])}")
 
 # Create a reference bar for real 42/
 total_per_criteria = [[] for i in range(7)]
@@ -307,6 +309,8 @@ for i_trial, trial in enumerate(names_831_simulations):
                                alpha=0.5)
         total += ratings_judges[name][trial][0]
 print("831 total scores: ", np.mean(total_per_criteria, axis=0))
+for i, weight in enumerate(conditions_simulations):
+    print(f"{weight} total score: {np.sum(total_per_criteria[i, :])}")
 
 # Create a reference bar for real 831<
 total_per_criteria = [[] for i in range(7)]
