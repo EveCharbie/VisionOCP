@@ -4,8 +4,6 @@ The goal of this program is to convert the joint angles from xsens to biorbd.
 
 import numpy as np
 import pickle
-from IPython import embed
-import matplotlib.pyplot as plt
 import os
 import biorbd
 import bioviz
@@ -151,8 +149,8 @@ move_paths = ["/home/charbie/disk/Eye-tracking/Results_831/SoMe/831</", "/home/c
 save_path = "/home/charbie/Documents/Programmation/VisionOCP/Xsens_recons/"
 
 Generate_videos_FLAG = False
-twist_AngMom_42 = []
-twist_AngMom_831 = []
+AngMom_42 = []
+AngMom_831 = []
 for move_idx, move_path in enumerate(move_paths):
     for filename in os.listdir(move_path):
         if filename[-24:] == "_eyetracking_metrics.pkl":
@@ -214,13 +212,13 @@ for move_idx, move_path in enumerate(move_paths):
 
             # get the twisting angular momentum at take-off
             qdot = (DoFs[:, 1:] - DoFs[:, :-1]) / (time_vector_pupil_per_move[1:] - time_vector_pupil_per_move[:-1])
-            twist_AngMom_this_frame = np.zeros((10, ))
+            AngMom_this_frame = np.zeros((3, 10))
             for i_frame in range(10):
-                twist_AngMom_this_frame[i_frame] = model.angularMomentum(DoFs[:, i_frame], qdot[:, i_frame]).to_array()[2]
+                AngMom_this_frame[:, i_frame] = model.angularMomentum(DoFs[:, i_frame], qdot[:, i_frame]).to_array()
             if move_idx == 0:  # 42/
-                twist_AngMom_42.append(np.mean(twist_AngMom_this_frame))
+                AngMom_42.append(np.mean(AngMom_this_frame, axis=1))
             else:  # 831/
-                twist_AngMom_831.append(np.mean(twist_AngMom_this_frame))
+                AngMom_831.append(np.mean(AngMom_this_frame, axis=1))
 
             # real-time video
             if Generate_videos_FLAG:
@@ -267,6 +265,20 @@ for move_idx, move_path in enumerate(move_paths):
                     b.stop_recording()
                     b.quit()
 
+AngMom_angle_42 = []
+for i in range(len(AngMom_42)):
+    atan = np.arctan2(AngMom_42[i][2], AngMom_42[i][0]) * 180 / np.pi
+    if atan > 90:
+        atan = 180 - atan
+    AngMom_angle_42 += [atan]
+print("42 Angular momentum tilt angle [deg]: ", np.mean(np.array(AngMom_angle_42)))
+print("angular momentum 42/ : ", AngMom_42)
 
-print("mean twist angular momentum 42/ : ", np.array(twist_AngMom_42).mean())
-print("mean twist angular momentum 831 : ", np.array(twist_AngMom_831).mean())
+AngMom_angle_831 = []
+for i in range(len(AngMom_831)):
+    atan = np.arctan2(AngMom_831[i][2], AngMom_831[i][0]) * 180 / np.pi
+    if atan > 90:
+        atan = 180 - atan
+    AngMom_angle_831 += [atan]
+print("831< Angular momentum tilt angle [deg]: ", np.mean(np.array(AngMom_angle_831)))
+print("angular momentum 831 : ", AngMom_831)
