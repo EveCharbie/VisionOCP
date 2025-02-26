@@ -265,6 +265,7 @@ fig_cost, axs_cost = plt.subplots(6, 2, figsize=(12, 16))
 detailed_cost_function_42 = {"qddot_joints": {}, "qddot_joints_derivative": {}, "time": {}, "shoulders_dof": {}, "final_tilt": {}, "peripheral": {}, "spotting": {}, "self_motion_detection": {}, "trampo_fixation": {}, "neck": {}, "eyes": {}}
 fig_root, axs_root = plt.subplots(2, 3, figsize=(15, 6))
 fig_joints, axs_joints = plt.subplots(2, 2, figsize=(10, 6))
+fig_head_eyes, axs_head_eyes = plt.subplots(2, 2, figsize=(10, 6))
 fig_somersault_twist, axs_somersault_twist = plt.subplots(1, 1, figsize=(5, 3))
 for i_weight, weight in enumerate(weights):
 
@@ -306,6 +307,17 @@ for i_weight, weight in enumerate(weights):
     # Left arm
     axs_joints[0, 0].plot(time_vector, -qs[left_arm_indices[0], :] * 180/np.pi, color=colors[i_weight])
     axs_joints[1, 0].plot(time_vector, -qs[left_arm_indices[1], :] * 180/np.pi, color=colors[i_weight])
+
+    if weight != 0.0:
+        axs_head_eyes[0, 0].plot(time_vector, qs[6, :] * 180 / np.pi, color=colors[i_weight])
+        axs_head_eyes[1, 0].plot(time_vector, qs[7, :] * 180 / np.pi, color=colors[i_weight])
+        axs_head_eyes[0, 1].plot(time_vector, qs[8, :] * 180 / np.pi, color=colors[i_weight])
+        axs_head_eyes[1, 1].plot(time_vector, qs[9, :] * 180 / np.pi, color=colors[i_weight])
+    else:
+        axs_head_eyes[0, 0].plot(time_vector, time_vector * 0, color=colors[i_weight])
+        axs_head_eyes[1, 0].plot(time_vector, time_vector * 0, color=colors[i_weight])
+        axs_head_eyes[0, 1].plot(time_vector, time_vector * 0, color=colors[i_weight])
+        axs_head_eyes[1, 1].plot(time_vector, time_vector * 0, color=colors[i_weight])
 
     # Cost function
     dt_lagrange = time_vector[1:] - time_vector[:-1]
@@ -375,11 +387,17 @@ axs_cost[5, 0].set_ylim(-50, 1500)
 axs_root[0, 0].legend(bbox_to_anchor=[3.7, 1.0], frameon=False)
 axs_joints[0, 1].legend(bbox_to_anchor=[1.1, 0.5], frameon=False)
 fig_joints.subplots_adjust(hspace=0.35, right=0.85)
+fig_head_eyes.subplots_adjust(hspace=0.35)
 
 axs_joints[0, 1].set_title("Change in elevation plane R")
 axs_joints[1, 1].set_title("Elevation R")
 axs_joints[0, 0].set_title("Change in elevation plane L")
 axs_joints[1, 0].set_title("Elevation L")
+
+axs_head_eyes[0, 0].set_title("Neck axial rotation")
+axs_head_eyes[1, 0].set_title("Neck flexion")
+axs_head_eyes[0, 1].set_title("Eyes horizontal rotation")
+axs_head_eyes[1, 1].set_title("Eyes vertical rotation")
 
 axs_cost[0, 0].set_ylabel("Peripheral vision \n", fontsize=13)
 axs_cost[1, 0].set_ylabel("Spotting\n", fontsize=13)
@@ -398,6 +416,7 @@ fig_somersault_twist.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.2)
 fig_root.savefig("Graphs/compare_42_root.png", dpi=300)
 fig_joints.savefig("Graphs/compare_42_dofs.png", dpi=300)
 fig_somersault_twist.savefig("Graphs/compare_42_somersault_twist.png", dpi=300)
+fig_head_eyes.savefig("Graphs/compare_42_head_eyes.png", dpi=300)
 
 
 
@@ -437,6 +456,7 @@ detailed_cost_function_831_weighted = {"qddot_joints": {},
 
 fig_root, axs_root = plt.subplots(2, 3, figsize=(15, 6))
 fig_joints, axs_joints = plt.subplots(2, 3, figsize=(15, 6))
+fig_head_eyes, axs_head_eyes = plt.subplots(2, 2, figsize=(10, 6))
 fig_somersault_twist, axs_somersault_twist = plt.subplots(1, 1, figsize=(5, 3))
 for i_weight, weight in enumerate(weights):
 
@@ -485,6 +505,17 @@ for i_weight, weight in enumerate(weights):
     # Hips
     axs_joints[0, 2].plot(time_vector, -qs[hips_indices[0], :] * 180/np.pi, color=colors[i_weight])
     axs_joints[1, 2].plot(time_vector, qs[hips_indices[1], :] * 180/np.pi, color=colors[i_weight])
+
+    if weight != 0.0:
+        axs_head_eyes[0, 0].plot(time_vector, qs[6, :] * 180 / np.pi, color=colors[i_weight])
+        axs_head_eyes[1, 0].plot(time_vector, qs[7, :] * 180 / np.pi, color=colors[i_weight])
+        axs_head_eyes[0, 1].plot(time_vector, qs[8, :] * 180 / np.pi, color=colors[i_weight])
+        axs_head_eyes[1, 1].plot(time_vector, qs[9, :] * 180 / np.pi, color=colors[i_weight])
+    else:
+        axs_head_eyes[0, 0].plot(time_vector, time_vector * 0, color=colors[i_weight])
+        axs_head_eyes[1, 0].plot(time_vector, time_vector * 0, color=colors[i_weight])
+        axs_head_eyes[0, 1].plot(time_vector, time_vector * 0, color=colors[i_weight])
+        axs_head_eyes[1, 1].plot(time_vector, time_vector * 0, color=colors[i_weight])
 
     # Cost function
     dt_lagrange = time_vector[1:] - time_vector[:-1]
@@ -576,6 +607,7 @@ axs_cost[5, 1].set_ylim(-50, 1500)
 axs_root[0, 0].legend(bbox_to_anchor=[3.7, 1.0], frameon=False)
 axs_joints[0, 1].legend(bbox_to_anchor=[2.5, 0.5], frameon=False)
 fig_joints.subplots_adjust(hspace=0.35, right=0.9)
+fig_head_eyes.subplots_adjust(hspace=0.35)
 
 axs_joints[0, 1].set_title("Change in elevation plane R")
 axs_joints[1, 1].set_title("Elevation R")
@@ -593,10 +625,16 @@ axs_somersault_twist.set_xlabel("Somersault [°]", fontsize=15)
 axs_somersault_twist.set_ylabel("Twist [°]", fontsize=15)
 fig_somersault_twist.subplots_adjust(left=0.2, right=0.9, top=0.9, bottom=0.2)
 
+axs_head_eyes[0, 0].set_title("Neck axial rotation")
+axs_head_eyes[1, 0].set_title("Neck flexion")
+axs_head_eyes[0, 1].set_title("Eyes horizontal rotation")
+axs_head_eyes[1, 1].set_title("Eyes vertical rotation")
+
 fig_root.savefig("Graphs/compare_831_root.png", dpi=300)
 fig_joints.savefig("Graphs/compare_831_dofs.png", dpi=300)
 fig_somersault_twist.savefig("Graphs/compare_831_somersault_twist.png", dpi=300)
 fig_cost.savefig("Graphs/compare_cost.png", dpi=300)
+fig_head_eyes.savefig("Graphs/compare_831_head_eyes.png", dpi=300)
 
 weights_42 = {"qddot_joints": [1, 1],
               "qddot_joints_derivative": [1, 1],
