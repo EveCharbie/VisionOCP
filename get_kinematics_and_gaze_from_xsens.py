@@ -149,6 +149,7 @@ move_paths = ["/home/charbie/disk/Eye-tracking/Results_831/SoMe/831</", "/home/c
 save_path = "/home/charbie/Documents/Programmation/VisionOCP/Xsens_recons/"
 
 Generate_videos_FLAG = False
+Generate_kinograms_FLAG = True
 AngMom_42 = []
 AngMom_831 = []
 for move_idx, move_path in enumerate(move_paths):
@@ -221,7 +222,7 @@ for move_idx, move_path in enumerate(move_paths):
                 AngMom_831.append(np.mean(AngMom_this_frame, axis=1))
 
             # real-time video
-            if Generate_videos_FLAG:
+            if Generate_videos_FLAG or Generate_kinograms_FLAG:
                 fps = 60
                 n_frames = round(duration * fps)
                 time_vector = np.linspace(0, duration, n_frames)
@@ -235,35 +236,54 @@ for move_idx, move_path in enumerate(move_paths):
 
                 print(f"Videos/official/{filename[:-25]}.ogv")
                 model_type = ["with_cone", "without_cone"]
-                biorbe_model_paths = ["models/SoMe_Xsens_Model_rotated.bioMod", "models/SoMe_Xsens_Model_rotated_without_cone.bioMod"]
-                for i in range(2):
-                    b = bioviz.Viz(biorbe_model_paths[i],
-                                   mesh_opacity=0.8,
-                                   show_global_center_of_mass=False,
-                                   show_gravity_vector=False,
-                                   show_segments_center_of_mass=False,
-                                   show_global_ref_frame=False,
-                                   show_local_ref_frame=False,
-                                   experimental_markers_color=(1, 1, 1),
-                                   background_color=(1.0, 1.0, 1.0),
-                                   )
-                    b.set_camera_zoom(0.25)
-                    b.set_camera_focus_point(0, 0, 2.5)
-                    b.maximize()
-                    b.update()
-                    b.load_movement(interpolated_DoFs)
+                biorbd_model_paths = ["models/SoMe_Xsens_Model_rotated.bioMod", "models/SoMe_Xsens_Model_rotated_without_cone.bioMod"]
+                if Generate_videos_FLAG:
+                    for i in range(2):
+                        b = bioviz.Viz(biorbd_model_paths[i],
+                                       mesh_opacity=0.8,
+                                       show_global_center_of_mass=False,
+                                       show_gravity_vector=False,
+                                       show_segments_center_of_mass=False,
+                                       show_global_ref_frame=False,
+                                       show_local_ref_frame=False,
+                                       experimental_markers_color=(1, 1, 1),
+                                       background_color=(1.0, 1.0, 1.0),
+                                       )
+                        b.set_camera_zoom(0.25)
+                        b.set_camera_focus_point(0, 0, 2.5)
+                        b.maximize()
+                        b.update()
+                        b.load_movement(interpolated_DoFs)
 
-                    b.set_camera_zoom(0.25)
-                    b.set_camera_focus_point(0, 0, 2.5)
-                    b.maximize()
-                    b.update()
+                        b.set_camera_zoom(0.25)
+                        b.set_camera_focus_point(0, 0, 2.5)
+                        b.maximize()
+                        b.update()
 
-                    b.start_recording(f"Videos/official/{filename[:-25]}_{model_type[i]}.ogv")
-                    for frame in range(interpolated_DoFs.shape[1] + 1):
-                        b.movement_slider[0].setValue(frame)
-                        b.add_frame()
-                    b.stop_recording()
-                    b.quit()
+                        b.start_recording(f"Videos/official/{filename[:-25]}_{model_type[i]}.ogv")
+                        for frame in range(interpolated_DoFs.shape[1] + 1):
+                            b.movement_slider[0].setValue(frame)
+                            b.add_frame()
+                        b.stop_recording()
+                        b.quit()
+
+                if Generate_kinograms_FLAG:
+                       b = bioviz.Kinogram(model_path=biorbd_model_paths[0],
+                                          mesh_opacity=0.8,
+                                          show_global_center_of_mass=False,
+                                          show_gravity_vector=False,
+                                          show_segments_center_of_mass=False,
+                                          show_global_ref_frame=False,
+                                          show_local_ref_frame=False,
+                                          experimental_markers_color=(1, 1, 1),
+                                          background_color=(1.0, 1.0, 1.0),
+                                           )
+                       b.load_movement(interpolated_DoFs)
+                       b.set_camera_focus_point(0, 0, 2.5)
+                       b.set_camera_zoom(0.25)
+                       b.exec(frame_step=10,
+                              save_path=f"Kinograms/{filename}.svg")
+
 
 AngMom_angle_42 = []
 for i in range(len(AngMom_42)):
